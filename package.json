@@ -1,0 +1,20 @@
+{
+  "name": "edubuzz",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node dist/server/entry.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^8.3.0",
+    "@astrojs/tailwind": "^5.1.0",
+    "astro": "^4.11.0",
+    "pocketbase": "^0.21.5"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.4"
+  }
+}

@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-surface text-ink font-sans; }
+  h1,h2,h3 { @apply text-navy; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-accent text-white font-bold text-sm px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity cursor-pointer border-0;
+  }
+  .btn-outline {
+    @apply border border-border text-navy font-semibold text-sm px-4 py-2 rounded-lg hover:border-accent hover:text-accent transition-colors bg-white cursor-pointer;
+  }
+  .card {
+    @apply bg-white border border-border rounded-xl p-5;
+  }
+  .input {
+    @apply w-full border border-border rounded-lg px-3 py-2.5 text-sm text-ink placeholder-muted focus:outline-none focus:border-accent transition-colors;
+  }
+  .badge {
+    @apply inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wide uppercase;
+  }
+}

@@ -1,0 +1,56 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import JobCard from '../../components/JobCard.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { getJobs, PROVINCES } from '../../lib/pocketbase';
+
+const { slug } = Astro.params;
+const province = PROVINCES.find(p => p.toLowerCase().replace(/\s+/g, '-') === slug);
+if (!province) return Astro.redirect('/');
+
+const page = parseInt(Astro.url.searchParams.get('page') || '1');
+const { items: jobs, totalItems, totalPages } = await getJobs({ page, perPage: 20, province });
+---
+
+<Layout
+  title={`Jobs in ${province} | Edubuzz`}
+  description={`Find ${totalItems} jobs in ${province}, South Africa. Browse full-time, part-time and government roles in ${province}.`}
+>
+  <div class="bg-white border-b border-border py-10 px-6">
+    <div class="max-w-6xl mx-auto">
+      <a href="/" class="text-xs text-muted hover:text-navy mb-4 inline-block">← All jobs</a>
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">📍</span>
+        <h1 class="font-serif text-3xl text-navy">Jobs in {province}</h1>
+      </div>
+      <p class="text-muted text-sm">{totalItems.toLocaleString()} jobs available in {province}</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+    <div>
+      <div class="space-y-3">
+        {jobs.map(job => <JobCard job={job} />)}
+      </div>
+      {jobs.length === 0 && (
+        <div class="card text-center py-12">
+          <p class="text-muted">No jobs in {province} right now. Check back soon!</p>
+        </div>
+      )}
+      {totalPages > 1 && (
+        <div class="flex gap-1.5 mt-6 flex-wrap">
+          {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+            const p = i + 1;
+            return (
+              <a href={`/province/${slug}?page=${p}`}
+                class={`w-9 h-9 flex items-center justify-center rounded-lg text-sm border transition-colors ${p === page ? 'border-accent text-accent bg-accent-light font-bold' : 'border-border text-muted hover:border-accent bg-white'}`}>
+                {p}
+              </a>
+            );
+          })}
+        </div>
+      )}
+    </div>
+    <aside class="hidden lg:block"><Sidebar /></aside>
+  </div>
+</Layout>

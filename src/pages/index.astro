@@ -1,0 +1,156 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JobCard from '../components/JobCard.astro';
+import SearchForm from '../components/SearchForm.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getJobs, getCategories, getSiteStats } from '../lib/pocketbase';
+
+const url   = Astro.url;
+const page  = parseInt(url.searchParams.get('page') || '1');
+const search    = url.searchParams.get('search') || '';
+const province  = url.searchParams.get('province') || '';
+const job_type  = url.searchParams.get('job_type') || '';
+const category  = url.searchParams.get('category') || '';
+
+const { items: jobs, totalItems, totalPages } = await getJobs({
+  page, perPage: 20, search, province, job_type, category,
+});
+const stats = await getSiteStats();
+const cats  = await getCategories();
+
+const isFiltered = !!(search || province || job_type || category);
+
+function pageUrl(p: number) {
+  const params = new URLSearchParams({ search, province, job_type, category, page: String(p) });
+  return `/?${params}`;
+}
+---
+
+<Layout
+  title="Edubuzz.co.za — Find Jobs in South Africa"
+  description="Browse thousands of verified SA job listings across all industries and provinces. Updated daily."
+>
+
+  <!-- HERO -->
+  {!isFiltered && (
+    <section class="bg-white border-b border-border py-12 px-6">
+      <div class="max-w-6xl mx-auto">
+        <div class="inline-flex items-center gap-2 bg-accent-light text-accent text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wide mb-5">
+          <span class="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
+          South Africa's fastest growing job board
+        </div>
+
+        <h1 class="font-serif text-4xl md:text-5xl text-navy mb-4 leading-tight">
+          Find Your Next<br/><em class="text-accent not-italic">Opportunity</em> in SA
+        </h1>
+        <p class="text-base text-muted max-w-lg mb-8 leading-relaxed">
+          Verified jobs across all industries and provinces — manual listings, employer posts, and AI-written descriptions you can actually read.
+        </p>
+
+        <SearchForm search={search} province={province} job_type={job_type} />
+
+        <!-- Stats -->
+        <div class="flex flex-wrap gap-6 mt-8">
+          {[
+            { num: `${stats.jobs.toLocaleString()}+`, lbl: 'Live jobs' },
+            { num: '9',     lbl: 'Provinces covered' },
+            { num: `${cats.length}+`, lbl: 'Job categories' },
+            { num: 'Daily', lbl: 'Updated' },
+          ].map(({ num, lbl }) => (
+            <div class="flex items-baseline gap-2">
+              <span class="font-serif text-xl text-navy">{num}</span>
+              <span class="text-xs text-muted">{lbl}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- CATEGORY PILLS (homepage only, no filters) -->
+  {!isFiltered && (
+    <section class="bg-white border-b border-border py-4 px-6 overflow-x-auto">
+      <div class="max-w-6xl mx-auto flex gap-2 flex-nowrap">
+        {cats.map(cat => (
+          <a
+            href={`/category/${cat.slug}`}
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-full text-xs font-semibold text-muted whitespace-nowrap hover:border-accent hover:text-accent transition-colors"
+          >
+            <span class="text-[12px]">{cat.icon || '💼'}</span>
+            {cat.name}
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- MAIN BODY -->
+  <div class="max-w-6xl mx-auto px-6 py-8">
+
+    {isFiltered && (
+      <div class="mb-6">
+        <SearchForm search={search} province={province} job_type={job_type} />
+      </div>
+    )}
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+
+      <!-- Job list -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-bold text-navy">
+            {isFiltered ? `${totalItems.toLocaleString()} result${totalItems !== 1 ? 's' : ''}` : 'Latest opportunities'}
+            {search && <span class="font-normal text-muted"> for "{search}"</span>}
+          </h2>
+          <span class="text-xs text-muted">Page {page} of {totalPages}</span>
+        </div>
+
+        {jobs.length === 0 ? (
+          <div class="card text-center py-12">
+            <p class="text-2xl mb-2">🔍</p>
+            <p class="font-semibold text-navy mb-1">No jobs found</p>
+            <p class="text-sm text-muted mb-4">Try adjusting your search filters</p>
+            <a href="/" class="btn-primary">Clear filters</a>
+          </div>
+        ) : (
+          <div class="space-y-3">
+            {jobs.map(job => <JobCard job={job} />)}
+          </div>
+        )}
+
+        <!-- Pagination -->
+        {totalPages > 1 && (
+          <div class="flex items-center gap-1.5 mt-6 flex-wrap">
+            {page > 1 && (
+              <a href={pageUrl(page - 1)} class="px-3 py-2 border border-border rounded-lg text-sm text-muted hover:border-accent hover:text-accent bg-white transition-colors">← Prev</a>
+            )}
+            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+              const p = i + 1;
+              return (
+                <a
+                  href={pageUrl(p)}
+                  class={`w-9 h-9 flex items-center justify-center rounded-lg text-sm border transition-colors ${p === page ? 'border-accent text-accent bg-accent-light font-bold' : 'border-border text-muted hover:border-accent hover:text-accent bg-white'}`}
+                >
+                  {p}
+                </a>
+              );
+            })}
+            {totalPages > 7 && <span class="px-2 text-muted text-sm">…</span>}
+            {totalPages > 7 && (
+              <a href={pageUrl(totalPages)} class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border border-border text-muted hover:border-accent hover:text-accent bg-white transition-colors">{totalPages}</a>
+            )}
+            {page < totalPages && (
+              <a href={pageUrl(page + 1)} class="px-3 py-2 border border-border rounded-lg text-sm text-muted hover:border-accent hover:text-accent bg-white transition-colors">Next →</a>
+            )}
+          </div>
+        )}
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="hidden lg:block">
+        <Sidebar />
+      </aside>
+    </div>
+  </div>
+
+</Layout>

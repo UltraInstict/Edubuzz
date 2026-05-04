@@ -1,0 +1,58 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import JobCard from '../../components/JobCard.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { getJobs, getCategoryBySlug } from '../../lib/pocketbase';
+
+const { slug } = Astro.params;
+const category = await getCategoryBySlug(slug!);
+if (!category) return Astro.redirect('/');
+
+const page = parseInt(Astro.url.searchParams.get('page') || '1');
+const { items: jobs, totalItems, totalPages } = await getJobs({
+  page, perPage: 20, category: category.name,
+});
+---
+
+<Layout
+  title={`${category.name} Jobs in South Africa | Edubuzz`}
+  description={`Browse ${totalItems} ${category.name} jobs across South Africa. Find full-time, part-time and government ${category.name} roles — updated daily.`}
+>
+  <div class="bg-white border-b border-border py-10 px-6">
+    <div class="max-w-6xl mx-auto">
+      <a href="/" class="text-xs text-muted hover:text-navy mb-4 inline-block">← All jobs</a>
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">{category.icon || '💼'}</span>
+        <h1 class="font-serif text-3xl text-navy">{category.name} Jobs</h1>
+      </div>
+      <p class="text-muted text-sm">{totalItems.toLocaleString()} jobs available across South Africa</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+    <div>
+      <div class="space-y-3">
+        {jobs.map(job => <JobCard job={job} />)}
+      </div>
+      {jobs.length === 0 && (
+        <div class="card text-center py-12">
+          <p class="text-muted">No {category.name} jobs at the moment. Check back soon!</p>
+        </div>
+      )}
+      {totalPages > 1 && (
+        <div class="flex gap-1.5 mt-6 flex-wrap">
+          {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+            const p = i + 1;
+            return (
+              <a href={`/category/${slug}?page=${p}`}
+                class={`w-9 h-9 flex items-center justify-center rounded-lg text-sm border transition-colors ${p === page ? 'border-accent text-accent bg-accent-light font-bold' : 'border-border text-muted hover:border-accent bg-white'}`}>
+                {p}
+              </a>
+            );
+          })}
+        </div>
+      )}
+    </div>
+    <aside class="hidden lg:block"><Sidebar /></aside>
+  </div>
+</Layout>

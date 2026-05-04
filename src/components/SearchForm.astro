@@ -1,0 +1,69 @@
+---
+import { PROVINCES, JOB_TYPES } from '../lib/pocketbase';
+
+interface Props {
+  search?: string;
+  province?: string;
+  job_type?: string;
+  category?: string;
+}
+const { search = '', province = '', job_type = '', category = '' } = Astro.props;
+---
+
+<form method="GET" action="/" class="bg-white border-2 border-border rounded-2xl p-2 flex flex-wrap gap-1 focus-within:border-accent transition-colors max-w-3xl">
+  <!-- Keyword -->
+  <div class="flex items-center gap-2 flex-[2] min-w-[160px] px-3 py-2 border-r border-border">
+    <svg class="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input
+      type="text"
+      name="search"
+      value={search}
+      placeholder="Job title, skill or company…"
+      class="border-0 outline-none text-sm text-ink placeholder-muted w-full font-sans bg-transparent"
+    />
+  </div>
+
+  <!-- Province -->
+  <div class="flex items-center gap-2 flex-1 min-w-[130px] px-3 py-2 border-r border-border">
+    <svg class="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+    </svg>
+    <select name="province" class="border-0 outline-none text-sm text-ink w-full bg-transparent font-sans">
+      <option value="">All provinces</option>
+      {PROVINCES.map(p => <option value={p} selected={province === p}>{p}</option>)}
+    </select>
+  </div>
+
+  <!-- Job type -->
+  <div class="flex items-center gap-2 flex-1 min-w-[120px] px-3 py-2">
+    <svg class="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+    </svg>
+    <select name="job_type" class="border-0 outline-none text-sm text-ink w-full bg-transparent font-sans">
+      <option value="">All types</option>
+      {JOB_TYPES.map(t => <option value={t} selected={job_type === t}>{t}</option>)}
+    </select>
+  </div>
+
+  <button type="submit" class="btn-primary px-6 rounded-xl">
+    Search Jobs
+  </button>
+</form>
+
+<!-- Quick filter pills -->
+<div class="flex flex-wrap gap-2 mt-3">
+  {['All', 'Full-time', 'Part-time', 'Government', 'Internship', 'Contract', 'Remote'].map(type => {
+    const val = type === 'All' ? '' : type;
+    const active = (type === 'All' && !job_type) || job_type === val;
+    return (
+      <a
+        href={`/?${new URLSearchParams({ search, province, job_type: val }).toString()}`}
+        class={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${active ? 'border-accent text-accent bg-accent-light' : 'border-border text-muted hover:border-accent hover:text-accent bg-white'}`}
+      >
+        {type}
+      </a>
+    );
+  })}
+</div>

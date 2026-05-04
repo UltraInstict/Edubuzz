@@ -1,0 +1,247 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import JobCard from '../../components/JobCard.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { getJobBySlug, getRelatedJobs, formatSalary, timeAgo } from '../../lib/pocketbase';
+
+const { slug } = Astro.params;
+const job = await getJobBySlug(slug!);
+
+if (!job) return Astro.redirect('/404');
+
+const related = await getRelatedJobs(job.category, job.id, 3);
+
+// JSON-LD structured data — critical for Google Jobs rich results
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'JobPosting',
+  title: job.title,
+  description: job.description.replace(/<[^>]+>/g, ' ').trim(),
+  datePosted: job.created.split(' ')[0],
+  validThrough: job.expires || '',
+  employmentType: job.job_type.toUpperCase().replace(/-/g, '_'),
+  hiringOrganization: {
+    '@type': 'Organization',
+    name: job.company,
+  },
+  jobLocation: {
+    '@type': 'Place',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: job.city || job.province,
+      addressRegion: job.province,
+      addressCountry: 'ZA',
+    },
+  },
+  ...(job.salary_min ? {
+    baseSalary: {
+      '@type': 'MonetaryAmount',
+      currency: 'ZAR',
+      value: {
+        '@type': 'QuantitativeValue',
+        minValue: job.salary_min,
+        maxValue: job.salary_max,
+        unitText: 'YEAR',
+      },
+    },
+  } : {}),
+};
+---
+
+<Layout
+  title={`${job.title} at ${job.company} | Edubuzz`}
+  description={`Apply for ${job.title} at ${job.company} in ${job.city || job.province}. ${job.job_type} position${job.salary_min ? ` — ${formatSalary(job.salary_min, job.salary_max)}` : ''}.`}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- Breadcrumb -->
+  <div class="bg-white border-b border-border">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-2 text-xs text-muted">
+      <a href="/" class="hover:text-navy transition-colors">Jobs</a>
+      <span>/</span>
+      <a href={`/category/${job.category?.toLowerCase().replace(/\s+/g, '-')}`} class="hover:text-navy transition-colors">{job.category}</a>
+      <span>/</span>
+      <span class="text-navy">{job.title}</span>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+
+      <!-- Main content -->
+      <div>
+
+        <!-- Job header card -->
+        <div class="card mb-6">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 rounded-xl border border-border bg-surface flex items-center justify-center font-serif text-2xl text-navy shrink-0">
+                {job.company?.slice(0, 1).toUpperCase()}
+              </div>
+              <div>
+                <div class="flex flex-wrap gap-1.5 mb-1">
+                  {job.featured && <span class="badge bg-accent-light text-accent">Featured</span>}
+                  {job.ai_written && <span class="badge bg-purple-light text-purple">AI Written</span>}
+                  <span class="badge bg-surface text-muted border border-border">{job.job_type}</span>
+                </div>
+                <h1 class="text-xl font-bold text-navy">{job.title}</h1>
+                <p class="text-sm text-muted mt-0.5">{job.company}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key details grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            {[
+              { icon: '📍', label: 'Location', val: job.city ? `${job.city}, ${job.province}` : job.province },
+              { icon: '💰', label: 'Salary', val: formatSalary(job.salary_min, job.salary_max) },
+              { icon: '🗂', label: 'Category', val: job.category },
+              { icon: '🕒', label: 'Posted', val: timeAgo(job.created) },
+            ].map(({ icon, label, val }) => (
+              <div class="bg-surface rounded-lg p-3 border border-border">
+                <div class="text-base mb-1">{icon}</div>
+                <div class="text-[10px] uppercase font-bold text-muted tracking-wide">{label}</div>
+                <div class="text-sm font-semibold text-navy mt-0.5">{val}</div>
+              </div>
+            ))}
+          </div>
+
+          <!-- Apply buttons -->
+          <div class="flex flex-wrap gap-3">
+            {job.apply_url && (
+              <a href={job.apply_url} target="_blank" rel="noopener" class="btn-primary flex-1 text-center">
+                Apply on company site →
+              </a>
+            )}
+            <button
+              id="apply-toggle"
+              class="btn-outline flex-1"
+            >
+              Apply via Edubuzz
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Apply Form (hidden by default) -->
+        <div id="apply-form-wrap" class="card mb-6 hidden">
+          <h2 class="text-base font-bold text-navy mb-4">Quick application</h2>
+          <form id="apply-form" class="space-y-4">
+            <input type="hidden" name="job" value={job.id} />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Full name *</label>
+                <input type="text" name="name" required class="input" placeholder="Your full name" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Email *</label>
+                <input type="email" name="email" required class="input" placeholder="your@email.com" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-navy mb-1">Phone number</label>
+              <input type="tel" name="phone" class="input" placeholder="+27 xx xxx xxxx" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-navy mb-1">Cover letter</label>
+              <textarea name="cover_letter" rows="5" class="input resize-none" placeholder="Tell the employer why you're a great fit…"></textarea>
+            </div>
+            <div id="apply-error" class="text-xs text-danger hidden"></div>
+            <div id="apply-success" class="text-sm text-success font-semibold hidden">✓ Application submitted! Good luck.</div>
+            <button type="submit" class="btn-primary w-full">Submit application</button>
+          </form>
+        </div>
+
+        <!-- Job description -->
+        <div class="card mb-6">
+          <h2 class="text-base font-bold text-navy mb-4">Job description</h2>
+          <div class="prose prose-sm max-w-none text-ink leading-relaxed" set:html={job.description} />
+        </div>
+
+        <!-- Share -->
+        <div class="card mb-6">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-muted mb-3">Share this job</h3>
+          <div class="flex gap-2">
+            {[
+              { label: 'WhatsApp', href: `https://wa.me/?text=${encodeURIComponent(`${job.title} at ${job.company} — ${Astro.url.href}`)}`, color: 'bg-green-500 text-white' },
+              { label: 'LinkedIn', href: `https://linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(Astro.url.href)}`, color: 'bg-blue-700 text-white' },
+              { label: 'X/Twitter', href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${job.title} at ${job.company}`)}&url=${encodeURIComponent(Astro.url.href)}`, color: 'bg-black text-white' },
+            ].map(({ label, href, color }) => (
+              <a href={href} target="_blank" rel="noopener" class={`flex-1 text-center text-xs font-bold py-2 rounded-lg ${color} hover:opacity-80 transition-opacity`}>{label}</a>
+            ))}
+          </div>
+        </div>
+
+        <!-- Related jobs -->
+        {related.length > 0 && (
+          <div>
+            <h2 class="text-base font-bold text-navy mb-4">Similar jobs</h2>
+            <div class="space-y-3">
+              {related.map(j => <JobCard job={j} compact />)}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="hidden lg:block">
+        <Sidebar />
+      </aside>
+    </div>
+  </div>
+</Layout>
+
+<script>
+// Toggle apply form
+document.getElementById('apply-toggle')?.addEventListener('click', () => {
+  const wrap = document.getElementById('apply-form-wrap')!;
+  wrap.classList.toggle('hidden');
+  if (!wrap.classList.contains('hidden')) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+// Submit application
+document.getElementById('apply-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target as HTMLFormElement;
+  const data = Object.fromEntries(new FormData(form));
+  const err = document.getElementById('apply-error')!;
+  const ok  = document.getElementById('apply-success')!;
+  const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    const res = await fetch('/api/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      ok.classList.remove('hidden');
+      err.classList.add('hidden');
+      form.reset();
+      btn.textContent = 'Submitted ✓';
+    } else {
+      const body = await res.json();
+      err.textContent = body.message || 'Submission failed. Please try again.';
+      err.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Submit application';
+    }
+  } catch {
+    err.textContent = 'Network error. Please try again.';
+    err.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = 'Submit application';
+  }
+});
+</script>
+
+<style>
+.prose h2 { @apply text-base font-bold text-navy mt-5 mb-2; }
+.prose h3 { @apply text-sm font-bold text-navy mt-4 mb-1.5; }
+.prose p  { @apply text-sm text-ink mb-3 leading-relaxed; }
+.prose ul { @apply list-disc pl-5 mb-3 space-y-1; }
+.prose li { @apply text-sm text-ink; }
+.prose strong { @apply font-semibold text-navy; }
+</style>

@@ -1,0 +1,217 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { PROVINCES, JOB_TYPES } from '../lib/pocketbase';
+---
+
+<Layout
+  title="Post a Job in South Africa | Edubuzz"
+  description="Post your job listing on Edubuzz and reach thousands of active job seekers across all 9 provinces of South Africa."
+>
+  <div class="bg-white border-b border-border py-10 px-6">
+    <div class="max-w-2xl mx-auto text-center">
+      <h1 class="font-serif text-3xl text-navy mb-2">Post a Job</h1>
+      <p class="text-muted text-sm">Reach thousands of active job seekers across South Africa. Your listing will be reviewed and live within 24 hours.</p>
+    </div>
+  </div>
+
+  <div class="max-w-2xl mx-auto px-6 py-10">
+
+    <!-- Benefits -->
+    <div class="grid grid-cols-3 gap-4 mb-8">
+      {[
+        { icon: '⚡', title: 'Live in 24h', desc: 'Quick review process' },
+        { icon: '🇿🇦', title: 'All provinces', desc: 'Nationwide reach' },
+        { icon: '🆓', title: 'Free to post', desc: 'No credit card needed' },
+      ].map(({ icon, title, desc }) => (
+        <div class="card text-center">
+          <div class="text-2xl mb-1">{icon}</div>
+          <div class="text-sm font-bold text-navy">{title}</div>
+          <div class="text-xs text-muted">{desc}</div>
+        </div>
+      ))}
+    </div>
+
+    <div class="card">
+      <h2 class="text-base font-bold text-navy mb-5">Job details</h2>
+
+      <form id="post-job-form" class="space-y-5">
+
+        <!-- Employer info -->
+        <div class="pb-4 border-b border-border">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-muted mb-3">Your details</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-navy mb-1">Your name *</label>
+              <input type="text" name="employer_name" required class="input" placeholder="Full name" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-navy mb-1">Your email *</label>
+              <input type="email" name="employer_email" required class="input" placeholder="you@company.com" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Job info -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-muted mb-3">Job details</h3>
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Company name *</label>
+                <input type="text" name="company" required class="input" placeholder="ACME Corp" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Job title *</label>
+                <input type="text" name="title" required class="input" placeholder="e.g. Software Developer" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Province *</label>
+                <select name="province" required class="input">
+                  <option value="">Select province</option>
+                  {PROVINCES.map(p => <option value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">City</label>
+                <input type="text" name="city" class="input" placeholder="City name" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Job type *</label>
+                <select name="job_type" required class="input">
+                  <option value="">Select type</option>
+                  {JOB_TYPES.map(t => <option value={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <!-- AI Generate button -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-xs font-semibold text-navy">Job description *</label>
+                <button type="button" id="ai-gen-btn" class="flex items-center gap-1.5 text-xs font-semibold text-purple bg-purple-light px-3 py-1 rounded-full hover:opacity-80 transition-opacity">
+                  ✨ Generate with AI
+                </button>
+              </div>
+              <div id="ai-loading" class="hidden text-xs text-muted italic mb-2">Generating description…</div>
+              <textarea
+                name="description"
+                id="description-field"
+                required
+                rows="8"
+                class="input resize-none"
+                placeholder="Describe the role, responsibilities, requirements and what you offer…"
+              ></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Min salary (ZAR/year)</label>
+                <input type="number" name="salary_min" class="input" placeholder="180000" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Max salary (ZAR/year)</label>
+                <input type="number" name="salary_max" class="input" placeholder="250000" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Apply URL</label>
+                <input type="url" name="apply_url" class="input" placeholder="https://…" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1">Apply email</label>
+                <input type="email" name="apply_email" class="input" placeholder="jobs@company.com" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="post-error" class="text-xs text-danger hidden"></div>
+        <div id="post-success" class="hidden card bg-success-light border-green-200 text-center py-6">
+          <p class="text-2xl mb-2">🎉</p>
+          <p class="font-bold text-navy mb-1">Job submitted!</p>
+          <p class="text-sm text-muted">We'll review your listing and have it live within 24 hours. Check your email for confirmation.</p>
+        </div>
+        <button type="submit" class="btn-primary w-full py-3 text-base">Submit Job Listing</button>
+      </form>
+    </div>
+  </div>
+</Layout>
+
+<script>
+// AI generate description
+document.getElementById('ai-gen-btn')?.addEventListener('click', async () => {
+  const form = document.getElementById('post-job-form') as HTMLFormElement;
+  const data = Object.fromEntries(new FormData(form));
+  const loading = document.getElementById('ai-loading')!;
+  const btn = document.getElementById('ai-gen-btn')!;
+  const field = document.getElementById('description-field') as HTMLTextAreaElement;
+
+  if (!data.title || !data.company) {
+    alert('Please fill in the job title and company name first.');
+    return;
+  }
+
+  loading.classList.remove('hidden');
+  btn.setAttribute('disabled', 'true');
+  btn.textContent = '✨ Generating…';
+
+  try {
+    const res = await fetch('/api/generate-description', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: data.title, company: data.company, province: data.province, job_type: data.job_type, salary_min: data.salary_min, salary_max: data.salary_max }),
+    });
+    const body = await res.json();
+    if (body.description) {
+      field.value = body.description;
+    } else {
+      alert('Generation failed. Please write the description manually.');
+    }
+  } catch {
+    alert('Network error. Please write the description manually.');
+  } finally {
+    loading.classList.add('hidden');
+    btn.removeAttribute('disabled');
+    btn.textContent = '✨ Generate with AI';
+  }
+});
+
+// Submit form
+document.getElementById('post-job-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target as HTMLFormElement;
+  const data = Object.fromEntries(new FormData(form));
+  const err = document.getElementById('post-error')!;
+  const ok  = document.getElementById('post-success')!;
+  const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    const res = await fetch('/api/post-job', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      ok.classList.remove('hidden');
+      form.classList.add('hidden');
+    } else {
+      const body = await res.json();
+      err.textContent = body.message || 'Submission failed. Please try again.';
+      err.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Submit Job Listing';
+    }
+  } catch {
+    err.textContent = 'Network error. Please try again.';
+    err.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = 'Submit Job Listing';
+  }
+});
+</script>

@@ -1,0 +1,126 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const {
+  title = 'Edubuzz.co.za — Find Your Next Job in South Africa',
+  description = 'Browse thousands of verified job listings across all industries and provinces in South Africa. Updated daily.',
+  ogImage = '/og-default.png',
+} = Astro.props;
+
+const currentPath = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="sitemap" href="/sitemap.xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+</head>
+<body class="min-h-screen flex flex-col bg-surface">
+
+  <!-- NAV -->
+  <nav class="bg-white border-b border-border sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between gap-6">
+
+      <a href="/" class="flex items-center gap-1 shrink-0">
+        <span class="font-serif text-xl text-navy">Edu<span class="text-accent">buzz</span></span>
+        <span class="bg-accent text-white font-sans text-[9px] font-bold px-1.5 py-0.5 rounded mb-2 tracking-wide">ZA</span>
+      </a>
+
+      <ul class="hidden md:flex items-center gap-6 list-none">
+        {[
+          { href: '/',            label: 'Jobs' },
+          { href: '/category/government', label: 'Government' },
+          { href: '/category/internship', label: 'Internships' },
+          { href: '/companies',   label: 'Companies' },
+          { href: '/blog',        label: 'Blog' },
+        ].map(({ href, label }) => (
+          <li>
+            <a
+              href={href}
+              class={`text-sm font-medium transition-colors ${currentPath === href ? 'text-navy font-semibold' : 'text-muted hover:text-navy'}`}
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <div class="flex items-center gap-2">
+        <a href="/post-job" class="btn-outline hidden sm:inline-flex">Post a Job</a>
+        <a href="/post-job" class="btn-primary">Hire Now</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE CONTENT -->
+  <main class="flex-1">
+    <slot />
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-border mt-16">
+    <div class="max-w-6xl mx-auto px-6 py-10">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <div class="font-serif text-lg text-navy mb-3">Edu<span class="text-accent">buzz</span></div>
+          <p class="text-xs text-muted leading-relaxed">South Africa's fastest growing job board. Connecting talent with opportunity across all 9 provinces.</p>
+        </div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-muted mb-3">Browse</div>
+          <ul class="space-y-2 list-none">
+            {['Government', 'Health', 'IT & Tech', 'Engineering', 'Finance'].map(c => (
+              <li><a href={`/category/${c.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-')}`} class="text-xs text-muted hover:text-navy transition-colors">{c} Jobs</a></li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-muted mb-3">Provinces</div>
+          <ul class="space-y-2 list-none">
+            {['Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape', 'Limpopo'].map(p => (
+              <li><a href={`/province/${p.toLowerCase().replace(/\s+/g, '-')}`} class="text-xs text-muted hover:text-navy transition-colors">{p}</a></li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-muted mb-3">Company</div>
+          <ul class="space-y-2 list-none">
+            {[
+              { href: '/about',       label: 'About us' },
+              { href: '/post-job',    label: 'Post a job' },
+              { href: '/contact',     label: 'Contact' },
+              { href: '/privacy',     label: 'Privacy policy' },
+              { href: '/sitemap.xml', label: 'Sitemap' },
+            ].map(({ href, label }) => (
+              <li><a href={href} class="text-xs text-muted hover:text-navy transition-colors">{label}</a></li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p class="text-xs text-muted">© {new Date().getFullYear()} Edubuzz.co.za — All rights reserved</p>
+        <p class="text-xs text-muted">Built for South African job seekers 🇿🇦</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
