@@ -1,106 +1,202 @@
 ---
-import { getCategories, PROVINCES } from '../lib/pocketbase';
-const categories = await getCategories();
+import AdSlot from './AdSlot.astro';
+import { getCategories, PROVINCES, slugify } from '../lib/pocketbase';
+
+const categories = await getCategories(7);
 ---
 
-<!-- Categories -->
-<div class="card mb-4">
-  <h3 class="text-[11px] font-bold uppercase tracking-wider text-muted mb-3">Browse categories</h3>
-  <ul class="divide-y divide-border list-none">
-    {categories.slice(0, 8).map(cat => (
-      <li>
-        <a href={`/category/${cat.slug}`} class="flex items-center justify-between py-2 group">
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-md bg-surface border border-border flex items-center justify-center text-xs">{cat.icon || '💼'}</span>
-            <span class="text-sm text-navy font-medium group-hover:text-accent transition-colors">{cat.name}</span>
-          </div>
-          <span class="text-[11px] text-muted bg-surface border border-border px-2 py-0.5 rounded-full">{cat.job_count || 0}</span>
+<div class="sidebar-stack">
+  <AdSlot size="rectangle" />
+
+  <section class="side-card">
+    <h2>Browse by category</h2>
+    <div class="category-list">
+      {categories.map((cat) => (
+        <a href={`/category/${cat.slug}`} class="category-row">
+          <span>{cat.name}</span>
+          <span class="count">{cat.job_count || 0}</span>
         </a>
-      </li>
-    ))}
-  </ul>
-  <a href="/categories" class="block text-center text-xs text-accent font-semibold mt-3 hover:underline">View all categories →</a>
-</div>
+      ))}
+      <a href="/categories" class="view-all">View all</a>
+    </div>
+  </section>
 
-<!-- Provinces -->
-<div class="card mb-4">
-  <h3 class="text-[11px] font-bold uppercase tracking-wider text-muted mb-3">Top provinces</h3>
-  <ul class="divide-y divide-border list-none">
-    {PROVINCES.slice(0, 6).map(p => (
-      <li>
-        <a href={`/province/${p.toLowerCase().replace(/\s+/g, '-')}`} class="flex items-center justify-between py-1.5 text-sm text-muted hover:text-navy transition-colors">
-          {p}
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
-        </a>
-      </li>
-    ))}
-  </ul>
-</div>
+  <section class="side-card">
+    <h2>Browse by province</h2>
+    <div class="province-grid">
+      {PROVINCES.map((province) => (
+        <a href={`/province/${slugify(province)}`}>{province}</a>
+      ))}
+    </div>
+  </section>
 
-<!-- Job Alert signup -->
-<div class="bg-navy rounded-xl p-5">
-  <h3 class="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2">Job alerts</h3>
-  <p class="font-serif text-lg text-white mb-1">Never miss a role</p>
-  <p class="text-xs text-white/50 mb-4 leading-relaxed">Get new matching jobs in your inbox the moment they're posted.</p>
+  <section class="side-card">
+    <h2>Job alert signup</h2>
+    <form id="alert-form" action="/api/alerts" method="post" novalidate>
+      <label>
+        Email
+        <input class="form-field" type="email" name="email" required />
+      </label>
+      <label>
+        Keyword
+        <input class="form-field" type="text" name="keyword" />
+      </label>
+      <label>
+        Province
+        <select class="form-field" name="province">
+          <option value="">Any province</option>
+          {PROVINCES.map((province) => <option value={province}>{province}</option>)}
+        </select>
+      </label>
+      <p id="alert-error" class="alert-error" hidden>Email is required.</p>
+      <p id="alert-status" class="alert-status" hidden></p>
+      <button type="submit">Create alert</button>
+    </form>
+  </section>
 
-  <form id="alert-form" class="space-y-2">
-    <input
-      type="email"
-      name="email"
-      required
-      placeholder="your@email.com"
-      class="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-white/40 transition-colors font-sans"
-    />
-    <input
-      type="text"
-      name="keyword"
-      placeholder="Job title or keyword…"
-      class="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-white/40 transition-colors font-sans"
-    />
-    <select
-      name="province"
-      class="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-sm text-white/70 outline-none focus:border-white/40 transition-colors font-sans"
-    >
-      <option value="">Any province</option>
-      {PROVINCES.map(p => <option value={p}>{p}</option>)}
-    </select>
-    <button type="submit" class="w-full py-2.5 bg-white text-navy font-bold text-sm rounded-lg hover:bg-white/90 transition-colors font-sans">
-      Create free alert
-    </button>
-    <p id="alert-msg" class="text-xs text-white/50 text-center hidden"></p>
-  </form>
-</div>
-
-<!-- Post a job CTA -->
-<div class="mt-4 bg-accent-light border border-blue-200 rounded-xl p-5 text-center">
-  <p class="font-serif text-base text-navy mb-1">Hiring in SA?</p>
-  <p class="text-xs text-muted mb-3 leading-relaxed">Post a job and reach thousands of active candidates.</p>
-  <a href="/post-job" class="btn-primary w-full block text-center">Post a Job — Free</a>
+  <AdSlot size="rectangle" />
 </div>
 
 <script>
-document.getElementById('alert-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.target as HTMLFormElement;
-  const data = Object.fromEntries(new FormData(form));
-  const msg = document.getElementById('alert-msg')!;
-  try {
-    const res = await fetch('/api/alerts', {
+  document.getElementById('alert-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const email = form.email.value.trim();
+    const error = document.getElementById('alert-error') as HTMLParagraphElement;
+    const status = document.getElementById('alert-status') as HTMLParagraphElement;
+
+    error.hidden = true;
+    status.hidden = true;
+
+    if (!email) {
+      error.hidden = false;
+      return;
+    }
+
+    const response = await fetch('/api/alerts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(Object.fromEntries(new FormData(form))),
     });
-    if (res.ok) {
-      msg.textContent = '✓ Alert created! Check your email.';
-      msg.classList.remove('hidden');
-      form.reset();
-    } else {
-      msg.textContent = 'Something went wrong. Try again.';
-      msg.classList.remove('hidden');
-    }
-  } catch {
-    msg.textContent = 'Network error. Try again.';
-    msg.classList.remove('hidden');
-  }
-});
+    const body = await response.json().catch(() => ({}));
+    status.textContent = response.ok ? 'Alert created.' : (body.message || 'Could not create alert.');
+    status.hidden = false;
+    if (response.ok) form.reset();
+  });
 </script>
+
+<style>
+  .sidebar-stack {
+    display: grid;
+    gap: 16px;
+  }
+
+  .side-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+  }
+
+  .side-card h2 {
+    margin: 0 0 10px;
+    color: #1a1a1a;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .category-list {
+    display: grid;
+    gap: 2px;
+  }
+
+  .category-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: #444444;
+    font-size: 13px;
+    padding: 5px 0;
+  }
+
+  .category-row:hover,
+  .view-all:hover,
+  .province-grid a:hover {
+    color: #2d6a4f;
+  }
+
+  .count {
+    background: #f3f2ee;
+    border-radius: 10px;
+    color: #888888;
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+
+  .view-all {
+    color: #2d6a4f;
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 6px;
+  }
+
+  .province-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .province-grid a {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    color: #444444;
+    font-size: 12px;
+    line-height: 1.3;
+    padding: 6px 7px;
+    text-align: center;
+  }
+
+  form {
+    display: grid;
+    gap: 8px;
+  }
+
+  label {
+    display: grid;
+    gap: 4px;
+    color: #444444;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  button {
+    width: 100%;
+    border: 1px solid #2d6a4f;
+    border-radius: 4px;
+    background: #2d6a4f;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 12px;
+  }
+
+  button:hover {
+    background: #245a42;
+    border-color: #245a42;
+  }
+
+  .alert-error,
+  .alert-status {
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .alert-error {
+    color: #9b1c1c;
+  }
+
+  .alert-status {
+    color: #2d6a4f;
+  }
+</style>

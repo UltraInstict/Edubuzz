@@ -37,6 +37,7 @@ onRecordAfterUpdateRequest((e) => {
     const job = new Record(jobsCol);
     job.set('title',       e.record.get('title'));
     job.set('company',     e.record.get('company'));
+    job.set('category',    e.record.get('category') || '');
     job.set('description', e.record.get('description'));
     job.set('province',    e.record.get('province'));
     job.set('city',        e.record.get('city') || '');
@@ -47,6 +48,9 @@ onRecordAfterUpdateRequest((e) => {
     job.set('apply_email', e.record.get('apply_email') || '');
     job.set('source',      'employer');
     job.set('active',      true);
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 30);
+    job.set('expires',     expires.toISOString());
     job.set('featured',    false);
     job.set('ai_written',  false);
     $app.dao().saveRecord(job);
@@ -92,10 +96,10 @@ onRecordAfterCreateRequest((e) => {
   if (!e.record.get('active')) return;
 
   try {
-    const title    = e.record.get('title') as string;
-    const company  = e.record.get('company') as string;
-    const province = e.record.get('province') as string;
-    const slug     = e.record.get('slug') as string;
+    const title    = e.record.get('title');
+    const company  = e.record.get('company');
+    const province = e.record.get('province');
+    const slug     = e.record.get('slug');
     const jobUrl   = `https://edubuzz.co.za/job/${slug}`;
 
     const alerts = $app.dao().findRecordsByFilter(
@@ -105,13 +109,13 @@ onRecordAfterCreateRequest((e) => {
     );
 
     for (const alert of alerts) {
-      const alertProvince = alert.get('province') as string;
+      const alertProvince = alert.get('province');
       if (alertProvince && alertProvince !== province) continue;
 
       try {
         $app.newMailClient().send({
           from: { address: $app.settings().smtp.username, name: 'Edubuzz Job Alert' },
-          to: [{ address: alert.get('email') as string }],
+          to: [{ address: alert.get('email') }],
           subject: `New job: ${title} at ${company}`,
           html: `<p>A new job matching your alert has been posted:</p>
 <p><strong>${title}</strong> at ${company}<br>${province}</p>
@@ -122,5 +126,22 @@ onRecordAfterCreateRequest((e) => {
     }
   } catch (err) {
     $app.logger().error('Failed to send job alerts', 'error', err);
+  }
+}, 'jobs');
+
+onRecordBeforeCreateRequest((e) => {
+  if (e.record.collection().name !== 'jobs') return;
+  if (!e.record.get('expires')) {
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 30);
+    e.record.set('expires', expires.toISOString());
+  }
+}, 'jobs');
+
+onRecordBeforeUpdateRequest((e) => {
+  if (e.record.collection().name !== 'jobs') return;
+  const expires = e.record.get('expires');
+  if (expires && new Date(expires).getTime() <= Date.now()) {
+    e.record.set('active', false);
   }
 }, 'jobs');

@@ -1,0 +1,33 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getAdminPB, requireAdmin } from '../../lib/auth';
+
+const { redirect, user } = requireAdmin(Astro.request);
+if (redirect) return redirect;
+const pb = await getAdminPB();
+const settings = await pb.collection('admin_settings').getFullList({ sort: 'key' }).catch(() => []);
+const defaults = ['site_name','tagline','adsense_publisher_id','jobs_per_page','featured_listing_price','ai_generate_enabled','import_enabled'];
+const rows = defaults.map((key) => settings.find((s: any) => s.key === key) || { key, value: '' });
+---
+<Layout title="Admin Settings" description="Edit site settings." canonicalUrl={Astro.url.href}>
+  <main class="admin-wrap">
+    <header><h1>Settings</h1><a href="/admin">Dashboard</a></header>
+    <form id="settings-form" class="panel">
+      {rows.map((row: any) => <label>{row.key}<input class="form-field" name={row.key} value={row.value} /></label>)}
+      <p id="message" hidden></p><button>Save settings</button>
+    </form>
+  </main>
+</Layout>
+<script>
+document.getElementById('settings-form')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget as HTMLFormElement;
+  const response = await fetch('/api/admin/settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(Object.fromEntries(new FormData(form))) });
+  const message = document.getElementById('message') as HTMLParagraphElement;
+  message.textContent = response.ok ? 'Settings saved.' : 'Could not save settings.';
+  message.hidden = false;
+});
+</script>
+<style>
+.admin-wrap{max-width:720px;margin:1.5rem auto;padding:0 1.5rem}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}h1{font-size:22px;font-weight:600;margin:0;letter-spacing:-0.3px}a{color:#2d6a4f}form{display:grid;gap:10px}label{display:grid;gap:4px;color:#444;font-size:12px;font-weight:500}button{border:1px solid #2d6a4f;background:#2d6a4f;color:#fff;border-radius:4px;padding:10px 14px;font-weight:600}
+</style>

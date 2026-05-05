@@ -1,11 +1,31 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import JobCard from '../components/JobCard.astro';
+import { getJobs } from '../lib/pocketbase';
+
+const suggestions = await getJobs({ perPage: 4 }).catch(() => ({ items: [] }));
 ---
-<Layout title="Page not found | Edubuzz">
-  <div class="max-w-6xl mx-auto px-6 py-24 text-center">
-    <p class="text-6xl mb-4">🔍</p>
-    <h1 class="font-serif text-4xl text-navy mb-3">Page not found</h1>
-    <p class="text-muted mb-8">The job or page you're looking for doesn't exist or may have expired.</p>
-    <a href="/" class="btn-primary">Browse all jobs</a>
-  </div>
+
+<Layout title="Page not found" description="This page doesn't exist." canonicalUrl="">
+  <main class="not-found">
+    <p class="code">404</p>
+    <h1>This job may have expired</h1>
+    <p>The listing you're looking for has been removed, filled, or never existed.</p>
+    <a href="/" class="btn-home">Browse all jobs -></a>
+    {suggestions.items.length > 0 && (
+      <section class="suggestions">
+        <p>Or try one of these:</p>
+        {suggestions.items.map((job) => <JobCard job={job} compact />)}
+      </section>
+    )}
+  </main>
 </Layout>
+
+<style>
+  .not-found { max-width: 720px; margin: 0 auto; min-height: 56vh; padding: 3rem 1rem; text-align: center; }
+  .code { margin: 0; color: #888888; font-size: 56px; font-weight: 600; line-height: 1; }
+  h1 { margin: 8px 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  p { color: #666666; font-size: 13px; }
+  .btn-home { display: inline-flex; margin: 12px 0 22px; border: 1px solid #2d6a4f; background: #2d6a4f; color: #fff; border-radius: 4px; padding: 9px 12px; font-size: 13px; font-weight: 600; }
+  .suggestions { text-align: left; }
+</style>

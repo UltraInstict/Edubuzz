@@ -1,0 +1,22 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { requireAdmin } from '../../lib/auth';
+const { redirect, user } = requireAdmin(Astro.request);
+if (redirect) return redirect;
+const feeds = [
+  { name: 'Indeed format', url: '/feeds/jobs.xml' },
+  { name: 'Generic RSS', url: '/feeds/rss.xml' },
+  { name: 'Gauteng jobs', url: '/feeds/jobs-gauteng.xml' },
+];
+---
+<Layout title="XML Feeds" description="Outbound XML feed settings." canonicalUrl={Astro.url.href}>
+  <main class="admin-wrap">
+    <header><h1>Outbound XML feeds</h1><a href="/admin">Dashboard</a></header>
+    <section class="panel">
+      {feeds.map((feed) => <div class="feed-row"><label><input type="checkbox" checked /> {feed.name}</label><a href={feed.url} target="_blank">Preview</a></div>)}
+    </section>
+  </main>
+</Layout>
+<style>
+.admin-wrap{max-width:720px;margin:1.5rem auto;padding:0 1.5rem}header,.feed-row{display:flex;justify-content:space-between;gap:12px;align-items:center}.feed-row{border-bottom:1px solid #f0f0f0;padding:9px 0}h1{font-size:22px;margin:0 0 12px;font-weight:600;letter-spacing:-0.3px}a{color:#2d6a4f;font-size:13px}
+</style>

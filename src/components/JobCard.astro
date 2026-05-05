@@ -1,75 +1,185 @@
 ---
 import type { Job } from '../lib/pocketbase';
-import { formatSalary, timeAgo } from '../lib/pocketbase';
+import { formatSalary, isSalaryDisclosed } from '../lib/pocketbase';
+import { timeAgo } from '../lib/timeAgo';
+import { stripHtml } from '../lib/utils';
 
 interface Props {
   job: Job;
   compact?: boolean;
 }
-const { job, compact = false } = Astro.props;
 
-const initials = job.company?.slice(0, 1).toUpperCase() || '?';
-const logoColors = ['text-accent', 'text-success', 'text-purple', 'text-warn', 'text-danger'];
-const colorIdx = job.company?.charCodeAt(0) % logoColors.length || 0;
+const { job, compact = false } = Astro.props;
+const created = new Date(job.created).getTime();
+const isNew = Date.now() - created <= 3 * 86400000;
+const plainDescription = stripHtml(job.description || '', 160);
+const shortDescription = (job.description || '').length > plainDescription.length ? `${plainDescription.replace(/\.+$/, '')}...` : plainDescription;
 ---
 
-<article class={`bg-white border border-border rounded-xl p-5 hover:border-accent hover:shadow-sm transition-all cursor-pointer relative group ${job.featured ? 'border-blue-200 bg-blue-50/30' : ''}`}>
-  {job.featured && <div class="absolute top-0 left-0 right-0 h-0.5 bg-accent rounded-t-xl"></div>}
-
-  <!-- Top row -->
-  <div class="flex items-start justify-between gap-3 mb-3">
-    <div class="flex items-center gap-3">
-      <!-- Logo -->
-      <div class="w-10 h-10 rounded-lg border border-border bg-surface flex items-center justify-center font-serif text-base shrink-0 text-navy">
-        {initials}
-      </div>
+<a href={`/job/${job.slug}`} class={`job-card ${compact ? 'compact' : ''}`} data-job-id={job.id}>
+  <article>
+    <div class="job-top">
       <div>
-        <div class="text-xs text-muted mb-0.5">{job.company}</div>
-        <h2 class="text-[15px] font-bold text-navy leading-tight group-hover:text-accent transition-colors">
-          <a href={`/job/${job.slug}`} class="after:absolute after:inset-0">
-            {job.title}
-          </a>
-        </h2>
+        <h2 class="job-title">{job.title}</h2>
+        <p class="job-company">{job.company} · {job.city || job.province}</p>
+      </div>
+      <div class="badges">
+        {job.featured && <span class="badge featured">Featured</span>}
+        {isNew && <span class="badge new">New</span>}
       </div>
     </div>
 
-    <!-- Badges -->
-    <div class="flex flex-col gap-1 items-end shrink-0">
-      {job.featured && <span class="badge bg-accent-light text-accent">Featured</span>}
-      {job.ai_written && <span class="badge bg-purple-light text-purple">AI Written</span>}
-      {!job.featured && !job.ai_written && timeAgo(job.created) === 'Today' && <span class="badge bg-success-light text-success">New</span>}
-    </div>
-  </div>
-
-  <!-- Meta -->
-  <div class="flex flex-wrap gap-x-4 gap-y-1 mb-3">
-    <span class="flex items-center gap-1 text-xs text-muted">
-      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      {job.city ? `${job.city}, ${job.province}` : job.province}
-    </span>
-    <span class="flex items-center gap-1 text-xs text-muted">
-      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-      {job.job_type}
-    </span>
-    {job.category && (
-      <span class="flex items-center gap-1 text-xs text-muted">{job.category}</span>
+    {!compact && (
+      <>
+        <div class="job-meta">
+          <span>{job.category}</span>
+          <span>{job.job_type}</span>
+          <span>{job.city ? `${job.city}, ${job.province}` : job.province}</span>
+          <span>{timeAgo(job.created)}</span>
+        </div>
+        <p class="job-desc">{shortDescription}</p>
+      </>
     )}
-  </div>
 
-  {!compact && (
-    <div class="flex flex-wrap gap-1.5 mb-3">
-      {[job.category, job.job_type, job.province].filter(Boolean).map(tag => (
-        <span class="text-[11px] px-2 py-0.5 bg-surface border border-border rounded-full text-muted">{tag}</span>
-      ))}
+    <div class="job-footer">
+      <span class={`job-salary ${isSalaryDisclosed(job.salary_min, job.salary_max) ? '' : 'muted'}`}>
+        {formatSalary(job.salary_min, job.salary_max)}
+      </span>
+      {!compact && <span class="apply-btn">Apply now</span>}
     </div>
-  )}
+  </article>
+</a>
 
-  <!-- Footer -->
-  <div class="flex items-center justify-between pt-3 border-t border-border">
-    <span class="text-sm font-bold text-success">{formatSalary(job.salary_min, job.salary_max)}</span>
-    <div class="flex items-center gap-3">
-      <span class="text-[11px] text-muted">{timeAgo(job.created)}</span>
-      <span class="text-xs font-bold text-accent opacity-0 group-hover:opacity-100 transition-opacity">View â†’</span>
-    </div>
-  </div>
-</article>
+<style>
+  .job-card {
+    display: block;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+  }
+
+  .job-card:hover {
+    border-color: #2d6a4f;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  .job-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .job-title {
+    margin: 0;
+    color: #1a1a1a;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .job-company {
+    margin: 3px 0 0;
+    color: #666666;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px 7px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .featured {
+    background: #fff8e1;
+    border: 1px solid #f0c040;
+    color: #7a5e00;
+  }
+
+  .new {
+    background: #e8f4f0;
+    border: 1px solid #2d6a4f;
+    color: #1d5c3a;
+  }
+
+  .job-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    margin-top: 8px;
+    color: #666666;
+    font-size: 13px;
+  }
+
+  .job-desc {
+    margin: 8px 0 0;
+    color: #444444;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .job-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .job-salary {
+    color: #1a1a1a;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .job-salary.muted {
+    color: #888888;
+  }
+
+  .apply-btn {
+    color: #2d6a4f;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .compact {
+    padding: 10px;
+  }
+
+  .compact .job-footer {
+    margin-top: 6px;
+  }
+</style>
+
+<script>
+  document.querySelectorAll('[data-job-id]').forEach((card) => {
+    card.addEventListener('click', () => {
+      const jobId = (card as HTMLElement).dataset.jobId;
+      if (jobId) {
+        fetch('/api/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId, event: 'click' }),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    });
+  });
+</script>

@@ -1,217 +1,279 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { PROVINCES, JOB_TYPES } from '../lib/pocketbase';
+import { getCategories, JOB_TYPES, PROVINCES } from '../lib/pocketbase';
+
+const categories = await getCategories();
 ---
 
 <Layout
-  title="Post a Job in South Africa | Edubuzz"
-  description="Post your job listing on Edubuzz and reach thousands of active job seekers across all 9 provinces of South Africa."
+  title="Post a Job"
+  description="Post a South African job listing on Edubuzz and reach active candidates across every province."
+  canonicalUrl={Astro.url.href}
 >
-  <div class="bg-white border-b border-border py-10 px-6">
-    <div class="max-w-2xl mx-auto text-center">
-      <h1 class="font-serif text-3xl text-navy mb-2">Post a Job</h1>
-      <p class="text-muted text-sm">Reach thousands of active job seekers across South Africa. Your listing will be reviewed and live within 24 hours.</p>
-    </div>
-  </div>
-
-  <div class="max-w-2xl mx-auto px-6 py-10">
-
-    <!-- Benefits -->
-    <div class="grid grid-cols-3 gap-4 mb-8">
-      {[
-        { icon: '⚡', title: 'Live in 24h', desc: 'Quick review process' },
-        { icon: '🇿🇦', title: 'All provinces', desc: 'Nationwide reach' },
-        { icon: '🆓', title: 'Free to post', desc: 'No credit card needed' },
-      ].map(({ icon, title, desc }) => (
-        <div class="card text-center">
-          <div class="text-2xl mb-1">{icon}</div>
-          <div class="text-sm font-bold text-navy">{title}</div>
-          <div class="text-xs text-muted">{desc}</div>
+  <div class="post-grid">
+    <main class="panel">
+      <h1>Post a Job</h1>
+      <form id="post-job-form">
+        <div class="field-grid">
+          <label>Employer name <input class="form-field" type="text" name="employer_name" required /></label>
+          <label>Employer email <input class="form-field" type="email" name="employer_email" required /></label>
         </div>
-      ))}
-    </div>
-
-    <div class="card">
-      <h2 class="text-base font-bold text-navy mb-5">Job details</h2>
-
-      <form id="post-job-form" class="space-y-5">
-
-        <!-- Employer info -->
-        <div class="pb-4 border-b border-border">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-muted mb-3">Your details</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-navy mb-1">Your name *</label>
-              <input type="text" name="employer_name" required class="input" placeholder="Full name" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-navy mb-1">Your email *</label>
-              <input type="email" name="employer_email" required class="input" placeholder="you@company.com" />
-            </div>
-          </div>
+        <div class="field-grid">
+          <label>Company name <input class="form-field" type="text" name="company" required /></label>
+          <label>Job title <input class="form-field" type="text" name="title" required /></label>
         </div>
-
-        <!-- Job info -->
-        <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-muted mb-3">Job details</h3>
-          <div class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-navy mb-1">Company name *</label>
-                <input type="text" name="company" required class="input" placeholder="ACME Corp" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-navy mb-1">Job title *</label>
-                <input type="text" name="title" required class="input" placeholder="e.g. Software Developer" />
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-navy mb-1">Province *</label>
-                <select name="province" required class="input">
-                  <option value="">Select province</option>
-                  {PROVINCES.map(p => <option value={p}>{p}</option>)}
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-navy mb-1">City</label>
-                <input type="text" name="city" class="input" placeholder="City name" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-navy mb-1">Job type *</label>
-                <select name="job_type" required class="input">
-                  <option value="">Select type</option>
-                  {JOB_TYPES.map(t => <option value={t}>{t}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <!-- AI Generate button -->
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label class="text-xs font-semibold text-navy">Job description *</label>
-                <button type="button" id="ai-gen-btn" class="flex items-center gap-1.5 text-xs font-semibold text-purple bg-purple-light px-3 py-1 rounded-full hover:opacity-80 transition-opacity">
-                  ✨ Generate with AI
-                </button>
-              </div>
-              <div id="ai-loading" class="hidden text-xs text-muted italic mb-2">Generating description…</div>
-              <textarea
-                name="description"
-                id="description-field"
-                required
-                rows="8"
-                class="input resize-none"
-                placeholder="Describe the role, responsibilities, requirements and what you offer…"
-              ></textarea>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-navy mb-1">Min salary (ZAR/year)</label>
-                <input type="number" name="salary_min" class="input" placeholder="180000" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-navy mb-1">Max salary (ZAR/year)</label>
-                <input type="number" name="salary_max" class="input" placeholder="250000" />
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-navy mb-1">Apply URL</label>
-                <input type="url" name="apply_url" class="input" placeholder="https://…" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-navy mb-1">Apply email</label>
-                <input type="email" name="apply_email" class="input" placeholder="jobs@company.com" />
-              </div>
-            </div>
-          </div>
+        <div class="field-grid">
+          <label>
+            Category
+            <select class="form-field" name="category">
+              <option value="">Select category</option>
+              {categories.map((cat) => <option value={cat.name}>{cat.name}</option>)}
+            </select>
+          </label>
+          <label>
+            Province
+            <select class="form-field" name="province" required>
+              <option value="">Select province</option>
+              {PROVINCES.map((province) => <option value={province}>{province}</option>)}
+            </select>
+          </label>
         </div>
-
-        <div id="post-error" class="text-xs text-danger hidden"></div>
-        <div id="post-success" class="hidden card bg-success-light border-green-200 text-center py-6">
-          <p class="text-2xl mb-2">🎉</p>
-          <p class="font-bold text-navy mb-1">Job submitted!</p>
-          <p class="text-sm text-muted">We'll review your listing and have it live within 24 hours. Check your email for confirmation.</p>
+        <div class="field-grid">
+          <label>City <input class="form-field" type="text" name="city" /></label>
+          <label>
+            Job type
+            <select class="form-field" name="job_type" required>
+              <option value="">Select type</option>
+              {JOB_TYPES.map((type) => <option value={type}>{type}</option>)}
+            </select>
+          </label>
         </div>
-        <button type="submit" class="btn-primary w-full py-3 text-base">Submit Job Listing</button>
+        <div class="salary-grid">
+          <label>Salary min <span><b>R</b><input class="form-field" type="number" name="salary_min" min="0" /></span></label>
+          <label>Salary max <span><b>R</b><input class="form-field" type="number" name="salary_max" min="0" /></span></label>
+        </div>
+        <fieldset>
+          <legend>Application method</legend>
+          <label><input type="radio" name="application_method" value="email" checked /> Email</label>
+          <label><input type="radio" name="application_method" value="url" /> URL</label>
+        </fieldset>
+        <div class="field-grid">
+          <label data-method="email">Apply email <input class="form-field" type="email" name="apply_email" /></label>
+          <label data-method="url" hidden>Apply URL <input class="form-field" type="url" name="apply_url" placeholder="https://" /></label>
+        </div>
+        <label>
+          Job description
+          <textarea id="description-field" class="form-field" name="description" rows="10" required></textarea>
+        </label>
+        <div class="actions">
+          <button type="button" id="draft-btn">Save as draft</button>
+          <button type="submit">Post Job - R299</button>
+        </div>
+        <p id="post-message" hidden></p>
       </form>
-    </div>
+    </main>
+
+    <aside class="pricing-card">
+      <div>
+        <h2>Basic listing</h2>
+        <strong>Free</strong>
+        <p>Active 30 days</p>
+        <p>Standard placement</p>
+      </div>
+      <div class="selected">
+        <h2>Featured listing</h2>
+        <strong>R299</strong>
+        <p>Active 60 days</p>
+        <p>Top of results</p>
+        <p>Bold title</p>
+        <p>"Featured" badge</p>
+        <p>Included in job alerts</p>
+      </div>
+      <div>
+        <h2>Sponsored strip</h2>
+        <strong>R499/week</strong>
+        <p>Banner across homepage</p>
+        <p>50,000+ impressions</p>
+      </div>
+    </aside>
   </div>
 </Layout>
 
 <script>
-// AI generate description
-document.getElementById('ai-gen-btn')?.addEventListener('click', async () => {
   const form = document.getElementById('post-job-form') as HTMLFormElement;
-  const data = Object.fromEntries(new FormData(form));
-  const loading = document.getElementById('ai-loading')!;
-  const btn = document.getElementById('ai-gen-btn')!;
-  const field = document.getElementById('description-field') as HTMLTextAreaElement;
+  const message = document.getElementById('post-message') as HTMLParagraphElement;
 
-  if (!data.title || !data.company) {
-    alert('Please fill in the job title and company name first.');
-    return;
-  }
+  form?.addEventListener('change', () => {
+    const method = new FormData(form).get('application_method');
+    document.querySelector('[data-method="email"]')?.toggleAttribute('hidden', method !== 'email');
+    document.querySelector('[data-method="url"]')?.toggleAttribute('hidden', method !== 'url');
+  });
 
-  loading.classList.remove('hidden');
-  btn.setAttribute('disabled', 'true');
-  btn.textContent = '✨ Generating…';
-
-  try {
-    const res = await fetch('/api/generate-description', {
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    message.hidden = true;
+    const response = await fetch('/api/post-job', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: data.title, company: data.company, province: data.province, job_type: data.job_type, salary_min: data.salary_min, salary_max: data.salary_max }),
+      body: JSON.stringify(Object.fromEntries(new FormData(form))),
     });
-    const body = await res.json();
-    if (body.description) {
-      field.value = body.description;
-    } else {
-      alert('Generation failed. Please write the description manually.');
-    }
-  } catch {
-    alert('Network error. Please write the description manually.');
-  } finally {
-    loading.classList.add('hidden');
-    btn.removeAttribute('disabled');
-    btn.textContent = '✨ Generate with AI';
-  }
-});
+    const body = await response.json().catch(() => ({}));
+    message.textContent = response.ok ? 'Job submitted for review.' : (body.message || 'Could not submit job.');
+    message.hidden = false;
+    if (response.ok) form.reset();
+  });
 
-// Submit form
-document.getElementById('post-job-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.target as HTMLFormElement;
-  const data = Object.fromEntries(new FormData(form));
-  const err = document.getElementById('post-error')!;
-  const ok  = document.getElementById('post-success')!;
-  const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-
-  btn.disabled = true;
-  btn.textContent = 'Submitting…';
-
-  try {
-    const res = await fetch('/api/post-job', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      ok.classList.remove('hidden');
-      form.classList.add('hidden');
-    } else {
-      const body = await res.json();
-      err.textContent = body.message || 'Submission failed. Please try again.';
-      err.classList.remove('hidden');
-      btn.disabled = false;
-      btn.textContent = 'Submit Job Listing';
-    }
-  } catch {
-    err.textContent = 'Network error. Please try again.';
-    err.classList.remove('hidden');
-    btn.disabled = false;
-    btn.textContent = 'Submit Job Listing';
-  }
-});
+  document.getElementById('draft-btn')?.addEventListener('click', () => {
+    message.textContent = 'Draft saved locally.';
+    message.hidden = false;
+  });
 </script>
+
+<style>
+  .post-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 1.5rem auto;
+    padding: 0 1.5rem;
+  }
+
+  h1 {
+    margin: 0 0 16px;
+    color: #1a1a1a;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+  }
+
+  form {
+    display: grid;
+    gap: 14px;
+  }
+
+  label {
+    display: grid;
+    gap: 4px;
+    color: #444444;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .field-grid,
+  .salary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .salary-grid span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .salary-grid b {
+    color: #666666;
+    font-weight: 500;
+  }
+
+  fieldset {
+    display: flex;
+    gap: 14px;
+    margin: 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 9px 10px;
+  }
+
+  legend {
+    color: #444444;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  fieldset label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .actions button {
+    border: 1px solid #2d6a4f;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 14px;
+  }
+
+  .actions button[type='button'] {
+    background: #ffffff;
+    color: #444444;
+    border-color: #e0e0e0;
+  }
+
+  .actions button[type='submit'] {
+    background: #2d6a4f;
+    color: #ffffff;
+  }
+
+  .pricing-card {
+    display: grid;
+    gap: 12px;
+    align-self: start;
+  }
+
+  .pricing-card > div {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+  }
+
+  .pricing-card .selected {
+    border: 2px solid #2d6a4f;
+  }
+
+  .pricing-card h2 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .pricing-card strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #2d6a4f;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .pricing-card p,
+  #post-message {
+    margin: 0;
+    color: #666666;
+    font-size: 13px;
+  }
+
+  @media (max-width: 860px) {
+    .post-grid {
+      grid-template-columns: 1fr;
+      padding: 0 1rem;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .field-grid,
+    .salary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

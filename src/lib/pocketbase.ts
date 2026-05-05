@@ -1,13 +1,12 @@
 import PocketBase from 'pocketbase';
 
-// ─── Client ────────────────────────────────────────────────────────────────
-const PB_URL = 'http://127.0.0.1:8090';
+const PB_URL = import.meta.env.PB_URL || 'http://127.0.0.1:8090';
+export const pb = new PocketBase(PB_URL);
 
 export function getPB(): PocketBase {
   return new PocketBase(PB_URL);
 }
 
-// ─── Types ──────────────────────────────────────────────────────────────────
 export interface Job {
   id: string;
   title: string;
@@ -22,8 +21,17 @@ export interface Job {
   apply_email?: string;
   salary_min?: number;
   salary_max?: number;
+  salary_currency?: string;
   job_type: string;
   source: string;
+  source_ref?: string;
+  employer_id?: string;
+  views?: number;
+  clicks?: number;
+  apply_clicks?: number;
+  featured_expires?: string;
+  xml_export?: boolean;
+  og_image?: string;
   featured: boolean;
   ai_written: boolean;
   active: boolean;
@@ -36,19 +44,44 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
-  icon: string;
-  color: string;
+  icon?: string;
+  color?: string;
   job_count?: number;
 }
 
 export interface Application {
   id: string;
   job: string;
+  job_id?: string;
   name: string;
+  applicant_name?: string;
   email: string;
+  applicant_email?: string;
   phone: string;
+  applicant_phone?: string;
   cover_letter: string;
+  cv_file?: string;
+  status?: string;
+  ip_address?: string;
   resume?: string;
+  created: string;
+}
+
+export interface Employer {
+  id: string;
+  user_id?: string;
+  company_name: string;
+  company_slug: string;
+  logo?: string;
+  website?: string;
+  description?: string;
+  province?: string;
+  city?: string;
+  verified?: boolean;
+  plan?: string;
+  plan_expires?: string;
+  contact_email: string;
+  stripe_customer?: string;
   created: string;
 }
 
@@ -58,6 +91,7 @@ export interface PendingJob {
   employer_email: string;
   company: string;
   title: string;
+  category?: string;
   description: string;
   province: string;
   city: string;
@@ -79,7 +113,88 @@ export interface JobAlert {
   created: string;
 }
 
-// ─── Jobs ───────────────────────────────────────────────────────────────────
+export const PROVINCES = [
+  'Gauteng',
+  'Western Cape',
+  'KwaZulu-Natal',
+  'Eastern Cape',
+  'Limpopo',
+  'Mpumalanga',
+  'North West',
+  'Free State',
+  'Northern Cape',
+  'Remote',
+];
+
+export const JOB_TYPES = [
+  'Full-time',
+  'Part-time',
+  'Contract',
+  'Internship',
+  'Temporary',
+  'Remote',
+];
+
+const JOB_FIELDS = [
+  'id',
+  'title',
+  'slug',
+  'company',
+  'category',
+  'province',
+  'city',
+  'description',
+  'apply_url',
+  'apply_email',
+  'salary_min',
+  'salary_max',
+  'salary_currency',
+  'job_type',
+  'source',
+  'source_ref',
+  'employer_id',
+  'views',
+  'clicks',
+  'apply_clicks',
+  'featured_expires',
+  'xml_export',
+  'og_image',
+  'featured',
+  'ai_written',
+  'active',
+  'expires',
+  'created',
+  'updated',
+].join(',');
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function escapeFilter(value: string) {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+function activeFilter() {
+  return `active=true&&expires>"${todayIso()}"`;
+}
+
+export function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function escapePbFilter(value: string) {
+  return escapeFilter(value);
+}
+
+export function getActiveFilter() {
+  return activeFilter();
+}
+
 export async function getJobs(opts: {
   page?: number;
   perPage?: number;
@@ -87,19 +202,35 @@ export async function getJobs(opts: {
   province?: string;
   category?: string;
   job_type?: string;
+  salary_min?: string | number;
+  salary_max?: string | number;
+  sort?: string;
 } = {}): Promise<{ items: Job[]; totalItems: number; totalPages: number }> {
   const pb = getPB();
-  const { page = 1, perPage = 20, search, province, category, job_type } = opts;
+  const { page = 1, perPage = 20, search, province, category, job_type, salary_min, salary_max, sort } = opts;
+  const filters = [activeFilter()];
 
-  const filters: string[] = ['active = true'];
-  if (search) filters.push(`(title ~ "${search}" || company ~ "${search}" || description ~ "${search}")`);
-  if (province) filters.push(`province = "${province}"`);
-  if (category) filters.push(`category = "${category}"`);
-  if (job_type) filters.push(`job_type = "${job_type}"`);
+  if (search?.trim()) {
+    const q = escapeFilter(search.trim());
+    filters.push(`(title~"${q}"||company~"${q}"||description~"${q}")`);
+  }
+  if (province) filters.push(`province="${escapeFilter(province)}"`);
+  if (category) filters.push(`category="${escapeFilter(category)}"`);
+  if (job_type) filters.push(`job_type="${escapeFilter(job_type)}"`);
+  if (salary_min) filters.push(`salary_max>=${Number(salary_min)}`);
+  if (salary_max) filters.push(`salary_min<=${Number(salary_max)}`);
+
+  const sortMap: Record<string, string> = {
+    recent: '-featured,-created',
+    relevant: '-featured,-created',
+    salary_desc: '-salary_max,-salary_min',
+    salary_asc: 'salary_min,salary_max',
+  };
 
   const result = await pb.collection('jobs').getList(page, perPage, {
-    filter: filters.join(' && '),
-    sort: '-featured,-created',
+    filter: filters.join('&&'),
+    sort: sortMap[sort || 'recent'] || '-featured,-created',
+    fields: JOB_FIELDS,
   });
 
   return {
@@ -109,20 +240,22 @@ export async function getJobs(opts: {
   };
 }
 
-export async function getJobBySlug(slug: string): Promise<Job | null> {
+export async function getJobById(id: string): Promise<Job | null> {
   const pb = getPB();
   try {
-    const result = await pb.collection('jobs').getFirstListItem(`slug = "${slug}"`);
-    return result as unknown as Job;
+    return await pb.collection('jobs').getOne(id, { fields: JOB_FIELDS }) as unknown as Job;
   } catch {
     return null;
   }
 }
 
-export async function getJobById(id: string): Promise<Job | null> {
+export async function getJobBySlug(slug: string): Promise<Job | null> {
   const pb = getPB();
   try {
-    return await pb.collection('jobs').getOne(id) as unknown as Job;
+    const result = await pb.collection('jobs').getFirstListItem(`slug="${escapeFilter(slug)}"`, {
+      fields: JOB_FIELDS,
+    });
+    return result as unknown as Job;
   } catch {
     return null;
   }
@@ -131,17 +264,20 @@ export async function getJobById(id: string): Promise<Job | null> {
 export async function getFeaturedJobs(limit = 6): Promise<Job[]> {
   const pb = getPB();
   const result = await pb.collection('jobs').getList(1, limit, {
-    filter: 'active = true && featured = true',
+    filter: `${activeFilter()}&&featured=true`,
     sort: '-created',
+    fields: JOB_FIELDS,
   });
   return result.items as unknown as Job[];
 }
 
 export async function getRelatedJobs(category: string, excludeId: string, limit = 4): Promise<Job[]> {
+  if (!category) return [];
   const pb = getPB();
   const result = await pb.collection('jobs').getList(1, limit, {
-    filter: `active = true && category = "${category}" && id != "${excludeId}"`,
+    filter: `${activeFilter()}&&category="${escapeFilter(category)}"&&id!="${escapeFilter(excludeId)}"`,
     sort: '-created',
+    fields: 'id,title,slug,company,city,province,category,job_type,created,featured,salary_min,salary_max,description,active,expires',
   });
   return result.items as unknown as Job[];
 }
@@ -149,29 +285,66 @@ export async function getRelatedJobs(category: string, excludeId: string, limit 
 export async function getAllJobSlugs(): Promise<string[]> {
   const pb = getPB();
   const result = await pb.collection('jobs').getFullList({
-    filter: 'active = true',
+    filter: activeFilter(),
     fields: 'slug',
   });
-  return result.map((j: any) => j.slug);
+  return result.map((job: any) => job.slug);
 }
 
-// ─── Categories ─────────────────────────────────────────────────────────────
-export async function getCategories(): Promise<Category[]> {
+export async function getCategories(limit?: number): Promise<Category[]> {
   const pb = getPB();
-  const result = await pb.collection('categories').getFullList({ sort: 'name' });
+  if (limit) {
+    const result = await pb.collection('categories').getList(1, limit, {
+      sort: '-job_count,name',
+      fields: 'id,name,slug,job_count',
+    });
+    return result.items as unknown as Category[];
+  }
+  const result = await pb.collection('categories').getFullList({
+    sort: '-job_count,name',
+    fields: 'id,name,slug,job_count',
+  });
   return result as unknown as Category[];
 }
 
-export async function getCategoryBySlug(slug: string): Promise<Category | null> {
-  const pb = getPB();
+export async function getEmployers(opts: { page?: number; perPage?: number; province?: string; verifiedOnly?: boolean } = {}) {
+  const client = getPB();
+  const filters: string[] = [];
+  if (opts.province) filters.push(`province="${escapeFilter(opts.province)}"`);
+  if (opts.verifiedOnly) filters.push('verified=true');
+  return await client.collection('employers').getList(opts.page || 1, opts.perPage || 20, {
+    filter: filters.join('&&'),
+    sort: '-verified,company_name',
+  });
+}
+
+export async function getEmployerBySlug(slug: string): Promise<Employer | null> {
+  const client = getPB();
   try {
-    return await pb.collection('categories').getFirstListItem(`slug = "${slug}"`) as unknown as Category;
+    return await client.collection('employers').getFirstListItem(`company_slug="${escapeFilter(slug)}"`) as unknown as Employer;
   } catch {
     return null;
   }
 }
 
-// ─── Applications ────────────────────────────────────────────────────────────
+export async function getEmployerForUser(userId: string): Promise<Employer | null> {
+  const client = getPB();
+  try {
+    return await client.collection('employers').getFirstListItem(`user_id="${escapeFilter(userId)}"`) as unknown as Employer;
+  } catch {
+    return null;
+  }
+}
+
+export async function getCategoryBySlug(slug: string): Promise<Category | null> {
+  const pb = getPB();
+  try {
+    return await pb.collection('categories').getFirstListItem(`slug="${escapeFilter(slug)}"`) as unknown as Category;
+  } catch {
+    return null;
+  }
+}
+
 export async function submitApplication(data: {
   job: string;
   name: string;
@@ -183,13 +356,11 @@ export async function submitApplication(data: {
   return await pb.collection('applications').create(data) as unknown as Application;
 }
 
-// ─── Pending jobs (employer posts) ──────────────────────────────────────────
 export async function submitEmployerJob(data: Omit<PendingJob, 'id' | 'status' | 'created'>): Promise<PendingJob> {
   const pb = getPB();
   return await pb.collection('pending_jobs').create({ ...data, status: 'pending' }) as unknown as PendingJob;
 }
 
-// ─── Job alerts ─────────────────────────────────────────────────────────────
 export async function createJobAlert(data: {
   email: string;
   keyword: string;
@@ -200,13 +371,12 @@ export async function createJobAlert(data: {
   return await pb.collection('job_alerts').create(data) as unknown as JobAlert;
 }
 
-// ─── Stats ───────────────────────────────────────────────────────────────────
 export async function getSiteStats(): Promise<{ jobs: number; companies: number; categories: number }> {
   const pb = getPB();
   try {
     const [jobsResult, categoriesResult] = await Promise.all([
-      pb.collection('jobs').getList(1, 1, { filter: 'active = true' }),
-      pb.collection('categories').getList(1, 1),
+      pb.collection('jobs').getList(1, 1, { filter: activeFilter(), fields: 'id' }),
+      pb.collection('categories').getList(1, 1, { fields: 'id' }),
     ]);
     return {
       jobs: jobsResult.totalItems,
@@ -218,45 +388,14 @@ export async function getSiteStats(): Promise<{ jobs: number; companies: number;
   }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-export function formatSalary(min?: number, max?: number): string {
-  if (!min && !max) return 'Negotiable';
-  const fmt = (n: number) => `R${(n / 1000).toFixed(0)}k`;
-  if (min && max) return `${fmt(min)} – ${fmt(max)} p/a`;
-  if (min) return `From ${fmt(min)} p/a`;
-  return `Up to ${fmt(max!)} p/a`;
+export function formatSalary(min?: number | null, max?: number | null): string {
+  if (!min && !max) return 'Salary not disclosed';
+  const fmt = (value: number) => `R${Number(value).toLocaleString('en-ZA')}`;
+  if (min && max) return `${fmt(min)} - ${fmt(max)}/month`;
+  if (min) return `From ${fmt(min)}/month`;
+  return `Up to ${fmt(max!)}/month`;
 }
 
-export function timeAgo(date: string): string {
-  const diff = Date.now() - new Date(date).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days} days ago`;
-  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-  return `${Math.floor(days / 30)} months ago`;
+export function isSalaryDisclosed(min?: number | null, max?: number | null) {
+  return Boolean(min || max);
 }
-
-export const PROVINCES = [
-  'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
-  'Limpopo', 'Mpumalanga', 'North West', 'Northern Cape', 'Free State',
-];
-
-export const JOB_TYPES = [
-  'Full-time', 'Part-time', 'Contract', 'Internship', 'Temporary', 'Remote',
-];
-
-export const CATEGORY_COLORS: Record<string, string> = {
-  Government:     'bg-accent-light text-accent',
-  Health:         'bg-success-light text-success',
-  'IT & Tech':    'bg-purple-light text-purple',
-  Engineering:    'bg-warn-light text-warn',
-  Finance:        'bg-danger-light text-danger',
-  Education:      'bg-green-50 text-green-700',
-  Retail:         'bg-orange-50 text-orange-600',
-  Logistics:      'bg-cyan-50 text-cyan-700',
-  HR:             'bg-pink-50 text-pink-700',
-  Administration: 'bg-gray-100 text-gray-600',
-  Marketing:      'bg-indigo-50 text-indigo-700',
-  Hospitality:    'bg-amber-50 text-amber-700',
-};

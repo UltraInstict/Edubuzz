@@ -1,0 +1,88 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getAdminPB, requireAdmin } from '../../lib/auth';
+import { PROVINCES } from '../../lib/pocketbase';
+
+const { redirect, user } = requireAdmin(Astro.request);
+if (redirect) return redirect;
+
+const params = Astro.url.searchParams;
+const filters = [];
+const status = params.get('status') || '';
+const province = params.get('province') || '';
+const source = params.get('source') || '';
+if (status === 'active') filters.push('active=true');
+if (status === 'pending') filters.push('active=false');
+if (status === 'expired') filters.push(`expires<"${new Date().toISOString().slice(0, 10)}"`);
+if (province) filters.push(`province="${province}"`);
+if (source) filters.push(`source="${source}"`);
+
+const pb = await getAdminPB();
+const jobs = await pb.collection('jobs').getList(1, 50, {
+  filter: filters.join('&&'),
+  sort: '-created',
+  fields: 'id,title,company,province,active,source,featured,views,created',
+}).catch(() => ({ items: [], totalItems: 0 }));
+---
+
+<Layout title="Admin Jobs" description="Manage Edubuzz jobs." canonicalUrl={Astro.url.href}>
+  <main class="admin-wrap">
+    <header><h1>Jobs</h1><a href="/admin">Dashboard</a></header>
+    <form class="filters">
+      <select name="status"><option value="">All statuses</option>{['pending','active','expired'].map((s) => <option value={s} selected={s === status}>{s}</option>)}</select>
+      <select name="province"><option value="">All provinces</option>{PROVINCES.map((p) => <option value={p} selected={p === province}>{p}</option>)}</select>
+      <select name="source"><option value="">All sources</option>{['manual','import','xml_feed'].map((s) => <option value={s} selected={s === source}>{s}</option>)}</select>
+      <button>Filter</button>
+    </form>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Title</th><th>Company</th><th>Province</th><th>Status</th><th>Source</th><th>Featured</th><th>Views</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody>
+          {jobs.items.map((job: any) => (
+            <tr>
+              <td>{job.title}</td><td>{job.company}</td><td>{job.province}</td><td>{job.active ? 'active' : 'pending'}</td><td>{job.source}</td><td>{job.featured ? 'yes' : 'no'}</td><td>{job.views || 0}</td><td>{job.created?.slice(0, 10)}</td>
+              <td class="actions">
+                <button data-id={job.id} data-action="approve">Approve</button>
+                <button data-id={job.id} data-action="reject">Reject</button>
+                <button data-id={job.id} data-action="toggle_featured">Feature</button>
+                <button data-ai={job.id}>Regenerate</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  document.querySelectorAll('[data-action]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const el = button as HTMLButtonElement;
+      await fetch('/api/admin/job-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId: el.dataset.id, action: el.dataset.action }) });
+      location.reload();
+    });
+  });
+  document.querySelectorAll('[data-ai]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const el = button as HTMLButtonElement;
+      await fetch('/api/admin/generate-description', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId: el.dataset.ai }) });
+      location.reload();
+    });
+  });
+</script>
+
+<style>
+  .admin-wrap { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
+  header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  h1 { font-size:22px; font-weight:600; margin:0; letter-spacing:-0.3px; }
+  header a, button { color:#2d6a4f; }
+  .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  select, .filters button { border:1px solid #e0e0e0; border-radius:4px; background:#fff; padding:7px 9px; font-size:13px; }
+  .table-wrap { overflow:auto; background:#fff; border:1px solid #e0e0e0; border-radius:6px; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th, td { padding:8px; border-bottom:1px solid #f0f0f0; text-align:left; white-space:nowrap; }
+  th { font-weight:600; color:#444; }
+  .actions { display:flex; gap:5px; }
+  .actions button { border:1px solid #e0e0e0; border-radius:4px; background:#fff; font-size:12px; padding:4px 6px; }
+</style>

@@ -1,0 +1,24 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About Edubuzz | South Africa's Job Board" description="Learn about Edubuzz, South Africa's job board." canonicalUrl={Astro.url.href}>
+  <main class="content-page panel">
+    <h1>About Edubuzz</h1>
+    <p>Edubuzz is South Africa's job board connecting job seekers with opportunities across government, health, education, IT, finance, and more.</p>
+    <p>Founded to make job searching simpler and more accessible for South Africans, we publish jobs from employers across all nine provinces daily.</p>
+    <div class="actions">
+      <a href="/contact">Contact us</a>
+      <a class="primary" href="/post-job">Post a job</a>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .content-page { max-width: 760px; margin: 1.5rem auto; }
+  h1 { margin: 0 0 12px; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  p { color: #444; font-size: 14px; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  a { color: #2d6a4f; font-size: 13px; font-weight: 500; }
+  .primary { background: #2d6a4f; color: #fff; border-radius: 4px; padding: 9px 12px; }
+</style>

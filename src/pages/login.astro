@@ -1,0 +1,65 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Login" description="Log in to your Edubuzz account." canonicalUrl="/login">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>Login</h1>
+      <div id="error-msg" class="error-msg"></div>
+      <form id="login-form">
+        <label>Email<input type="email" name="email" required /></label>
+        <label>Password<input type="password" name="password" required /></label>
+        <button type="submit" id="submit-btn">Login</button>
+        <p>No account yet? <a href="/register">Register</a></p>
+      </form>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  document.getElementById('login-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const btn = document.getElementById('submit-btn') as HTMLButtonElement;
+    const errEl = document.getElementById('error-msg') as HTMLDivElement;
+    btn.textContent = 'Logging in...';
+    btn.disabled = true;
+    errEl.style.display = 'none';
+
+    const body = new FormData(event.target as HTMLFormElement);
+
+    try {
+      const res = await fetch('/api/auth/login', { method: 'POST', body });
+      const data = await res.json();
+      if (data.success) {
+        const next = new URLSearchParams(window.location.search).get('next');
+        if (next) window.location.href = next;
+        else if (data.role === 'admin') window.location.href = '/admin';
+        else window.location.href = '/employer/dashboard';
+      } else {
+        errEl.textContent = data.error ?? 'Login failed.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Login';
+        btn.disabled = false;
+      }
+    } catch {
+      errEl.textContent = 'Network error. Please try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Login';
+      btn.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .auth-wrap { max-width: 480px; margin: 3rem auto; padding: 0 1rem; }
+  .auth-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 2rem; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 1.5rem; letter-spacing: -0.3px; }
+  .error-msg { display: none; background: #fcebeb; border: 1px solid #f09595; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #a32d2d; margin-bottom: 1rem; }
+  label { display: block; color: #444; font-size: 13px; margin-bottom: 4px; }
+  input { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px 10px; font-size: 14px; margin: 4px 0 14px; }
+  input:focus { border-color: #2d6a4f; outline: none; }
+  button { width: 100%; background: #2d6a4f; color: #fff; border: 0; border-radius: 4px; padding: 10px; font-size: 14px; font-weight: 500; cursor: pointer; }
+  p { font-size: 13px; color: #666; text-align: center; margin-top: 1rem; }
+  a { color: #2d6a4f; }
+</style>

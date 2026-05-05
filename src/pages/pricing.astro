@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Pricing" description="Edubuzz employer pricing." canonicalUrl={Astro.url.href}>
+  <main class="pricing-page">
+    <h1>Pricing</h1>
+    <section class="tiers">
+      <div><h2>Basic listing</h2><strong>Free</strong><p>Active 30 days</p><p>Standard placement</p><a href="/post-job">Post a job</a></div>
+      <div class="selected"><h2>Featured listing</h2><strong>R299</strong><p>Active 60 days</p><p>Top of results</p><p>Featured badge</p><a href="/employer/upgrade">Upgrade</a></div>
+      <div><h2>Sponsored strip</h2><strong>R499/week</strong><p>Banner across homepage</p><p>50,000+ impressions</p><a href="/contact">Contact us</a></div>
+    </section>
+    <section class="faq panel">
+      <h2>FAQ</h2>
+      <h3>How long does approval take?</h3><p>Most listings are reviewed within one business day.</p>
+      <h3>Can I edit my listing?</h3><p>Yes. Employer edits are sent back for review before going live.</p>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .pricing-page { max-width: 1000px; margin: 1.5rem auto; padding: 0 1.5rem; }
+  h1 { margin: 0 0 12px; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .tiers div { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem 1.25rem; }
+  .tiers .selected { border: 2px solid #2d6a4f; }
+  h2 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  h3 { margin: 12px 0 2px; font-size: 13px; font-weight: 600; }
+  strong { color: #2d6a4f; font-size: 14px; }
+  p { color: #666; font-size: 13px; }
+  a { display: inline-flex; margin-top: 8px; background: #2d6a4f; color: #fff; border-radius: 4px; padding: 8px 10px; font-size: 13px; }
+  @media (max-width: 760px) { .tiers { grid-template-columns: 1fr; } }
+</style>

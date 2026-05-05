@@ -1,0 +1,29 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getAdminPB, requireAdmin } from '../../lib/auth';
+
+const { redirect, user } = requireAdmin(Astro.request);
+if (redirect) return redirect;
+
+const pb = await getAdminPB();
+const employers = await pb.collection('employers').getList(1, 100, { sort: '-created' }).catch(() => ({ items: [] }));
+---
+<Layout title="Admin Employers" description="Manage employers." canonicalUrl={Astro.url.href}>
+  <main class="admin-wrap">
+    <header><h1>Employers</h1><a href="/admin">Dashboard</a></header>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Company</th><th>Email</th><th>Plan</th><th>Verified</th><th>Registered</th><th>Actions</th></tr></thead>
+      <tbody>{employers.items.map((employer: any) => <tr><td>{employer.company_name}</td><td>{employer.contact_email}</td><td>{employer.plan}</td><td>{employer.verified ? 'yes' : 'no'}</td><td>{employer.created?.slice(0,10)}</td><td><button data-id={employer.id} data-verified={!employer.verified}>{employer.verified ? 'Unverify' : 'Verify'}</button></td></tr>)}</tbody>
+    </table></div>
+  </main>
+</Layout>
+<script>
+document.querySelectorAll('[data-verified]').forEach((button) => button.addEventListener('click', async () => {
+  const el = button as HTMLButtonElement;
+  await fetch('/api/admin/update-employer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: el.dataset.id, verified: el.dataset.verified === 'true' }) });
+  location.reload();
+}));
+</script>
+<style>
+.admin-wrap{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}h1{font-size:22px;font-weight:600;margin:0;letter-spacing:-0.3px}a,button{color:#2d6a4f}.table-wrap{overflow:auto;background:#fff;border:1px solid #e0e0e0;border-radius:6px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid #f0f0f0;text-align:left}button{border:1px solid #e0e0e0;background:#fff;border-radius:4px;padding:4px 7px}
+</style>

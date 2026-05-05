@@ -1,0 +1,15 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import JobCard from '../../components/JobCard.astro';
+import { getEmployerBySlug, getJobs } from '../../lib/pocketbase';
+
+const employer = await getEmployerBySlug(Astro.params.slug || '');
+if (!employer) return Astro.redirect('/404');
+const page = Math.max(1, Number(Astro.url.searchParams.get('page') || '1'));
+const jobs = await getJobs({ page, perPage: 10 });
+const companyJobs = jobs.items.filter((job) => job.company === employer.company_name || job.employer_id === employer.id);
+---
+<Layout title={`${employer.company_name} Jobs in South Africa`} description={`Browse all current job openings at ${employer.company_name}. Find ${companyJobs.length} jobs in ${employer.province || 'South Africa'}.`} canonicalUrl={`${Astro.url.origin}/company/${employer.company_slug}`}>
+<main class="company-page"><section class="panel header-card"><div class="logo-box">{employer.company_name.slice(0,1)}</div><div><h1>{employer.company_name}</h1><p>{[employer.city, employer.province].filter(Boolean).join(', ')}</p>{employer.website && <a href={employer.website} target="_blank" rel="noopener">Website</a>}</div></section>{employer.description && <section class="panel"><p>{employer.description}</p></section>}<section><div class="section-head"><h2>Active jobs by this company</h2></div>{companyJobs.length ? companyJobs.map((job)=><JobCard job={job}/>) : <div class="panel">No active listings from this company right now.</div>}</section></main>
+</Layout>
+<style>.company-page{max-width:900px;margin:1.5rem auto;padding:0 1.5rem;display:grid;gap:16px}.header-card{display:flex;gap:14px;align-items:center}.logo-box{width:54px;height:54px;border:1px solid #e0e0e0;border-radius:6px;display:grid;place-items:center;font-size:22px;font-weight:600;color:#2d6a4f}h1{font-size:22px;margin:0 0 4px;font-weight:600;letter-spacing:-0.3px}p{margin:0;color:#666;font-size:13px}a{color:#2d6a4f;font-size:13px}</style>

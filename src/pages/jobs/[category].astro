@@ -1,0 +1,20 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import JobCard from '../../components/JobCard.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { getCategories, getJobs, PROVINCES } from '../../lib/pocketbase';
+import { slugify, titleFromSlug } from '../../lib/slugify';
+
+const slug = Astro.params.category || '';
+const categories = await getCategories();
+const category = categories.find((cat) => cat.slug === slug || slugify(cat.name) === slug);
+const cityMode = !category;
+const label = category?.name || titleFromSlug(slug);
+const jobs = cityMode ? await getJobs({ perPage: 20 }) : await getJobs({ perPage: 20, category: label });
+const filtered = cityMode ? jobs.items.filter((job) => slugify(job.city || '') === slug) : jobs.items;
+const count = cityMode ? filtered.length : jobs.totalItems;
+---
+<Layout title={cityMode ? `Jobs in ${label}` : `${label} Jobs in South Africa`} description={cityMode ? `Find ${count} jobs in ${label}.` : `Find ${count} ${label} jobs across South Africa. Updated daily.`} canonicalUrl={Astro.url.href}>
+<main class="seo-grid"><section><nav class="crumb"><a href="/">Home</a> &gt; <a href="/jobs">Jobs</a> &gt; {label}</nav><h1>{cityMode ? `Jobs in ${label} (${count} open positions)` : `${label} Jobs (${count} available)`}</h1>{!cityMode && <div class="links">{PROVINCES.map(p=><a href={`/jobs/${slug}/${slugify(p)}`}>{p}</a>)}</div>}{filtered.map(job=><JobCard job={job}/>)}</section><aside><Sidebar /></aside></main>
+</Layout>
+<style>.seo-grid{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;display:grid;grid-template-columns:1fr 240px;gap:16px}.crumb,.crumb a{font-size:12px;color:#666}.crumb a,.links a{color:#2d6a4f}h1{font-size:22px;margin:8px 0 12px;font-weight:600;letter-spacing:-0.3px}.links{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}.links a{background:#fff;border:1px solid #e0e0e0;border-radius:4px;padding:5px 8px;font-size:12px}@media(max-width:820px){.seo-grid{grid-template-columns:1fr}}</style>

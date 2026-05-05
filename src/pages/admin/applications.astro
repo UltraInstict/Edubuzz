@@ -1,0 +1,14 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getAdminPB, requireAdmin } from '../../lib/auth';
+
+const { redirect, user } = requireAdmin(Astro.request);
+if (redirect) return redirect;
+const pb = await getAdminPB();
+const apps = await pb.collection('applications').getList(1, 100, { sort: '-created' }).catch(() => ({ items: [] }));
+---
+<Layout title="Admin Applications" description="Manage applications." canonicalUrl={Astro.url.href}>
+<main class="admin-wrap"><header><h1>Applications</h1><button id="csv">Export CSV</button></header><div class="table-wrap"><table id="apps"><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Applied</th></tr></thead><tbody>{apps.items.map((app:any)=><tr><td>{app.applicant_name || app.name}</td><td>{app.applicant_email || app.email}</td><td>{app.status || 'pending'}</td><td>{app.created?.slice(0,10)}</td></tr>)}</tbody></table></div></main>
+</Layout>
+<script>document.getElementById('csv')?.addEventListener('click',()=>{const rows=[...document.querySelectorAll('#apps tr')].map(r=>[...r.children].map(c=>`"${c.textContent}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows],{type:'text/csv'}));a.download='applications.csv';a.click();});</script>
+<style>.admin-wrap{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem}header{display:flex;justify-content:space-between;margin-bottom:12px}h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.3px}button{border:1px solid #2d6a4f;background:#2d6a4f;color:#fff;border-radius:4px;padding:8px 10px}.table-wrap{overflow:auto;background:#fff;border:1px solid #e0e0e0;border-radius:6px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid #f0f0f0;text-align:left}</style>

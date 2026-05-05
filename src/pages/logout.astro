@@ -1,0 +1,11 @@
+---
+import { clearAuthCookie } from '../lib/auth';
+
+return new Response(null, {
+  status: 302,
+  headers: {
+    Location: '/',
+    'Set-Cookie': clearAuthCookie(),
+  },
+});
+---

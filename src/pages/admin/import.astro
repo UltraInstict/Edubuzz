@@ -1,0 +1,58 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getAdminPB, requireAdmin } from '../../lib/auth';
+
+const { redirect, user } = requireAdmin(Astro.request);
+if (redirect) return redirect;
+const pb = await getAdminPB();
+const sources = await pb.collection('xml_sources').getList(1, 50, { sort: 'name' }).catch(() => ({ items: [] }));
+---
+<Layout title="Admin Import" description="Import jobs into Edubuzz." canonicalUrl={Astro.url.href}>
+  <main class="admin-wrap">
+    <header><h1>Job imports</h1><a href="/admin">Dashboard</a></header>
+    <section class="panel">
+      <h2>Manual CSV/JSON import</h2>
+      <textarea id="import-data" rows="10" class="form-field" placeholder="Paste CSV or JSON here"></textarea>
+      <div class="actions"><button data-type="csv">Import CSV</button><button data-type="json">Import JSON</button></div>
+      <p id="result" hidden></p>
+    </section>
+    <section class="panel">
+      <h2>XML feed sources</h2>
+      <form id="source-form" class="source-form">
+        <input class="form-field" name="name" placeholder="Feed name" required />
+        <input class="form-field" name="feed_url" placeholder="https://feed.example/jobs.xml" required />
+        <select class="form-field" name="format"><option value="indeed_xml">Indeed XML</option><option value="jobsora">Jobsora</option><option value="generic_rss">Generic RSS</option></select>
+        <button>Add feed</button>
+      </form>
+      <table>
+        <thead><tr><th>Name</th><th>Format</th><th>Last imported</th><th>Count</th><th></th></tr></thead>
+        <tbody>{sources.items.map((source: any) => <tr><td>{source.name}</td><td>{source.format}</td><td>{source.last_imported || '-'}</td><td>{source.import_count || 0}</td><td><button data-feed={source.id}>Import now</button></td></tr>)}</tbody>
+      </table>
+    </section>
+  </main>
+</Layout>
+<script>
+const result = document.getElementById('result') as HTMLParagraphElement;
+document.querySelectorAll('[data-type]').forEach((button) => button.addEventListener('click', async () => {
+  const type = (button as HTMLButtonElement).dataset.type;
+  const raw = (document.getElementById('import-data') as HTMLTextAreaElement).value;
+  const data = type === 'json' ? JSON.parse(raw || '[]') : raw;
+  const response = await fetch('/api/admin/import-jobs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type, data }) });
+  const body = await response.json();
+  result.textContent = `${body.imported || 0} imported, ${body.skipped || 0} skipped, ${body.errors || 0} errors`;
+  result.hidden = false;
+}));
+document.querySelectorAll('[data-feed]').forEach((button) => button.addEventListener('click', async () => {
+  const response = await fetch('/api/admin/import-jobs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type:'xml_feed', feedId:(button as HTMLButtonElement).dataset.feed }) });
+  const body = await response.json();
+  alert(`${body.imported || 0} imported, ${body.skipped || 0} skipped, ${body.errors || 0} errors`);
+}));
+document.getElementById('source-form')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  await fetch('/api/admin/xml-source', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(Object.fromEntries(new FormData(event.currentTarget as HTMLFormElement))) });
+  location.reload();
+});
+</script>
+<style>
+.admin-wrap{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;display:grid;gap:16px}header{display:flex;justify-content:space-between}h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.3px}h2{font-size:14px;margin:0 0 10px;font-weight:600}.actions,.source-form{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}button{border:1px solid #2d6a4f;background:#2d6a4f;color:#fff;border-radius:4px;padding:8px 10px;font-size:13px}a{color:#2d6a4f}table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}th,td{border-bottom:1px solid #f0f0f0;text-align:left;padding:7px}
+</style>

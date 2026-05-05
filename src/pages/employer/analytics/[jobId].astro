@@ -1,0 +1,29 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getAdminPB, requireUser } from '../../../lib/auth';
+import { getEmployerForUser } from '../../../lib/pocketbase';
+const { redirect, user } = requireUser(Astro.request, '/login?next=/employer/dashboard');
+if (redirect) return redirect;
+const employer = await getEmployerForUser((user as any).id);
+if (!employer) return Response.redirect(new URL('/register', Astro.url).toString(), 302);
+const session = { user: user as any, employer };
+const pb = await getAdminPB();
+const job: any = await pb.collection('jobs').getOne(Astro.params.jobId || '').catch(() => null);
+if (!job) return new Response('Not found', { status: 404 });
+if (job.employer_id !== session.employer.id) return new Response('Forbidden', { status: 403 });
+const since = new Date(Date.now() - 30 * 86400000).toISOString();
+const events = await pb.collection('analytics_events').getFullList({ filter: `job_id="${job.id}"&&created>="${since}"`, sort: 'created' }).catch(() => []);
+const views = events.filter((e:any)=>e.event==='view').length;
+const applies = events.filter((e:any)=>e.event==='apply_click').length;
+const refs = Object.entries(events.reduce((acc:any,e:any)=>{acc[e.ref || 'direct']=(acc[e.ref || 'direct']||0)+1;return acc;},{})).sort((a:any,b:any)=>b[1]-a[1]).slice(0,5);
+const days = Array.from({length:30},(_,i)=>new Date(Date.now()-(29-i)*86400000).toISOString().slice(5,10));
+const viewSeries = days.map(d=>events.filter((e:any)=>e.event==='view'&&e.created.slice(5,10)===d).length);
+const applySeries = days.map(d=>events.filter((e:any)=>e.event==='apply_click'&&e.created.slice(5,10)===d).length);
+const max = Math.max(1, ...viewSeries, ...applySeries);
+const points = viewSeries.map((v,i)=>`${(i/29)*600},${160-(v/max)*140}`).join(' ');
+const applyPoints = applySeries.map((v,i)=>`${(i/29)*600},${160-(v/max)*140}`).join(' ');
+---
+<Layout title={`Analytics for ${job.title}`} description="Job analytics." canonicalUrl={Astro.url.href}>
+<main class="wrap"><h1>Analytics: {job.title}</h1><section class="summary"><div><b>{views}</b><span>Total views</span></div><div><b>{applies}</b><span>Apply clicks</span></div><div><b>{views ? Math.round((applies/views)*100) : 0}%</b><span>Conversion</span></div></section><section class="panel"><svg viewBox="0 0 620 180" role="img"><polyline points={points} fill="none" stroke="#2d6a4f" stroke-width="3"/><polyline points={applyPoints} fill="none" stroke="#f0c040" stroke-width="3"/></svg></section><section class="panel"><h2>Top referrers</h2>{refs.map(([ref,count]:any)=><p>{ref}: {count}</p>)}</section></main>
+</Layout>
+<style>.wrap{max-width:900px;margin:1.5rem auto;padding:0 1.5rem;display:grid;gap:16px}h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.3px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.summary div{background:#fff;border:1px solid #e0e0e0;border-radius:6px;padding:14px}b{display:block;font-size:20px;font-weight:600}span,p{color:#666;font-size:13px}svg{width:100%;height:auto;background:#fff}</style>

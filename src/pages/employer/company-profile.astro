@@ -1,0 +1,23 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { requireUser } from '../../lib/auth';
+import { getEmployerForUser, PROVINCES } from '../../lib/pocketbase';
+const { redirect, user } = requireUser(Astro.request, '/login?next=/employer/company-profile');
+if (redirect) return redirect;
+const employerRecord = await getEmployerForUser((user as any).id);
+if (!employerRecord) return Response.redirect(new URL('/register', Astro.url).toString(), 302);
+const session = { user: user as any, employer: employerRecord };
+const employer = session.employer;
+---
+<Layout title="Company Profile" description="Edit your public company profile." canonicalUrl={Astro.url.href}>
+<main class="form-page panel"><h1>Company profile</h1><form id="profile-form" enctype="multipart/form-data">
+<label>Company name <input class="form-field" name="company_name" value={employer.company_name} required /></label>
+<label>Slug <input class="form-field" name="company_slug" value={employer.company_slug} required /></label>
+<label>Website <input class="form-field" name="website" value={employer.website} placeholder="https://" /></label>
+<label>Description <textarea class="form-field" name="description" rows="6">{employer.description}</textarea></label>
+<div class="grid"><label>Province <select class="form-field" name="province"><option value="">Select province</option>{PROVINCES.map(p=><option value={p} selected={p===employer.province}>{p}</option>)}</select></label><label>City <input class="form-field" name="city" value={employer.city} /></label></div>
+<label>Logo <input class="form-field" type="file" name="logo" accept="image/*" /></label>
+<p id="message" hidden></p><button>Save profile</button>
+</form></main></Layout>
+<script>document.getElementById('profile-form')?.addEventListener('submit',async(e)=>{e.preventDefault();const res=await fetch('/api/employer/company-profile',{method:'POST',body:new FormData(e.currentTarget as HTMLFormElement)});const msg=document.getElementById('message') as HTMLParagraphElement;msg.textContent=res.ok?'Profile saved.':'Could not save profile.';msg.hidden=false;});</script>
+<style>.form-page{max-width:720px;margin:1.5rem auto}h1{font-size:22px;margin:0 0 16px;font-weight:600;letter-spacing:-0.3px}form{display:grid;gap:12px}label{display:grid;gap:4px;color:#444;font-size:12px;font-weight:500}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}button{border:1px solid #2d6a4f;border-radius:4px;background:#2d6a4f;color:#fff;padding:10px 14px;font-weight:600}@media(max-width:560px){.grid{grid-template-columns:1fr}}</style>
