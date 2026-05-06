@@ -1,13 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { generateToken } from '../lib/csrf';
+const csrfToken = generateToken();
 ---
 
 <Layout title="Login" description="Log in to your Edubuzz account." canonicalUrl="/login">
   <div class="auth-wrap">
     <div class="auth-card">
       <h1>Login</h1>
-      <div id="error-msg" class="error-msg"></div>
+      <div id="error-msg" class="error-msg" hidden></div>
       <form id="login-form">
+        <input type="hidden" name="_csrf" value={csrfToken} />
         <label>Email<input type="email" name="email" required /></label>
         <label>Password<input type="password" name="password" required /></label>
         <button type="submit" id="submit-btn">Login</button>
@@ -18,44 +21,28 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  document.getElementById('login-form')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const btn = document.getElementById('submit-btn') as HTMLButtonElement;
-    const errEl = document.getElementById('error-msg') as HTMLDivElement;
-    btn.textContent = 'Logging in...';
-    btn.disabled = true;
-    errEl.style.display = 'none';
-
-    const body = new FormData(event.target as HTMLFormElement);
-
-    try {
-      const res = await fetch('/api/auth/login', { method: 'POST', body });
-      const data = await res.json();
-      if (data.success) {
-        const next = new URLSearchParams(window.location.search).get('next');
-        if (next) window.location.href = next;
-        else if (data.role === 'admin') window.location.href = '/admin';
-        else window.location.href = '/employer/dashboard';
-      } else {
-        errEl.textContent = data.error ?? 'Login failed.';
-        errEl.style.display = 'block';
-        btn.textContent = 'Login';
-        btn.disabled = false;
-      }
-    } catch {
-      errEl.textContent = 'Network error. Please try again.';
-      errEl.style.display = 'block';
-      btn.textContent = 'Login';
-      btn.disabled = false;
-    }
-  });
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  const err = document.getElementById('error-msg');
+  btn.disabled = true; btn.textContent = 'Logging in\u2026'; err.hidden = true;
+  const res = await fetch('/api/auth/login', { method: 'POST', body: new FormData(e.target) });
+  const d = await res.json();
+  if (d.success) {
+    const next = new URLSearchParams(location.search).get('next');
+    location.href = next || (d.role === 'admin' ? '/admin' : '/employer/dashboard');
+  } else {
+    err.textContent = d.error; err.hidden = false;
+    btn.disabled = false; btn.textContent = 'Login';
+  }
+});
 </script>
 
 <style>
   .auth-wrap { max-width: 480px; margin: 3rem auto; padding: 0 1rem; }
   .auth-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 2rem; }
   h1 { font-size: 20px; font-weight: 600; margin: 0 0 1.5rem; letter-spacing: -0.3px; }
-  .error-msg { display: none; background: #fcebeb; border: 1px solid #f09595; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #a32d2d; margin-bottom: 1rem; }
+  .error-msg { background: #fcebeb; border: 1px solid #f09595; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #a32d2d; margin-bottom: 1rem; }
   label { display: block; color: #444; font-size: 13px; margin-bottom: 4px; }
   input { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px 10px; font-size: 14px; margin: 4px 0 14px; }
   input:focus { border-color: #2d6a4f; outline: none; }

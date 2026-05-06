@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getPB } from '../../lib/pocketbase';
 import { checkRateLimit, cleanString, isEmail, json } from '../../lib/api';
+import { validateToken } from '../../lib/csrf';
 
 function escapeFilter(value: string) {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -13,6 +14,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const data = await request.json();
+    if (!validateToken(data._csrf as string))
+      return json({ message: 'Invalid request.' }, { status: 403 });
     const email = cleanString(data.email, 120).toLowerCase();
     const keyword = cleanString(data.keyword, 120);
     const province = cleanString(data.province, 80);

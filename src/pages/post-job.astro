@@ -1,8 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getCategories, JOB_TYPES, PROVINCES } from '../lib/pocketbase';
+import { generateToken } from '../lib/csrf';
 
 const categories = await getCategories();
+const csrfToken = generateToken();
 ---
 
 <Layout
@@ -14,6 +16,7 @@ const categories = await getCategories();
     <main class="panel">
       <h1>Post a Job</h1>
       <form id="post-job-form">
+        <input type="hidden" name="_csrf" value={csrfToken} />
         <div class="field-grid">
           <label>Employer name <input class="form-field" type="text" name="employer_name" required /></label>
           <label>Employer email <input class="form-field" type="email" name="employer_email" required /></label>

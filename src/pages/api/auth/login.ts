@@ -1,36 +1,29 @@
 import type { APIRoute } from 'astro';
 import PocketBase from 'pocketbase';
+import { validateToken } from '../../../lib/csrf';
 
 export const POST: APIRoute = async ({ request }) => {
-  const form = await request.formData();
-  const email = (form.get('email') as string)?.trim().toLowerCase();
-  const password = form.get('password') as string;
+  const fd = await request.formData();
+  if (!validateToken(fd.get('_csrf') as string))
+    return json({ error: 'Invalid request.' }, 403);
+  const email    = (fd.get('email') as string)?.trim().toLowerCase();
+  const password = fd.get('password') as string;
+  if (!email || !password)
+    return json({ error: 'Email and password required.' }, 400);
 
-  if (!email || !password) {
-    return new Response(JSON.stringify({ error: 'Email and password are required.' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  const client = new PocketBase(import.meta.env.PB_URL ?? 'http://127.0.0.1:8090');
-
+  const pb = new PocketBase(import.meta.env.PB_URL ?? 'http://127.0.0.1:8090');
   try {
-    const authData = await client.collection('users').authWithPassword(email, password);
-    const cookie = `pb_auth=${authData.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`;
-
-    return new Response(JSON.stringify({ success: true, role: authData.record.role }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Set-Cookie': cookie,
-      },
+    const auth = await pb.collection('users').authWithPassword(email, password);
+    return json({ success: true, role: auth.record.role }, 200, {
+      'Set-Cookie': `pb_auth=${auth.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`
     });
-  } catch (err: any) {
-    console.error('Login error:', err);
-    return new Response(JSON.stringify({ error: 'Invalid email or password.' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch {
+    return json({ error: 'Invalid email or password.' }, 401);
   }
 };
+
+function json(body: object, status: number, extra: Record<string,string> = {}) {
+  return new Response(JSON.stringify(body), {
+    status, headers: { 'Content-Type': 'application/json', ...extra }
+  });
+}

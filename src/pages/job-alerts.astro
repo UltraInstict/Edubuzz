@@ -1,6 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { PROVINCES } from '../lib/pocketbase';
+import { generateToken } from '../lib/csrf';
+
+const csrfToken = generateToken();
 ---
 
 <Layout title="Job Alerts" description="Create Edubuzz job alerts." canonicalUrl={Astro.url.href}>
@@ -8,6 +11,7 @@ import { PROVINCES } from '../lib/pocketbase';
     <h1>Job alerts</h1>
     <p>We'll email you when new jobs matching your criteria are posted.</p>
     <form id="alerts-form">
+      <input type="hidden" name="_csrf" value={csrfToken} />
       <label>Email<input class="form-field" type="email" name="email" required /></label>
       <label>Keyword<input class="form-field" name="keyword" /></label>
       <label>Province<select class="form-field" name="province"><option value="">Any province</option>{PROVINCES.map((p) => <option value={p}>{p}</option>)}</select></label>

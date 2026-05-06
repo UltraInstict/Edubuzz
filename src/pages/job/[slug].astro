@@ -6,9 +6,11 @@ import AdSlot from '../../components/AdSlot.astro';
 import { formatSalary, getJobBySlug, getRelatedJobs, isSalaryDisclosed } from '../../lib/pocketbase';
 import { timeAgo } from '../../lib/timeAgo';
 import { trackEvent } from '../../lib/analytics';
+import { generateToken } from '../../lib/csrf';
 
 const { slug } = Astro.params;
 const job = await getJobBySlug(slug || '');
+const csrfToken = generateToken();
 
 if (!job) return Astro.redirect('/404');
 
@@ -103,15 +105,16 @@ const jsonLd = {
       {!isExpired && job.apply_email && (
         <section id="apply-form" class="panel apply-form">
           <h2>Apply for this job</h2>
-          <form enctype="multipart/form-data">
-            <input type="hidden" name="job" value={job.id} />
+          <form id="apply-form" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf" value={csrfToken} />
+            <input type="hidden" name="job_id" value={job.id} />
             <label>Name <input class="form-field" type="text" name="name" required /></label>
             <label>Email <input class="form-field" type="email" name="email" required /></label>
             <label>Phone <input class="form-field" type="tel" name="phone" /></label>
             <label>Cover letter <textarea class="form-field" name="cover_letter" rows="5"></textarea></label>
             <label>CV (PDF, max 5MB) <input class="form-field" type="file" name="cv_file" accept="application/pdf" /></label>
-            <p id="apply-message" hidden></p>
-            <button type="submit">Submit Application</button>
+            <p id="apply-error" hidden></p>
+            <button type="submit" id="apply-btn">Submit Application</button>
           </form>
         </section>
       )}
@@ -138,19 +141,19 @@ const jsonLd = {
 </Layout>
 
 <script>
-  document.querySelector('.apply-form form')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget as HTMLFormElement;
-    const message = document.getElementById('apply-message') as HTMLParagraphElement;
-    const response = await fetch('/api/apply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: new FormData(form),
-    });
-    const body = await response.json().catch(() => ({}));
-    message.textContent = response.ok ? 'Application submitted.' : (body.message || 'Could not submit application.');
-    message.hidden = false;
-    if (response.ok) form.reset();
+  document.getElementById('apply-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('apply-btn');
+    const err = document.getElementById('apply-error');
+    btn.disabled = true; btn.textContent = 'Submitting\u2026'; err.hidden = true;
+    const res = await fetch('/api/apply', { method: 'POST', body: new FormData(e.target) });
+    const d = await res.json();
+    if (d.success) {
+      e.target.innerHTML = '<p style="color:#2d6a4f;font-weight:500;padding:1rem 0">Application submitted. Good luck!</p>';
+    } else {
+      err.textContent = d.error; err.hidden = false;
+      btn.disabled = false; btn.textContent = 'Submit Application';
+    }
   });
 
   document.querySelectorAll('[data-share]').forEach((element) => {

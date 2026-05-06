@@ -1,13 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { generateToken } from '../lib/csrf';
+const csrfToken = generateToken();
 ---
 
 <Layout title="Create employer account" description="Register on Edubuzz" canonicalUrl="/register">
   <div class="auth-wrap">
     <div class="auth-card">
       <h1>Create employer account</h1>
-      <div id="error-msg" class="error-msg"></div>
+      <div id="error-msg" class="error-msg" hidden></div>
       <form id="reg-form">
+        <input type="hidden" name="_csrf" value={csrfToken} />
         <label>Name<input type="text" name="name" required /></label>
         <label>Email<input type="email" name="email" required /></label>
         <label>Password<input type="password" name="password" required minlength="8" /></label>
@@ -20,42 +23,26 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  document.getElementById('reg-form')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const btn = document.getElementById('submit-btn') as HTMLButtonElement;
-    const errEl = document.getElementById('error-msg') as HTMLDivElement;
-    btn.textContent = 'Creating account...';
-    btn.disabled = true;
-    errEl.style.display = 'none';
-
-    const form = event.target as HTMLFormElement;
-    const body = new FormData(form);
-
-    try {
-      const res = await fetch('/api/auth/register', { method: 'POST', body });
-      const data = await res.json();
-      if (data.success) {
-        window.location.href = '/employer/dashboard';
-      } else {
-        errEl.textContent = data.error ?? 'Something went wrong.';
-        errEl.style.display = 'block';
-        btn.textContent = 'Create account';
-        btn.disabled = false;
-      }
-    } catch {
-      errEl.textContent = 'Network error. Please try again.';
-      errEl.style.display = 'block';
-      btn.textContent = 'Create account';
-      btn.disabled = false;
-    }
-  });
+document.getElementById('reg-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  const err = document.getElementById('error-msg');
+  btn.disabled = true; btn.textContent = 'Creating account\u2026'; err.hidden = true;
+  const res = await fetch('/api/auth/register', { method: 'POST', body: new FormData(e.target) });
+  const d = await res.json();
+  if (d.success) { location.href = '/employer/dashboard'; }
+  else {
+    err.textContent = d.error; err.hidden = false;
+    btn.disabled = false; btn.textContent = 'Create account';
+  }
+});
 </script>
 
 <style>
   .auth-wrap { max-width: 480px; margin: 3rem auto; padding: 0 1rem; }
   .auth-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 2rem; }
   h1 { font-size: 20px; font-weight: 600; margin: 0 0 1.5rem; letter-spacing: -0.3px; }
-  .error-msg { display: none; background: #fcebeb; border: 1px solid #f09595; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #a32d2d; margin-bottom: 1rem; }
+  .error-msg { background: #fcebeb; border: 1px solid #f09595; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #a32d2d; margin-bottom: 1rem; }
   label { display: block; color: #444; font-size: 13px; margin-bottom: 4px; }
   input { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px 10px; font-size: 14px; margin: 4px 0 14px; }
   input:focus { border-color: #2d6a4f; outline: none; }

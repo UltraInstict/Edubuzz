@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getPB } from '../../lib/pocketbase';
 import { checkRateLimit, cleanString, isEmail, isHttpsUrl, json } from '../../lib/api';
+import { validateToken } from '../../lib/csrf';
 
 export const POST: APIRoute = async ({ request }) => {
   if (!checkRateLimit(request)) {
@@ -9,6 +10,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const data = await request.json();
+    if (!validateToken(data._csrf as string))
+      return json({ message: 'Invalid request.' }, { status: 403 });
     const employer_name = cleanString(data.employer_name, 80);
     const employer_email = cleanString(data.employer_email, 120).toLowerCase();
     const company = cleanString(data.company, 120);
