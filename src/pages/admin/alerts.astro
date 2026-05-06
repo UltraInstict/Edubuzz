@@ -1,9 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getAdminPB, requireAdmin } from '../../lib/auth';
-const { redirect, user } = requireAdmin(Astro.request);
-if (redirect) return redirect;
-const pb = await getAdminPB();
+import { getPb, getUser } from '../../lib/auth';
+const user = getUser(Astro.request);
+if (!user || user.role !== 'admin') return Astro.redirect('/login');
+const pb = getPb();
+await pb.admins.authWithPassword(import.meta.env.PB_ADMIN_EMAIL!, import.meta.env.PB_ADMIN_PASSWORD!);
 const alerts = await pb.collection('alerts').getList(1, 100, { sort: '-created' }).catch(() => pb.collection('job_alerts').getList(1, 100, { sort: '-created' }).catch(() => ({ items: [] })));
 ---
 <Layout title="Admin Alerts" description="Manage job alerts." canonicalUrl={Astro.url.href}>

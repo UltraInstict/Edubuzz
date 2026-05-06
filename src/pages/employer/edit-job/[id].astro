@@ -1,16 +1,16 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { getAdminPB, requireUser } from '../../../lib/auth';
-import { getCategories, getEmployerForUser, JOB_TYPES, PROVINCES } from '../../../lib/pocketbase';
-const { redirect, user } = requireUser(Astro.request, '/login?next=/employer/dashboard');
-if (redirect) return redirect;
-const employer = await getEmployerForUser((user as any).id);
-if (!employer) return Response.redirect(new URL('/register', Astro.url).toString(), 302);
-const session = { user: user as any, employer };
-const pb = await getAdminPB();
+import { getPb, getUser } from '../../../lib/auth';
+import { getCategories, JOB_TYPES, PROVINCES } from '../../../lib/pocketbase';
+const user = getUser(Astro.request);
+if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
+const pb = getPb();
+const employerList = await pb.collection('employers').getList(1, 1, { filter: `user_id="${(user as any).id}"` }).catch(() => ({ items: [] }));
+const employer = employerList.items[0] as any;
+if (!employer) return Astro.redirect('/register');
 const job: any = await pb.collection('jobs').getOne(Astro.params.id || '').catch(() => null);
 if (!job) return new Response('Not found', { status: 404 });
-if (job.employer_id !== session.employer.id) return new Response('Forbidden', { status: 403 });
+if (job.employer_id !== employer.id) return new Response('Forbidden', { status: 403 });
 const categories = await getCategories();
 ---
 <Layout title={`Edit ${job.title}`} description="Edit a job listing." canonicalUrl={Astro.url.href}>

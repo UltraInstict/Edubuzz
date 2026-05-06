@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getAdminPB, getEmployerSession } from '../../../lib/auth';
 import { cleanString, isHttpsUrl, json } from '../../../lib/api';
 import { slugify } from '../../../lib/slugify';
+import { validateToken } from '../../../lib/csrf';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getEmployerSession(request);
@@ -9,6 +10,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const form = await request.formData();
+    if (!validateToken(form.get('_csrf') as string))
+      return json({ message: 'Invalid request.' }, { status: 403 });
     const company_name = cleanString(form.get('company_name'), 120);
     const company_slug = slugify(cleanString(form.get('company_slug'), 120) || company_name);
     const website = cleanString(form.get('website'), 300);

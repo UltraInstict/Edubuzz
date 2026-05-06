@@ -1,10 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getAdminPB, requireAdmin } from '../../lib/auth';
+import { getPb, getUser } from '../../lib/auth';
 
-const { redirect, user } = requireAdmin(Astro.request);
-if (redirect) return redirect;
-const pb = await getAdminPB();
+const user = getUser(Astro.request);
+if (!user || user.role !== 'admin') return Astro.redirect('/login');
+const pb = getPb();
+await pb.admins.authWithPassword(import.meta.env.PB_ADMIN_EMAIL!, import.meta.env.PB_ADMIN_PASSWORD!);
 const settings = await pb.collection('admin_settings').getFullList({ sort: 'key' }).catch(() => []);
 const defaults = ['site_name','tagline','adsense_publisher_id','jobs_per_page','featured_listing_price','ai_generate_enabled','import_enabled'];
 const rows = defaults.map((key) => settings.find((s: any) => s.key === key) || { key, value: '' });

@@ -1,61 +1,47 @@
-import { pb, getPB, getEmployerForUser } from './pocketbase';
+import PocketBase from 'pocketbase';
 
-function absoluteUrl(path: string): string {
-  const base = import.meta.env.SITE_URL ?? 'http://localhost:4321';
-  return `${base}${path}`;
+export function getPb() {
+  return new PocketBase(import.meta.env.PB_URL ?? 'http://127.0.0.1:8090');
 }
 
 export function getUser(request: Request) {
-  const cookie = request.headers.get('cookie') ?? '';
-  const token = cookie.match(/pb_auth=([^;]+)/)?.[1];
+  const token = request.headers.get('cookie')?.match(/pb_auth=([^;]+)/)?.[1];
   if (!token) return null;
   try {
-    pb.authStore.save(decodeURIComponent(token), null);
-    if (!pb.authStore.isValid) return null;
-    return pb.authStore.model;
-  } catch {
-    return null;
-  }
-}
-
-export function requireUser(request: Request, redirectTo = '/login') {
-  const user = getUser(request);
-  if (!user) {
-    return { redirect: Response.redirect(absoluteUrl(redirectTo), 302), user: null };
-  }
-  return { redirect: null, user };
-}
-
-export function requireAdmin(request: Request) {
-  const user = getUser(request) as any;
-  if (!user || user.role !== 'admin') {
-    return { redirect: Response.redirect(absoluteUrl('/login'), 302), user: null };
-  }
-  return { redirect: null, user };
-}
-
-export async function getEmployerSession(request: Request) {
-  const { redirect, user } = requireUser(request, '/login?next=/employer/dashboard');
-  if (redirect || !user) return null;
-  const employer = await getEmployerForUser((user as any).id);
-  return employer ? { user: user as any, employer } : null;
-}
-
-export function authCookie(token: string) {
-  const maxAge = 60 * 60 * 24 * 7;
-  return `pb_auth=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
-}
-
-export function clearAuthCookie() {
-  return 'pb_auth=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0';
+    const pb = getPb();
+    pb.authStore.save(token, null);
+    return pb.authStore.isValid ? pb.authStore.model : null;
+  } catch { return null; }
 }
 
 export async function getAdminPB() {
-  const client = getPB();
-  const email = import.meta.env.PB_ADMIN_EMAIL;
-  const password = import.meta.env.PB_ADMIN_PASSWORD;
-  if (email && password) {
-    await client.admins.authWithPassword(email, password);
+  const pb = getPb();
+  await pb.admins.authWithPassword(
+    import.meta.env.PB_ADMIN_EMAIL ?? 'admin@edubuzz.co.za',
+    import.meta.env.PB_ADMIN_PASSWORD ?? ''
+  );
+  return pb;
+}
+
+export async function getEmployerSession(request: Request) {
+  const user = getUser(request);
+  if (!user) return null;
+  const pb = getPb();
+  const token = request.headers.get('cookie')?.match(/pb_auth=([^;]+)/)?.[1];
+  if (!token) return null;
+  pb.authStore.save(token, null);
+  const result = await pb.collection('employers').getList(1, 1, {
+    filter: \`user_id="\${user.id}"\`,
+  });
+  const employer = result.items[0] as any;
+  if (!employer) return null;
+  return { user, employer };
+}
+
+export function requireAdmin(request: Request) {
+  const user = getUser(request);
+  if (!user || user.role !== 'admin') {
+    return { redirect: new Response(null, { status: 302, headers: { Location: '/login' } }) };
   }
-  return client;
+  return { redirect: null };
 }

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getAdminPB, getEmployerSession } from '../../../lib/auth';
 import { cleanString, isEmail, isHttpsUrl, json } from '../../../lib/api';
+import { validateToken } from '../../../lib/csrf';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getEmployerSession(request);
@@ -8,6 +9,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const data = await request.json();
+    if (!validateToken(data._csrf as string))
+      return json({ message: 'Invalid request.' }, { status: 403 });
     const id = cleanString(data.id, 80);
     const title = cleanString(data.title, 120);
     const company = cleanString(data.company || session.employer.company_name, 120);

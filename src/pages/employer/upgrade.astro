@@ -1,8 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { requireUser } from '../../lib/auth';
-const { redirect, user } = requireUser(Astro.request, '/login?next=/employer/upgrade');
-if (redirect) return redirect;
+import { getUser } from '../../lib/auth';
+const user = getUser(Astro.request);
+if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
 const jobId = Astro.url.searchParams.get('job') || '';
 ---
 <Layout title="Upgrade Listing" description="Boost a job listing on Edubuzz." canonicalUrl={Astro.url.href}>

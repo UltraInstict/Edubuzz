@@ -1,10 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getAdminPB, requireAdmin } from '../../lib/auth';
+import { getPb, getUser } from '../../lib/auth';
 import { PROVINCES } from '../../lib/pocketbase';
 
-const { redirect, user } = requireAdmin(Astro.request);
-if (redirect) return redirect;
+const user = getUser(Astro.request);
+if (!user || user.role !== 'admin') return Astro.redirect('/login');
+const pb = getPb();
+await pb.admins.authWithPassword(import.meta.env.PB_ADMIN_EMAIL!, import.meta.env.PB_ADMIN_PASSWORD!);
 
 const params = Astro.url.searchParams;
 const filters = [];
@@ -17,7 +19,6 @@ if (status === 'expired') filters.push(`expires<"${new Date().toISOString().slic
 if (province) filters.push(`province="${province}"`);
 if (source) filters.push(`source="${source}"`);
 
-const pb = await getAdminPB();
 const jobs = await pb.collection('jobs').getList(1, 50, {
   filter: filters.join('&&'),
   sort: '-created',

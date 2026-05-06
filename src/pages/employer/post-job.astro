@@ -1,17 +1,21 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { requireUser } from '../../lib/auth';
-import { getCategories, getEmployerForUser, JOB_TYPES, PROVINCES } from '../../lib/pocketbase';
-const { redirect, user } = requireUser(Astro.request, '/login?next=/employer/post-job');
-if (redirect) return redirect;
-const employer = await getEmployerForUser((user as any).id);
-if (!employer) return Response.redirect(new URL('/register', Astro.url).toString(), 302);
-const session = { user: user as any, employer };
+import { getPb, getUser } from '../../lib/auth';
+import { getCategories, JOB_TYPES, PROVINCES } from '../../lib/pocketbase';
+import { generateToken } from '../../lib/csrf';
+const user = getUser(Astro.request);
+if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
+const pb = getPb();
+const employerList = await pb.collection('employers').getList(1, 1, { filter: `user_id="${(user as any).id}"` }).catch(() => ({ items: [] }));
+const employer = employerList.items[0] as any;
+if (!employer) return Astro.redirect('/register');
 const categories = await getCategories();
+const csrfToken = generateToken();
 ---
 <Layout title="Employer Post Job" description="Post a job from your employer account." canonicalUrl={Astro.url.href}>
 <main class="form-page panel"><h1>Post a job</h1><form id="job-form">
-<input type="hidden" name="company" value={session.employer.company_name} />
+<input type="hidden" name="_csrf" value={csrfToken} />
+<input type="hidden" name="company" value={employer.company_name} />
 <label>Job title <input class="form-field" name="title" required /></label>
 <div class="grid"><label>Category <select class="form-field" name="category">{categories.map(c=><option value={c.name}>{c.name}</option>)}</select></label><label>Province <select class="form-field" name="province" required>{PROVINCES.map(p=><option value={p}>{p}</option>)}</select></label></div>
 <div class="grid"><label>City <input class="form-field" name="city" /></label><label>Job type <select class="form-field" name="job_type" required>{JOB_TYPES.map(t=><option value={t}>{t}</option>)}</select></label></div>

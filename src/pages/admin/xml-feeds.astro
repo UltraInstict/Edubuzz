@@ -1,8 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { requireAdmin } from '../../lib/auth';
-const { redirect, user } = requireAdmin(Astro.request);
-if (redirect) return redirect;
+import { getUser } from '../../lib/auth';
+const user = getUser(Astro.request);
+if (!user || user.role !== 'admin') return Astro.redirect('/login');
 const feeds = [
   { name: 'Indeed format', url: '/feeds/jobs.xml' },
   { name: 'Generic RSS', url: '/feeds/rss.xml' },
