@@ -1,9 +1,9 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { getPb, getUser } from '../../../lib/auth';
+import { getAuthPb, getUser } from '../../../lib/auth';
 const user = getUser(Astro.request);
 if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
-const pb = getPb();
+const pb = getAuthPb(Astro.request);
 const employerList = await pb.collection('employers').getList(1, 1, { filter: `user_id="${(user as any).id}"` }).catch(() => ({ items: [] }));
 const employer = employerList.items[0] as any;
 if (!employer) return Astro.redirect('/register');

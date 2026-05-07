@@ -1,11 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getPb, getUser } from '../../lib/auth';
+import { getAdminPB, getUser } from '../../lib/auth';
 
 const user = getUser(Astro.request);
 if (!user || user.role !== 'admin') return Astro.redirect('/login');
-const pb = getPb();
-await pb.admins.authWithPassword(import.meta.env.PB_ADMIN_EMAIL!, import.meta.env.PB_ADMIN_PASSWORD!);
+const pb = await getAdminPB();
 const sources = await pb.collection('xml_sources').getList(1, 50, { sort: 'name' }).catch(() => ({ items: [] }));
 ---
 <Layout title="Admin Import" description="Import jobs into Edubuzz." canonicalUrl={Astro.url.href}>

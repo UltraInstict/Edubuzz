@@ -1,11 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getPb, getUser } from '../../lib/auth';
+import { getAdminPB, getUser } from '../../lib/auth';
 
 const user = getUser(Astro.request);
 if (!user || user.role !== 'admin') return Astro.redirect('/login');
-const pb = getPb();
-await pb.admins.authWithPassword(import.meta.env.PB_ADMIN_EMAIL!, import.meta.env.PB_ADMIN_PASSWORD!);
+const pb = await getAdminPB();
 const today = new Date().toISOString().slice(0, 10);
 const [activeJobs, pendingJobs, expiredJobs, employers, applicationsToday, alerts, recentJobs, recentApps] = await Promise.all([
   pb.collection('jobs').getList(1, 1, { filter: 'active=true', fields: 'id' }).catch(() => ({ totalItems: 0 })),

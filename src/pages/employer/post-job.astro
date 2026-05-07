@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getPb, getUser } from '../../lib/auth';
+import { getAuthPb, getUser } from '../../lib/auth';
 import { getCategories, JOB_TYPES, PROVINCES } from '../../lib/pocketbase';
 import { generateToken } from '../../lib/csrf';
 const user = getUser(Astro.request);

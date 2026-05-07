@@ -26,13 +26,18 @@ document.getElementById('login-form').addEventListener('submit', async e => {
   const btn = e.target.querySelector('button[type=submit]');
   const err = document.getElementById('error-msg');
   btn.disabled = true; btn.textContent = 'Logging in\u2026'; err.hidden = true;
-  const res = await fetch('/api/auth/login', { method: 'POST', body: new FormData(e.target) });
-  const d = await res.json();
-  if (d.success) {
-    const next = new URLSearchParams(location.search).get('next');
-    location.href = next || (d.role === 'admin' ? '/admin' : '/employer/dashboard');
-  } else {
-    err.textContent = d.error; err.hidden = false;
+  try {
+    const res = await fetch('/api/auth/login', { method: 'POST', body: new FormData(e.target) });
+    const d = await res.json();
+    if (d.success) {
+      const next = new URLSearchParams(location.search).get('next');
+      location.href = next || (d.role === 'admin' ? '/admin' : '/employer/dashboard');
+    } else {
+      err.textContent = d.error; err.hidden = false;
+      btn.disabled = false; btn.textContent = 'Login';
+    }
+  } catch {
+    err.textContent = 'Network error. Try again.'; err.hidden = false;
     btn.disabled = false; btn.textContent = 'Login';
   }
 });
