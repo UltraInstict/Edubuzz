@@ -1,15 +1,23 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { generateToken } from '../lib/csrf';
+
+const csrfToken = generateToken();
 ---
 
 <Layout title="Contact Edubuzz" description="Contact the Edubuzz team." canonicalUrl={Astro.url.href}>
   <main class="form-page panel">
     <h1>Contact us</h1>
     <form id="contact-form">
+      <input type="hidden" name="_csrf" value={csrfToken} />
+      <!-- Honeypot: real users can't see this field. Bots fill everything, so a value here = bot. -->
+      <div class="hp-field" aria-hidden="true">
+        <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+      </div>
       <label>Name<input class="form-field" name="name" required /></label>
       <label>Email<input class="form-field" type="email" name="email" required /></label>
       <label>Message<textarea class="form-field" name="message" rows="6" required></textarea></label>
-      <p id="message" hidden></p>
+      <p id="message" hidden aria-live="polite"></p>
       <button>Send message</button>
     </form>
   </main>
@@ -19,11 +27,17 @@ import Layout from '../layouts/Layout.astro';
   document.getElementById('contact-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget as HTMLFormElement;
-    const res = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.fromEntries(new FormData(form))),
+    });
+    const data = await res.json().catch(() => ({}));
     const msg = document.getElementById('message') as HTMLParagraphElement;
-    msg.textContent = res.ok ? 'Message sent.' : 'Could not send your message.';
+    const okResponse = res.ok && (data.success !== false);
+    msg.textContent = okResponse ? 'Message sent.' : (data.error || 'Could not send your message.');
     msg.hidden = false;
-    if (res.ok) form.reset();
+    if (okResponse) form.reset();
   });
 </script>
 
@@ -32,5 +46,7 @@ import Layout from '../layouts/Layout.astro';
   h1 { margin: 0 0 16px; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
   form { display: grid; gap: 12px; }
   label { display: grid; gap: 4px; color: #444; font-size: 13px; font-weight: 500; }
-  button { border: 1px solid #2d6a4f; background: #2d6a4f; color: #fff; border-radius: 4px; padding: 10px; font-weight: 500; }
+  button { border: 1px solid #2d6a4f; background: #2d6a4f; color: #fff; border-radius: 4px; padding: 10px; font-weight: 500; cursor: pointer; }
+  button:hover { background: #245a42; border-color: #245a42; }
+  .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 </style>

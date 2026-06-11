@@ -1,16 +1,17 @@
 import type { APIRoute } from 'astro';
-import { getAdminPB, getEmployerSession } from '../../../lib/auth';
-import { cleanString, isEmail, isHttpsUrl, json } from '../../../lib/api';
+import { getAdminPB, getEmployerSession, auditLog } from '../../../lib/auth';
+import { cleanString, isEmail, isHttpsUrl, ok, fail } from '../../../lib/api';
 import { validateToken } from '../../../lib/csrf';
+import { pingIndexNow } from '../../../lib/indexnow';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getEmployerSession(request);
-  if (!session) return json({ message: 'Login required.' }, { status: 401 });
+  if (!session) return fail('Login required.', 401);
 
   try {
     const data = await request.json();
-    if (!validateToken(data._csrf as string))
-      return json({ message: 'Invalid request.' }, { status: 403 });
+    if (!validateToken(data._csrf as string)) return fail('Invalid request.', 403);
+
     const id = cleanString(data.id, 80);
     const title = cleanString(data.title, 120);
     const company = cleanString(data.company || session.employer.company_name, 120);
@@ -23,14 +24,21 @@ export const POST: APIRoute = async ({ request }) => {
     const apply_url = cleanString(data.apply_url, 300);
 
     if (!title || !company || !province || !job_type || !description) {
-      return json({ message: 'Please complete all required fields.' }, { status: 400 });
+      return fail('Please complete all required fields.', 400);
     }
-    if (apply_email && !isEmail(apply_email)) return json({ message: 'Invalid application email.' }, { status: 400 });
-    if (apply_url && !isHttpsUrl(apply_url)) return json({ message: 'Application URL must start with https://.' }, { status: 400 });
+    if (apply_email && !isEmail(apply_email)) return fail('Invalid application email.', 400);
+    if (apply_url && !isHttpsUrl(apply_url)) return fail('Application URL must start with https://.', 400);
+
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80);
 
     const payload = {
       title,
       company,
+      slug,
       category,
       province,
       city,
@@ -49,15 +57,19 @@ export const POST: APIRoute = async ({ request }) => {
 
     const pb = await getAdminPB();
     if (id) {
-      const existing: any = await pb.collection('jobs').getOne(id, { fields: 'id,employer_id' });
-      if (existing.employer_id !== session.employer.id) return json({ message: 'Forbidden.' }, { status: 403 });
-      await pb.collection('jobs').update(id, payload);
-      return json({ ok: true, id });
+      const existing: any = await pb.collection('jobs').getOne(id, { fields: 'id,employer_id,slug' });
+      if (existing.employer_id !== session.employer.id) return fail('Forbidden.', 403);
+      const updated = await pb.collection('jobs').update(id, payload) as any;
+      auditLog('employer_job_updated', { employerId: session.employer.id, jobId: id });
+      pingIndexNow([`https://edubuzz.co.za/job/${updated.slug}`]).catch(() => {});
+      return ok({ id });
     }
 
     const job: any = await pb.collection('jobs').create(payload);
-    return json({ ok: true, id: job.id });
+    auditLog('employer_job_created', { employerId: session.employer.id, jobId: job.id });
+    pingIndexNow([`https://edubuzz.co.za/job/${job.slug}`]).catch(() => {});
+    return ok({ id: job.id });
   } catch {
-    return json({ message: 'Could not save job.' }, { status: 500 });
+    return fail('Could not save job.', 500);
   }
 };

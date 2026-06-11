@@ -3,6 +3,25 @@ import PocketBase from 'pocketbase';
 const PB_URL = import.meta.env.PB_URL || 'http://127.0.0.1:8090';
 export const pb = new PocketBase(PB_URL);
 
+/** Strip unsafe HTML. Allow only whitelisted tags; strip all attributes except href on <a>. */
+export function sanitizeHtml(raw: string | undefined): string {
+  if (!raw) return '';
+  const ALLOWED = /^(b|i|em|strong|p|br|ul|ol|li|a|h[1-6]|div|span)$/i;
+  return raw
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<(\/?)(\w+)([^>]*)>/g, (_match: string, slash: string, tag: string, attrs: string) => {
+      if (!ALLOWED.test(tag)) return '';
+      const cleanTag = tag.toLowerCase();
+      if (cleanTag === 'br') return '<br>';
+      if (cleanTag === 'a' && !slash) {
+        const href = attrs.match(/href\s*=\s*["']([^"']+)["']/i);
+        const safe = href ? ` href="${href[1].replace(/"/g, '&quot;')}"` : '';
+        return `<a${safe}>`;
+      }
+      return `<${slash}${cleanTag}>`;
+    });
+}
+
 export function getPB(): PocketBase {
   return new PocketBase(PB_URL);
 }
@@ -33,7 +52,6 @@ export interface Job {
   xml_export?: boolean;
   og_image?: string;
   featured: boolean;
-  ai_written: boolean;
   active: boolean;
   expires?: string;
   created: string;
@@ -131,6 +149,9 @@ export const JOB_TYPES = [
   'Part-time',
   'Contract',
   'Internship',
+  'Learnership',
+  'Graduate Programme',
+  'Bursary',
   'Temporary',
   'Remote',
 ];
@@ -160,7 +181,6 @@ const JOB_FIELDS = [
   'xml_export',
   'og_image',
   'featured',
-  'ai_written',
   'active',
   'expires',
   'created',
@@ -305,6 +325,23 @@ export async function getCategories(limit?: number): Promise<Category[]> {
     fields: 'id,name,slug,job_count',
   });
   return result as unknown as Category[];
+}
+
+export async function getCategoriesWithCounts(): Promise<(Category & { count: number })[]> {
+  const pb = getPB();
+  const [categories, jobs] = await Promise.all([
+    pb.collection('categories').getFullList({ sort: 'name', fields: 'id,name,slug' }),
+    pb.collection('jobs').getFullList({ filter: activeFilter(), fields: 'category', perPage: 500 }),
+  ]);
+  const counts: Record<string, number> = {};
+  for (const job of jobs) {
+    const cat = (job as any).category;
+    if (cat) counts[cat] = (counts[cat] || 0) + 1;
+  }
+  return (categories as any[]).map((cat: any) => ({
+    ...cat,
+    count: counts[cat.name] || 0,
+  }));
 }
 
 export async function getEmployers(opts: { page?: number; perPage?: number; province?: string; verifiedOnly?: boolean } = {}) {

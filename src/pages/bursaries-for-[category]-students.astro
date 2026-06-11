@@ -1,0 +1,103 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JobCard from '../components/JobCard.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getJobs, getCategoryBySlug, getCategoriesWithCounts } from '../lib/pocketbase';
+import { titleFromSlug, slugify } from '../lib/slugify';
+
+const { category: categorySlug } = Astro.params;
+const category = await getCategoryBySlug(categorySlug || '');
+if (!category) return Astro.redirect('/404');
+
+const page = Math.max(1, Number(Astro.url.searchParams.get('page') || '1'));
+const perPage = 10;
+const [{ items: jobs, totalItems }, categories] = await Promise.all([
+  getJobs({ page, perPage, search: 'bursary' }),
+  getCategoriesWithCounts(),
+]);
+
+const categoriesWithJobs = categories.filter(c => c.count > 0).slice(0, 8);
+
+const faq = [
+  { q: `What bursaries are available for ${category.name.toLowerCase()} students?`, a: `There are numerous bursaries for ${category.name.toLowerCase()} students in South Africa, offered by government departments, private companies, SETAs, and universities. These cover tuition, accommodation, and sometimes a living allowance.` },
+  { q: `How do I apply for ${category.name.toLowerCase()} bursaries?`, a: `Applications typically require your academic records, proof of admission to a recognized institution, and a motivation letter. Some bursaries also consider financial need. Apply before the deadline, which is usually between August and November for the following academic year.` },
+  { q: `Do I need to repay a ${category.name.toLowerCase()} bursary?`, a: `Most bursaries do not require repayment if you complete your studies and in some cases, work for the sponsoring company for a specified period after graduation. Always read the terms carefully.` },
+  { q: `What are the academic requirements for ${category.name.toLowerCase()} bursaries?`, a: `Requirements vary but typically include a minimum of 60-70% in relevant subjects, acceptance into an accredited programme, and meeting the specific criteria set by the bursary provider.` },
+];
+---
+
+<Layout
+  title={`Bursaries for ${category.name} Students in South Africa 2026`}
+  description={`Find bursaries and scholarships for ${category.name.toLowerCase()} students in South Africa for 2026. Apply for funding from government, corporate, and SETA-sponsored programmes.`}
+  canonicalUrl={Astro.url.href}
+>
+  <div class="bg-white border-b border-border py-10 px-6">
+    <div class="max-w-6xl mx-auto">
+      <nav class="text-xs text-muted mb-4" aria-label="Breadcrumb">
+        <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href="/bursaries" class="hover:text-navy">Bursaries</a> &rsaquo; <span class="text-navy font-medium">Bursaries for {category.name} Students</span>
+      </nav>
+      <h1 class="text-2xl font-semibold text-navy">Bursaries for {category.name} Students</h1>
+      <p class="text-muted text-sm mt-2">Funding opportunities for {category.name.toLowerCase()} students in South Africa</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+    <div>
+      <article class="prose max-w-none mb-8">
+        <p class="text-muted">Securing funding for your {category.name.toLowerCase()} studies is crucial. South Africa offers a wide range of bursaries and scholarships for students pursuing qualifications in the {category.name.toLowerCase()} field, from government-funded programmes to corporate sponsorships.</p>
+
+        <h2 class="text-lg font-semibold text-navy mt-6">Types of Bursaries Available</h2>
+        <ul class="list-disc pl-5 text-muted space-y-1">
+          <li><strong>Government Bursaries:</strong> NSFAS and sector-specific government department bursaries</li>
+          <li><strong>Corporate Bursaries:</strong> Companies sponsoring students in exchange for work-back agreements</li>
+          <li><strong>SETA Bursaries:</strong> Sector Education and Training Authority funding for scarce skills</li>
+          <li><strong>University Bursaries:</strong> Merit-based and need-based funding from institutions</li>
+          <li><strong>Private Foundation Bursaries:</strong> Funding from trusts and non-profit organizations</li>
+        </ul>
+
+        <h2 class="text-lg font-semibold text-navy mt-6">Application Tips</h2>
+        <ul class="list-disc pl-5 text-muted space-y-1">
+          <li>Start your research early — many bursaries close 6-12 months before the academic year.</li>
+          <li>Prepare a strong motivation letter explaining why you deserve the bursary.</li>
+          <li>Gather all required documents in advance (ID, academic records, proof of registration).</li>
+          <li>Apply for multiple bursaries to increase your chances of securing funding.</li>
+          <li>Check eligibility criteria carefully before applying.</li>
+        </ul>
+      </article>
+
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-navy mb-4">Bursaries by Field of Study</h2>
+        <div class="flex flex-wrap gap-2">
+          {categoriesWithJobs.map(cat => (
+            <a href={`/bursaries-for-${cat.slug}-students`} class="inline-flex items-center px-3 py-1.5 bg-[#e8f4f0] text-[#2d6a4f] text-xs font-medium rounded-full hover:bg-[#d0ebe0] transition-colors">
+              {cat.name} Bursaries
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-navy mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4" itemscope itemtype="https://schema.org/FAQPage">
+          {faq.map(item => (
+            <div class="card p-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+              <h3 class="font-medium text-navy text-sm mb-1" itemprop="name">{item.q}</h3>
+              <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                <p class="text-muted text-xs" itemprop="text">{item.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {totalItems > 0 && (
+        <section>
+          <h2 class="text-lg font-semibold text-navy mb-4">Latest Bursaries</h2>
+          <div class="space-y-3">{jobs.map(job => <JobCard job={job} />)}</div>
+        </section>
+      )}
+    </div>
+
+    <aside><Sidebar /></aside>
+  </div>
+</Layout>

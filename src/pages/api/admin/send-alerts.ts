@@ -4,7 +4,7 @@ import { json } from '../../../lib/api';
 import { sendMail } from '../../../lib/mailer';
 
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect } = requireAdmin(request);
+  const { redirect } = await requireAdmin(request);
   if (redirect) return redirect;
   const pb = await getAdminPB();
   const alerts = await pb.collection('alerts').getFullList().catch(() => []);

@@ -1,0 +1,102 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JobCard from '../components/JobCard.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getJobs, getCategoryBySlug, getCategoriesWithCounts, PROVINCES } from '../lib/pocketbase';
+import { titleFromSlug, slugify } from '../lib/slugify';
+
+const { category: categorySlug } = Astro.params;
+const category = await getCategoryBySlug(categorySlug || '');
+if (!category) return Astro.redirect('/404');
+
+const page = Math.max(1, Number(Astro.url.searchParams.get('page') || '1'));
+const perPage = 10;
+const { items: jobs, totalItems } = await getJobs({ page, perPage, category: category.name });
+const categoriesWithJobs = (await getCategoriesWithCounts()).filter(c => c.count > 0).slice(0, 8);
+
+const faq = [
+  { q: `What should I include in my ${category.name.toLowerCase()} CV?`, a: `Focus on relevant ${category.name.toLowerCase()} qualifications, certifications, and hands-on experience. Highlight industry-specific skills and use action verbs to describe your achievements. Tailor your CV to match the job description for each application.` },
+  { q: `How long should a ${category.name.toLowerCase()} CV be?`, a: `For ${category.name.toLowerCase()} roles, keep your CV to 2-3 pages maximum. Include a professional summary, work experience, education, and key skills relevant to the ${category.name.toLowerCase()} industry.` },
+  { q: `What are the most in-demand skills in ${category.name.toLowerCase()}?`, a: `Key skills for ${category.name.toLowerCase()} positions include industry-specific technical skills, communication, problem-solving, and relevant certifications. Stay updated with the latest trends in the ${category.name.toLowerCase()} sector.` },
+  { q: `Should I include a cover letter with my ${category.name.toLowerCase()} application?`, a: `Yes, a tailored cover letter for each ${category.name.toLowerCase()} application significantly increases your chances. Address the specific requirements mentioned in the job description.` },
+  { q: `How do I format my ${category.name.toLowerCase()} CV for South African employers?`, a: `Use a clean, professional format with clear section headings. Include your ID number or passport details, driver's license status, and South African work authorization. List your qualifications from most recent to oldest.` },
+];
+---
+
+<Layout
+  title={`CV Tips for ${category.name} Jobs in South Africa | Expert Resume Advice`}
+  description={`Learn how to write a standout CV for ${category.name.toLowerCase()} jobs in South Africa. Expert tips on formatting, key skills, and what employers look for in ${category.name.toLowerCase()} candidates.`}
+  canonicalUrl={Astro.url.href}
+>
+  <div class="bg-white border-b border-border py-10 px-6">
+    <div class="max-w-6xl mx-auto">
+      <nav class="text-xs text-muted mb-4" aria-label="Breadcrumb">
+        <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href="/resources" class="hover:text-navy">Resources</a> &rsaquo; <span class="text-navy font-medium">CV Tips for {category.name}</span>
+      </nav>
+      <h1 class="text-2xl font-semibold text-navy">CV Tips for {category.name} Jobs</h1>
+      <p class="text-muted text-sm mt-2">Expert advice on crafting a compelling CV for {category.name.toLowerCase()} positions in South Africa</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+    <div>
+      <article class="prose max-w-none mb-8">
+        <p class="text-muted">Creating a strong CV is essential for landing your next {category.name.toLowerCase()} role in South Africa. Employers in the {category.name.toLowerCase()} sector look for specific qualifications, relevant experience, and demonstrated skills. Here's how to make your application stand out.</p>
+
+        <h2 class="text-lg font-semibold text-navy mt-6">Key Sections for Your {category.name} CV</h2>
+        <ul class="list-disc pl-5 text-muted space-y-1">
+          <li><strong>Professional Summary:</strong> A 2-3 sentence overview of your experience and career goals in the {category.name.toLowerCase()} field.</li>
+          <li><strong>Work Experience:</strong> List positions relevant to {category.name.toLowerCase()}, with measurable achievements.</li>
+          <li><strong>Education & Certifications:</strong> Include degrees, diplomas, and industry-specific certifications required in {category.name.toLowerCase()}.</li>
+          <li><strong>Key Skills:</strong> Technical and soft skills relevant to {category.name.toLowerCase()} positions.</li>
+          <li><strong>Professional Affiliations:</strong> Membership in relevant professional bodies or associations.</li>
+        </ul>
+
+        <h2 class="text-lg font-semibold text-navy mt-6">South Africa-Specific CV Tips</h2>
+        <ul class="list-disc pl-5 text-muted space-y-1">
+          <li>Include your South African ID number and driver's license details.</li>
+          <li>List your language proficiency (English plus any African languages).</li>
+          <li>Mention your work authorization status clearly.</li>
+          <li>Add references with proper contact details.</li>
+          <li>Keep formatting clean and avoid graphics that ATS software can't parse.</li>
+        </ul>
+
+        <p class="text-muted mt-4">Ready to apply? Browse our latest <a href={`/category/${category.slug}`} class="text-accent hover:underline">{category.name.toLowerCase()} job listings</a> below.</p>
+      </article>
+
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-navy mb-4">Related Career Fields</h2>
+        <div class="flex flex-wrap gap-2">
+          {categoriesWithJobs.map(cat => (
+            <a href={`/cv-tips-for-${cat.slug}`} class="inline-flex items-center px-3 py-1.5 bg-[#e8f4f0] text-[#2d6a4f] text-xs font-medium rounded-full hover:bg-[#d0ebe0] transition-colors">
+              CV Tips: {cat.name}
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-navy mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4" itemscope itemtype="https://schema.org/FAQPage">
+          {faq.map(item => (
+            <div class="card p-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+              <h3 class="font-medium text-navy text-sm mb-1" itemprop="name">{item.q}</h3>
+              <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                <p class="text-muted text-xs" itemprop="text">{item.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {totalItems > 0 && (
+        <section>
+          <h2 class="text-lg font-semibold text-navy mb-4">Latest {category.name} Jobs</h2>
+          <div class="space-y-3">{jobs.map(job => <JobCard job={job} />)}</div>
+        </section>
+      )}
+    </div>
+
+    <aside><Sidebar /></aside>
+  </div>
+</Layout>

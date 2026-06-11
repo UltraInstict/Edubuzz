@@ -1,33 +1,317 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getAdminPB, getUser } from '../../lib/auth';
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/auth';
+import { listAdminSettings } from '../../services/jobService';
 
-const user = getUser(Astro.request);
-if (!user || user.role !== 'admin') return Astro.redirect('/login');
-const pb = await getAdminPB();
-const settings = await pb.collection('admin_settings').getFullList({ sort: 'key' }).catch(() => []);
-const defaults = ['site_name','tagline','adsense_publisher_id','jobs_per_page','featured_listing_price','ai_generate_enabled','import_enabled'];
-const rows = defaults.map((key) => settings.find((s: any) => s.key === key) || { key, value: '' });
+const { redirect } = await requireAdmin(Astro.request);
+if (redirect) return redirect;
+
+const records = await listAdminSettings();
+const getVal = (key: string) => records.find((s: any) => s.key === key)?.value ?? '';
 ---
+
 <Layout title="Admin Settings" description="Edit site settings." canonicalUrl={Astro.url.href}>
   <main class="admin-wrap">
-    <header><h1>Settings</h1><a href="/admin">Dashboard</a></header>
+    <header>
+      <h1>Settings</h1>
+      <AdminNav current="settings" />
+    </header>
+
     <form id="settings-form" class="panel">
-      {rows.map((row: any) => <label>{row.key}<input class="form-field" name={row.key} value={row.value} /></label>)}
-      <p id="message" hidden></p><button>Save settings</button>
+      <div class="field">
+        <label for="site_name">Site name</label>
+        <input id="site_name" class="form-field" type="text" name="site_name" value={getVal('site_name')} placeholder="Edubuzz" />
+      </div>
+
+      <div class="field">
+        <label for="tagline">Tagline</label>
+        <input id="tagline" class="form-field" type="text" name="tagline" value={getVal('tagline')} placeholder="South African jobs, updated daily." />
+      </div>
+
+      <div class="field">
+        <label for="adsense_publisher_id">AdSense Publisher ID</label>
+        <input id="adsense_publisher_id" class="form-field" type="text" name="adsense_publisher_id" value={getVal('adsense_publisher_id')} placeholder="ca-pub-XXXXXXXXXXXXXXXXXX" />
+        <p class="helper">Your Google AdSense publisher ID. Leave blank to disable ads.</p>
+      </div>
+
+      <div class="field">
+        <label for="jobs_per_page">Jobs per page</label>
+        <input id="jobs_per_page" class="form-field" type="number" name="jobs_per_page" value={getVal('jobs_per_page')} min="5" max="100" placeholder="20" />
+      </div>
+
+      <div class="field">
+        <label for="featured_listing_price">Featured listing price (R)</label>
+        <input id="featured_listing_price" class="form-field" type="number" name="featured_listing_price" value={getVal('featured_listing_price')} min="0" placeholder="299" />
+        <p class="helper">Price in ZAR charged for a featured listing.</p>
+      </div>
+
+      <div class="section-divider">
+        <h2>Ad Configuration</h2>
+        <p class="helper">SmartAdSlot uses these. AdSense is preferred when configured; otherwise MaxBounty affiliate links are shown.</p>
+      </div>
+
+      <div class="field">
+        <label class="toggle-row">
+          <span class="toggle">
+            <input type="checkbox" name="adsense_enabled" checked={getVal('adsense_enabled') === 'true'} />
+            <span class="toggle-track"></span>
+            <span class="toggle-knob"></span>
+          </span>
+          <span class="toggle-label">AdSense enabled (master switch)</span>
+        </label>
+      </div>
+
+      <div class="field">
+        <label for="adsense_slot_strip">AdSense Slot — Strip</label>
+        <input id="adsense_slot_strip" class="form-field" type="text" name="adsense_slot_strip" value={getVal('adsense_slot_strip')} placeholder="1234567890" />
+      </div>
+
+      <div class="field">
+        <label for="adsense_slot_sidebar">AdSense Slot — Sidebar</label>
+        <input id="adsense_slot_sidebar" class="form-field" type="text" name="adsense_slot_sidebar" value={getVal('adsense_slot_sidebar')} placeholder="0987654321" />
+      </div>
+
+      <div class="field">
+        <label for="adsense_slot_infeed">AdSense Slot — Infeed</label>
+        <input id="adsense_slot_infeed" class="form-field" type="text" name="adsense_slot_infeed" value={getVal('adsense_slot_infeed')} placeholder="1122334455" />
+      </div>
+
+      <div class="field">
+        <label class="toggle-row">
+          <span class="toggle">
+            <input type="checkbox" name="adsense_preview_mode" checked={getVal('adsense_preview_mode') === 'true'} />
+            <span class="toggle-track"></span>
+            <span class="toggle-knob"></span>
+          </span>
+          <span class="toggle-label">Show ad placeholders (preview mode — disable before going live)</span>
+        </label>
+        <p class="helper">When enabled and no real AdSense ID is set, grey placeholder boxes show where ads will appear.</p>
+      </div>
+
+      <div class="section-divider">
+        <h2>Other</h2>
+      </div>
+
+      <div class="field">
+        <label class="toggle-row">
+          <span class="toggle">
+            <input type="checkbox" name="import_enabled" checked={getVal('import_enabled') === 'true'} />
+            <span class="toggle-track"></span>
+            <span class="toggle-knob"></span>
+          </span>
+          <span class="toggle-label">Enable job import (CSV/XML feeds)</span>
+        </label>
+        <p class="helper">Requires <code>admin_settings</code> collection in PocketBase. If saving fails, create the collection first — see <code>POCKETBASE_SETUP.md</code>.</p>
+      </div>
+
+      <p id="message" hidden aria-live="polite"></p>
+      <button class="save-btn">Save settings</button>
     </form>
   </main>
 </Layout>
+
 <script>
-document.getElementById('settings-form')?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const form = event.currentTarget as HTMLFormElement;
-  const response = await fetch('/api/admin/settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(Object.fromEntries(new FormData(form))) });
-  const message = document.getElementById('message') as HTMLParagraphElement;
-  message.textContent = response.ok ? 'Settings saved.' : 'Could not save settings.';
-  message.hidden = false;
-});
+  document.getElementById('settings-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const fd = new FormData(form);
+    const payload: Record<string, string> = {};
+    fd.forEach((v, k) => { payload[k] = v as string; });
+
+    const checkboxes = form.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    checkboxes.forEach((cb) => { payload[cb.name] = String(cb.checked); });
+
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const body = await response.json().catch(() => ({}));
+      const okResponse = response.ok && body.success !== false;
+      const message = document.getElementById('message') as HTMLParagraphElement;
+      if (okResponse) {
+        message.textContent = 'Settings saved.';
+        message.className = 'success';
+      } else {
+        message.textContent = body.error || 'Could not save settings.';
+        message.className = 'error';
+      }
+      message.hidden = false;
+    } catch {
+      const message = document.getElementById('message') as HTMLParagraphElement;
+      message.textContent = 'Network error. Could not reach the server.';
+      message.className = 'error';
+      message.hidden = false;
+    }
+  });
 </script>
+
 <style>
-.admin-wrap{max-width:720px;margin:1.5rem auto;padding:0 1.5rem}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}h1{font-size:22px;font-weight:600;margin:0;letter-spacing:-0.3px}a{color:#2d6a4f}form{display:grid;gap:10px}label{display:grid;gap:4px;color:#444;font-size:12px;font-weight:500}button{border:1px solid #2d6a4f;background:#2d6a4f;color:#fff;border-radius:4px;padding:10px 14px;font-weight:600}
+  .admin-wrap {
+    max-width: 720px;
+    margin: 1.5rem auto;
+    padding: 0 1.5rem;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.3px;
+  }
+
+  .panel {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 20px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .field {
+    display: grid;
+    gap: 4px;
+  }
+
+  .field label:not(.toggle-row) {
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .form-field {
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 13px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .form-field:focus {
+    outline: none;
+    border-color: #2d6a4f;
+    box-shadow: 0 0 0 2px rgba(45, 106, 79, 0.15);
+  }
+
+  .helper {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 11px;
+  }
+
+  .section-divider {
+    border-top: 1px solid var(--border, #e0e0e0);
+    padding-top: 14px;
+    margin-top: 4px;
+  }
+
+  .section-divider h2 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text, #1a1a1a);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .section-divider .helper {
+    margin: 0;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .toggle input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+
+  .toggle-track {
+    width: 38px;
+    height: 20px;
+    background: #d1d5db;
+    border-radius: 999px;
+    transition: background 0.2s ease;
+  }
+
+  .toggle input:checked+.toggle-track {
+    background: #2d6a4f;
+  }
+
+  .toggle-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 999px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease;
+  }
+
+  .toggle input:checked~.toggle-knob {
+    transform: translateX(18px);
+  }
+
+  .toggle-label {
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    user-select: none;
+  }
+
+  .save-btn {
+    border: 1px solid #2d6a4f;
+    background: #2d6a4f;
+    color: #fff;
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    width: fit-content;
+  }
+
+  .save-btn:hover {
+    background: #245a42;
+    border-color: #245a42;
+  }
+
+  #message.success {
+    color: #2d6a4f;
+  }
+
+  #message.error {
+    color: #dc2626;
+  }
+
+  @media (max-width: 860px) {
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
 </style>

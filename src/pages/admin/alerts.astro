@@ -1,13 +1,23 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getAdminPB, getUser } from '../../lib/auth';
-const user = getUser(Astro.request);
-if (!user || user.role !== 'admin') return Astro.redirect('/login');
-const pb = await getAdminPB();
-const alerts = await pb.collection('alerts').getList(1, 100, { sort: '-created' }).catch(() => pb.collection('job_alerts').getList(1, 100, { sort: '-created' }).catch(() => ({ items: [] })));
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/auth';
+import { listAdminAlerts } from '../../services/jobService';
+
+const { redirect } = await requireAdmin(Astro.request);
+if (redirect) return redirect;
+
+const alerts = await listAdminAlerts(1, 100);
 ---
 <Layout title="Admin Alerts" description="Manage job alerts." canonicalUrl={Astro.url.href}>
-<main class="admin-wrap"><header><h1>Alerts</h1><button id="send">Send alerts now</button></header><div class="table-wrap"><table><thead><tr><th>Email</th><th>Keyword</th><th>Province</th><th>Confirmed</th><th>Last sent</th></tr></thead><tbody>{alerts.items.map((alert:any)=><tr><td>{alert.email}</td><td>{alert.keyword}</td><td>{alert.province}</td><td>{alert.confirmed ? 'yes':'no'}</td><td>{alert.last_sent || '-'}</td></tr>)}</tbody></table></div></main>
+<main class="admin-wrap">
+  <header>
+    <h1>Alerts</h1>
+    <AdminNav current="alerts" />
+  </header>
+  <div class="actions-bar"><button id="send">Send alerts now</button></div>
+  <div class="table-wrap"><table><thead><tr><th>Email</th><th>Keyword</th><th>Province</th><th>Category</th><th>Created</th></tr></thead><tbody>{alerts.items.map((alert:any)=><tr><td>{alert.email}</td><td>{alert.keyword || '—'}</td><td>{alert.province || '—'}</td><td>{alert.category || '—'}</td><td>{alert.created?.slice(0,10)}</td></tr>)}</tbody></table></div>
+</main>
 </Layout>
 <script>document.getElementById('send')?.addEventListener('click',async()=>{await fetch('/api/admin/send-alerts',{method:'POST'});alert('Alert send triggered.');});</script>
-<style>.admin-wrap{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem}header{display:flex;justify-content:space-between;margin-bottom:12px}h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.3px}button{border:1px solid #2d6a4f;background:#2d6a4f;color:#fff;border-radius:4px;padding:8px 10px}.table-wrap{overflow:auto;background:#fff;border:1px solid #e0e0e0;border-radius:6px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid #f0f0f0;text-align:left}</style>
+<style>.admin-wrap{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:12px}h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.3px}.actions-bar{margin-bottom:12px}button{border:1px solid #2d6a4f;background:#2d6a4f;color:#fff;border-radius:4px;padding:8px 10px;font-size:13px;cursor:pointer}.table-wrap{overflow:auto;background:#fff;border:1px solid #e0e0e0;border-radius:6px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid #f0f0f0;text-align:left}</style>

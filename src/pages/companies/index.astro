@@ -1,23 +1,29 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getEmployers, getJobs, PROVINCES } from '../../lib/pocketbase';
+import EmptyState from '../../components/ui/EmptyState.astro';
+import { getEmployers, PROVINCES } from '../../lib/pocketbase';
+import { getJobCountsByEmployer } from '../../services/jobService';
 
 const province = Astro.url.searchParams.get('province') || '';
-const employers = await getEmployers({ page: 1, perPage: 100, province, verifiedOnly: true }).catch(() => ({ items: [] }));
-const activeJobs = await getJobs({ perPage: 100 }).catch(() => ({ items: [] }));
+const [employers, jobCounts] = await Promise.all([
+  getEmployers({ page: 1, perPage: 100, province, verifiedOnly: true }).catch(() => ({ items: [] })),
+  getJobCountsByEmployer(),
+]);
 
 function provinceUrl(value: string) {
   return value ? `/companies?province=${encodeURIComponent(value)}` : '/companies';
 }
 
 function jobCount(employer: any) {
-  return activeJobs.items.filter((job) => job.employer_id === employer.id || job.company === employer.company_name).length;
+  return jobCounts[employer.id] || jobCounts[employer.company_name] || 0;
 }
 ---
 
 <Layout title="Companies Hiring in South Africa" description="Browse verified employers hiring on Edubuzz." canonicalUrl={Astro.url.href}>
   <main class="companies">
-    <h1>Companies</h1>
+    <h1>Companies hiring on Edubuzz</h1>
+    <p class="subtitle">Verified employers with active job listings</p>
+
     <div class="province-pills">
       <a class={!province ? 'active' : ''} href="/companies">All</a>
       {PROVINCES.map((p) => <a class={p === province ? 'active' : ''} href={provinceUrl(p)}>{p}</a>)}
@@ -27,36 +33,40 @@ function jobCount(employer: any) {
       <section class="grid">
         {employers.items.map((employer: any) => (
           <a href={`/company/${employer.company_slug}`} class="company-card">
-            <strong>{employer.company_name}</strong>
+            <div class="cc-top">
+              <strong>{employer.company_name}</strong>
+              {employer.verified && <span class="cc-verified">Verified</span>}
+            </div>
             <span>{[employer.city, employer.province].filter(Boolean).join(', ') || 'South Africa'}</span>
-            <em>{jobCount(employer)} active jobs</em>
+            <em>{jobCount(employer)} open position{jobCount(employer) !== 1 ? 's' : ''}</em>
           </a>
         ))}
       </section>
     ) : (
-      <section class="empty panel">
-        <h2>No companies registered yet.</h2>
-        <p>Be the first to post a job.</p>
-        <a href="/post-job">Post a Job</a>
-      </section>
+      <EmptyState
+        icon="job"
+        title="No companies registered yet"
+        description={province ? `No verified employers in ${province} right now.` : 'Be the first to post a job on Edubuzz.'}
+        action={{ label: 'Post a job', href: '/post-job' }}
+      />
     )}
   </main>
 </Layout>
 
 <style>
   .companies { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
-  h1 { font-size: 22px; margin: 0 0 12px; font-weight: 600; letter-spacing: -0.3px; }
+  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; letter-spacing: -0.3px; color: #1a1a1a; }
+  .subtitle { margin: 0 0 12px; color: #666; font-size: 13px; }
   .province-pills { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
-  .province-pills a { flex: 0 0 auto; background: #f3f2ee; border: 1px solid #ddd; border-radius: 20px; padding: 4px 11px; font-size: 12px; color: #444; }
+  .province-pills a { flex: 0 0 auto; background: #f3f2ee; border: 1px solid #ddd; border-radius: 20px; padding: 4px 11px; font-size: 12px; color: #444; white-space: nowrap; }
   .province-pills a.active { background: #e8f4f0; border-color: #2d6a4f; color: #2d6a4f; }
   .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .company-card { display: grid; gap: 4px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem 1.25rem; }
+  .company-card { display: grid; gap: 4px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem 1.25rem; text-decoration: none; transition: border-color 0.15s; }
   .company-card:hover { border-color: #2d6a4f; }
+  .cc-top { display: flex; align-items: center; gap: 6px; }
   strong { color: #1a1a1a; font-size: 14px; font-weight: 600; }
-  span, p { color: #666; font-size: 13px; }
+  .cc-verified { color: #2d6a4f; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; padding: 2px 6px; border: 1px solid currentColor; border-radius: 3px; }
+  span { color: #666; font-size: 13px; }
   em { color: #2d6a4f; font-size: 12px; font-style: normal; font-weight: 500; }
-  .empty { text-align: center; padding: 2rem; }
-  .empty h2 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
-  .empty a { display: inline-flex; margin-top: 12px; background: #2d6a4f; color: #fff; border-radius: 4px; padding: 9px 12px; font-size: 13px; font-weight: 500; }
   @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
 </style>

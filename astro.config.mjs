@@ -1,15 +1,17 @@
+import 'dotenv/config';
 import { defineConfig } from 'astro/config';
-import node from '@astrojs/node';
-import tailwind from '@astrojs/tailwind';
+import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
-  integrations: [tailwind()],
+  adapter: cloudflare({
+    platformProxy: {
+      enabled: true,
+    },
+  }),
   vite: {
     define: {
-      'import.meta.env.SITE_URL': JSON.stringify(process.env.SITE_URL ?? 'http://localhost:4321'),
+      'import.meta.env.SITE_URL': JSON.stringify(process.env.SITE_URL ?? 'https://edubuzz.co.za'),
     },
   },
-  server: { port: 4321, host: true },
 });

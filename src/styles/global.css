@@ -1,20 +1,8 @@
+@import './tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --brand: #2d6a4f;
-  --brand-hover: #245a42;
-  --brand-light: #e8f4f0;
-  --page: #f3f2ee;
-  --surface: #ffffff;
-  --border: #e0e0e0;
-  --border-subtle: #f0f0f0;
-  --text: #1a1a1a;
-  --secondary: #444444;
-  --muted: #666666;
-  --hint: #888888;
-}
 
 * {
   box-sizing: border-box;
@@ -132,4 +120,64 @@ button {
   color: var(--brand);
   font-size: 12px;
   font-weight: 500;
+}
+
+/* Shared page layouts */
+.seo-grid {
+  max-width: 1100px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 16px;
+}
+
+.seo-grid h1 {
+  font-size: 22px;
+  margin: 0 0 12px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.content-page {
+  max-width: 760px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem;
+}
+
+.content-page h1 {
+  font-size: 22px;
+  margin: 0 0 12px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.content-page p {
+  color: var(--secondary);
+  font-size: 14px;
+}
+
+.admin-wrap {
+  max-width: 1100px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem;
+}
+
+.admin-wrap h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.empty-state {
+  color: var(--hint);
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+@media (max-width: 820px) {
+  .seo-grid {
+    grid-template-columns: 1fr;
+  }
 }

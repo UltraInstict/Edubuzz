@@ -1,55 +1,126 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getAdminPB, getUser } from '../../lib/auth';
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/auth';
+import { getAdminMetrics, listRecentJobs, listRecentApplications } from '../../services/jobService';
 
-const user = getUser(Astro.request);
-if (!user || user.role !== 'admin') return Astro.redirect('/login');
-const pb = await getAdminPB();
-const today = new Date().toISOString().slice(0, 10);
-const [activeJobs, pendingJobs, expiredJobs, employers, applicationsToday, alerts, recentJobs, recentApps] = await Promise.all([
-  pb.collection('jobs').getList(1, 1, { filter: 'active=true', fields: 'id' }).catch(() => ({ totalItems: 0 })),
-  pb.collection('jobs').getList(1, 1, { filter: 'active=false', fields: 'id' }).catch(() => ({ totalItems: 0 })),
-  pb.collection('jobs').getList(1, 1, { filter: `expires<"${today}"`, fields: 'id' }).catch(() => ({ totalItems: 0 })),
-  pb.collection('employers').getList(1, 1, { fields: 'id' }).catch(() => ({ totalItems: 0 })),
-  pb.collection('applications').getList(1, 1, { filter: `created>="${today}"`, fields: 'id' }).catch(() => ({ totalItems: 0 })),
-  pb.collection('alerts').getList(1, 1, { fields: 'id' }).catch(() => pb.collection('job_alerts').getList(1, 1, { fields: 'id' }).catch(() => ({ totalItems: 0 }))),
-  pb.collection('jobs').getList(1, 5, { sort: '-created', fields: 'id,title,company,created' }).catch(() => ({ items: [] })),
-  pb.collection('applications').getList(1, 5, { sort: '-created', fields: 'id,applicant_name,name,created' }).catch(() => ({ items: [] })),
+const { redirect } = await requireAdmin(Astro.request);
+if (redirect) return redirect;
+
+const [metrics, recentJobList, recentAppList] = await Promise.all([
+  getAdminMetrics(),
+  listRecentJobs(5),
+  listRecentApplications(5),
 ]);
+const recentJobs = { items: recentJobList };
+const recentApps = { items: recentAppList };
 ---
 
 <Layout title="Admin Dashboard" description="Edubuzz admin dashboard." canonicalUrl={Astro.url.href}>
   <main class="admin-wrap">
-    <header><h1>Admin dashboard</h1><nav><a href="/admin/jobs">Jobs</a><a href="/admin/employers">Employers</a><a href="/admin/import">Import</a><a href="/admin/settings">Settings</a></nav></header>
+    <header>
+      <h1>Admin dashboard</h1>
+      <AdminNav current="dashboard" />
+    </header>
+
     <section class="metrics">
-      <div><b>{activeJobs.totalItems}</b><span>Active jobs</span></div>
-      <div><b>{pendingJobs.totalItems}</b><span>Pending jobs</span></div>
-      <div><b>{expiredJobs.totalItems}</b><span>Expired jobs</span></div>
-      <div><b>{employers.totalItems}</b><span>Employers</span></div>
-      <div><b>{applicationsToday.totalItems}</b><span>Applications today</span></div>
-      <div><b>{alerts.totalItems}</b><span>Alert subscribers</span></div>
-      <div><b>R0</b><span>Revenue this month</span></div>
+      <div><b>{metrics.activeJobs}</b><span>Active jobs</span></div>
+      <div><b>{metrics.pendingJobs}</b><span>Pending jobs</span></div>
+      <div><b>{metrics.expiredJobs}</b><span>Expired jobs</span></div>
+      <div><b>{metrics.totalEmployers}</b><span>Employers</span></div>
+      <div><b>{metrics.applicationsToday}</b><span>Applications today</span></div>
+      <div><b>{metrics.alertSubscribers}</b><span>Alert subscribers</span></div>
+      <div><b>R{metrics.revenueThisMonth.toLocaleString('en-ZA')}</b><span>Revenue this month</span></div>
     </section>
+
     <section class="panel">
       <h2>Recent activity</h2>
       <ul>
         {recentJobs.items.map((job: any) => <li>New job: {job.title} at {job.company}</li>)}
-        {recentApps.items.map((app: any) => <li>New application: {app.applicant_name || app.name || app.id}</li>)}
+        {recentApps.items.map((app: any) => <li>Application: {app.name || 'Unknown'} for {(app.expand?.job?.title) || 'a job'}</li>)}
+        {recentJobs.items.length === 0 && recentApps.items.length === 0 && <li class="text-gray-500">No recent activity.</li>}
       </ul>
     </section>
   </main>
 </Layout>
 
 <style>
-  .admin-wrap { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
-  header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 16px; }
-  h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-  nav { display: flex; gap: 8px; flex-wrap: wrap; }
-  nav a { color: #2d6a4f; font-size: 13px; font-weight: 500; }
-  .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
-  .metrics div { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px; }
-  b { display: block; font-size: 20px; font-weight: 600; }
-  span, li { color: #666; font-size: 13px; }
-  h2 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
-  @media (max-width: 760px) { .metrics { grid-template-columns: repeat(2, 1fr); } header { display: block; } }
+  .admin-wrap {
+    max-width: 1100px;
+    margin: 1.5rem auto;
+    padding: 0 1.5rem;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .metrics div {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 14px;
+  }
+
+  b {
+    display: block;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  span,
+  li {
+    color: #666666;
+    font-size: 13px;
+  }
+
+  .panel {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 14px;
+  }
+
+  .panel ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+  }
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 760px) {
+    .metrics {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
 </style>

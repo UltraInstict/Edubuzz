@@ -68,9 +68,13 @@ const csrfToken = generateToken();
           Job description
           <textarea id="description-field" class="form-field" name="description" rows="10" required></textarea>
         </label>
+        <div class="listing-type-row">
+          <label><input type="radio" name="listing_type" value="basic" /> Basic listing &mdash; Free (30 days, standard placement)</label>
+          <label><input type="radio" name="listing_type" value="featured" checked /> Featured listing &mdash; R299 (60 days, top of results, Featured badge)</label>
+        </div>
         <div class="actions">
           <button type="button" id="draft-btn">Save as draft</button>
-          <button type="submit">Post Job - R299</button>
+          <button type="submit" id="post-btn">Post Job &mdash; R299</button>
         </div>
         <p id="post-message" hidden></p>
       </form>
@@ -105,11 +109,17 @@ const csrfToken = generateToken();
 <script>
   const form = document.getElementById('post-job-form') as HTMLFormElement;
   const message = document.getElementById('post-message') as HTMLParagraphElement;
+  const postBtn = document.getElementById('post-btn') as HTMLButtonElement;
 
-  form?.addEventListener('change', () => {
-    const method = new FormData(form).get('application_method');
-    document.querySelector('[data-method="email"]')?.toggleAttribute('hidden', method !== 'email');
-    document.querySelector('[data-method="url"]')?.toggleAttribute('hidden', method !== 'url');
+  form?.addEventListener('change', (event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.name === 'application_method') {
+      document.querySelector('[data-method="email"]')?.toggleAttribute('hidden', target.value !== 'email');
+      document.querySelector('[data-method="url"]')?.toggleAttribute('hidden', target.value !== 'url');
+    }
+    if (target.name === 'listing_type') {
+      postBtn.textContent = target.value === 'basic' ? 'Post Job \u2014 Free' : 'Post Job \u2014 R299';
+    }
   });
 
   form?.addEventListener('submit', async (event) => {
@@ -127,9 +137,23 @@ const csrfToken = generateToken();
   });
 
   document.getElementById('draft-btn')?.addEventListener('click', () => {
+    const data = Object.fromEntries(new FormData(form));
+    localStorage.setItem('edubuzz_job_draft', JSON.stringify(data));
     message.textContent = 'Draft saved locally.';
     message.hidden = false;
   });
+
+  // Restore draft on page load
+  const saved = localStorage.getItem('edubuzz_job_draft');
+  if (saved) {
+    try {
+      const draft = JSON.parse(saved);
+      Object.entries(draft).forEach(([key, value]) => {
+        const input = form.querySelector(`[name="${key}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+        if (input) input.value = value as string;
+      });
+    } catch {}
+  }
 </script>
 
 <style>
@@ -182,25 +206,21 @@ const csrfToken = generateToken();
     font-weight: 500;
   }
 
-  fieldset {
+  .listing-type-row {
     display: flex;
-    gap: 14px;
+    flex-direction: column;
+    gap: 6px;
     margin: 0;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
     padding: 9px 10px;
   }
 
-  legend {
-    color: #444444;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  fieldset label {
+  .listing-type-row label {
     display: flex;
     align-items: center;
     gap: 6px;
+    font-size: 13px;
   }
 
   .actions {

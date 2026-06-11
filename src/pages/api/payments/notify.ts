@@ -27,8 +27,16 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (status === 'COMPLETE' && jobId) {
     const pb = new PocketBase(import.meta.env.PB_URL ?? 'http://127.0.0.1:8090');
-    const expires = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     await pb.collection('jobs').update(jobId, { featured: true, featured_expires: expires });
+
+    // Save payment record
+    await pb.collection('payments').create({
+      amount: Number(fd.get('amount_gross') || 299),
+      status: 'complete',
+      job_id: jobId,
+      employer_id: userId,
+    }).catch(() => {});
   }
 
   return new Response('OK', { status: 200 });

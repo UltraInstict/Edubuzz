@@ -2,17 +2,18 @@
 import Layout from '../layouts/Layout.astro';
 import { generateToken } from '../lib/csrf';
 const csrfToken = generateToken();
+const serverError = Astro.url.searchParams.get('error') || '';
 ---
 
 <Layout title="Login" description="Log in to your Edubuzz account." canonicalUrl="/login">
   <div class="auth-wrap">
     <div class="auth-card">
       <h1>Login</h1>
-      <div id="error-msg" class="error-msg" hidden></div>
-      <form id="login-form">
+      <div id="error-msg" class="error-msg" aria-live="polite" hidden={!serverError}>{serverError}</div>
+      <form id="login-form" action="/api/auth/login" method="post">
         <input type="hidden" name="_csrf" value={csrfToken} />
-        <label>Email<input type="email" name="email" required /></label>
-        <label>Password<input type="password" name="password" required /></label>
+        <label>Email<input type="email" name="email" required autocomplete="email" /></label>
+        <label>Password<input type="password" name="password" required autocomplete="current-password" /></label>
         <button type="submit" id="submit-btn">Login</button>
         <p>No account yet? <a href="/register">Register</a></p>
       </form>
@@ -27,13 +28,20 @@ document.getElementById('login-form').addEventListener('submit', async e => {
   const err = document.getElementById('error-msg');
   btn.disabled = true; btn.textContent = 'Logging in\u2026'; err.hidden = true;
   try {
-    const res = await fetch('/api/auth/login', { method: 'POST', body: new FormData(e.target) });
-    const d = await res.json();
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+      body: new FormData(e.target),
+    });
+    const d = await res.json().catch(() => ({}));
     if (d.success) {
       const next = new URLSearchParams(location.search).get('next');
-      location.href = next || (d.role === 'admin' ? '/admin' : '/employer/dashboard');
+      const adminRoles = ['admin', 'superadmin', 'moderator'];
+      const dest = next || (adminRoles.includes(d.role) ? '/admin' : d.role === 'employer' ? '/employer/dashboard' : '/');
+      location.href = dest;
     } else {
-      err.textContent = d.error; err.hidden = false;
+      err.textContent = d.error || 'Login failed.'; err.hidden = false;
       btn.disabled = false; btn.textContent = 'Login';
     }
   } catch {

@@ -1,0 +1,355 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/auth';
+import { getAffiliateClickStats, listAllAffiliateLinks, PB_FILE_BASE } from '../../services/affiliateService';
+
+const { redirect } = await requireAdmin(Astro.request);
+if (redirect) return redirect;
+
+const [links, stats] = await Promise.all([
+  listAllAffiliateLinks(),
+  getAffiliateClickStats(),
+]);
+
+const categories = ['general', 'finance', 'tech', 'government', 'health', 'education', 'engineering', 'legal', 'marketing', 'hospitality', 'retail', 'construction', 'logistics', 'agriculture', 'mining'];
+const zones = [
+  { value: 'sidebar',  label: 'Sidebar' },
+  { value: 'strip',    label: 'Strip (full-width banner)' },
+  { value: 'infeed',   label: 'In-feed (between job cards)' },
+  { value: 'jobs-top', label: 'Jobs Page Top' },
+  { value: 'all',      label: 'All zones' },
+];
+---
+
+<Layout title="Affiliate Links | Admin" canonicalUrl={Astro.url.href}>
+  <main class="admin-wrap">
+    <header>
+      <h1>Affiliate Links</h1>
+      <AdminNav current="affiliates" />
+    </header>
+
+    <section class="metrics">
+      <div class="metric"><b>{stats.totalClicks.toLocaleString('en-ZA')}</b><span>Total clicks</span></div>
+      <div class="metric"><b>{stats.todayClicks.toLocaleString('en-ZA')}</b><span>Clicks today</span></div>
+      <div class="metric"><b>{links.length}</b><span>Active links</span></div>
+    </section>
+
+    <section class="panel">
+      <h2 id="form-heading">Add New Affiliate Link</h2>
+      <form id="affiliate-form" class="add-form" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="add" />
+        <input type="hidden" name="id" value="" />
+
+        <div class="form-row">
+          <label class="full-width">
+            <span class="field-label">Display type</span>
+            <select name="display_type" id="display_type" class="field">
+              <option value="text">Text Ad — clean headline link</option>
+              <option value="image">Banner Image — uploaded file or URL</option>
+              <option value="html">HTML Creative — paste MaxBounty embed code</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="full-width">
+            <span class="field-label">Ad Title</span>
+            <input type="text" name="name" placeholder="e.g. Take surveys and earn money working from home" required class="field" />
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="full-width">
+            <span class="field-label">Short description (optional — shows under ad title)</span>
+            <input type="text" name="description" maxlength="120" placeholder="e.g. Earn extra income completing surveys from home" class="field" />
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="full-width">
+            <span class="field-label">Affiliate URL</span>
+            <input type="url" name="url" placeholder="https://maxbounty.com/..." required class="field" />
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label>
+            <span class="field-label">Category</span>
+            <select name="category" class="field">
+              <option value="general">general (shows everywhere)</option>
+              {categories.filter(c => c !== 'general').map(c => <option value={c}>{c}</option>)}
+            </select>
+          </label>
+          <label>
+            <span class="field-label">Zone</span>
+            <select name="zone" class="field">
+              {zones.map(z => <option value={z.value}>{z.label}</option>)}
+            </select>
+          </label>
+        </div>
+
+        <!-- Image-only fields -->
+        <div class="form-row image-only" data-show-when="image">
+          <label>
+            <span class="field-label">Banner Width (px)</span>
+            <input type="number" name="banner_width" min="0" placeholder="e.g. 728" class="field" />
+          </label>
+          <label>
+            <span class="field-label">Banner Height (px)</span>
+            <input type="number" name="banner_height" min="0" placeholder="e.g. 90" class="field" />
+          </label>
+        </div>
+
+        <div class="form-row image-only" data-show-when="image">
+          <label class="full-width">
+            <span class="field-label">Upload Banner Image (preferred over external URL)</span>
+            <input type="file" name="banner_file" accept="image/jpeg,image/png,image/gif,image/webp" class="field" />
+          </label>
+        </div>
+
+        <div class="form-row image-only" data-show-when="image">
+          <label class="full-width">
+            <span class="field-label">Banner Image URL (external)</span>
+            <input type="text" name="image_url" placeholder="https://example.com/banner.png" class="field" />
+          </label>
+        </div>
+
+        <!-- HTML-only field -->
+        <div class="form-row html-only" data-show-when="html">
+          <label class="full-width">
+            <span class="field-label">Banner HTML / JS code (paste MaxBounty creative)</span>
+            <textarea name="banner_html" placeholder="<script src=&quot;...&quot;></script> or <iframe>..." class="field field-textarea" rows="4"></textarea>
+          </label>
+        </div>
+
+        <p id="form-error" class="form-error" hidden></p>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-save" id="submit-btn">Add Link</button>
+          <button type="button" class="btn-cancel" id="cancel-btn" hidden>Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Active Links ({links.length})</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ad Title</th><th>Type</th><th>Category</th><th>Zone</th><th>Size</th><th>Clicks</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            {links.length === 0 && <tr><td colspan="8" class="empty">No affiliate links yet.</td></tr>}
+            {links.map((link: any) => {
+              const fileUrl = link.banner_file && link.collectionId
+                ? `${PB_FILE_BASE}/api/files/${link.collectionId}/${link.id}/${link.banner_file}?thumb=64x64`
+                : null;
+              const displayType = link.display_type || 'text';
+              return (
+                <tr>
+                  <td class="name-cell">
+                    {fileUrl && <img src={fileUrl} alt="" class="thumb" loading="lazy" />}
+                    <span>{link.name}</span>
+                  </td>
+                  <td><span class="zone-badge">{displayType}</span></td>
+                  <td>{link.category || 'general'}</td>
+                  <td><span class="zone-badge">{link.zone}</span></td>
+                  <td class="dim">{link.banner_width || '-'}{link.banner_height ? `×${link.banner_height}` : ''}</td>
+                  <td><b>{link.clicks || 0}</b></td>
+                  <td><span class={`status ${link.active ? 'active' : 'inactive'}`}>{link.active ? 'Active' : 'Paused'}</span></td>
+                  <td class="actions">
+                    <button class="btn-sm btn-edit"
+                      data-id={link.id}
+                      data-name={link.name}
+                      data-description={link.description || ''}
+                      data-url={link.url}
+                      data-category={link.category || 'general'}
+                      data-zone={link.zone}
+                      data-display-type={displayType}
+                      data-banner-width={link.banner_width || ''}
+                      data-banner-height={link.banner_height || ''}
+                      data-image-url={link.image_url || ''}
+                      data-banner-html={link.banner_html || ''}>Edit</button>
+                    <button class="btn-sm" data-id={link.id} data-action="toggle">{link.active ? 'Pause' : 'Activate'}</button>
+                    <button class="btn-sm btn-danger" data-id={link.id} data-action="delete">Delete</button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  const form = document.getElementById('affiliate-form') as HTMLFormElement;
+  const heading = document.getElementById('form-heading') as HTMLHeadingElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+  const errorEl = document.getElementById('form-error') as HTMLParagraphElement;
+
+  function setMode(mode: 'add' | 'edit', data?: Record<string, string>) {
+    const actionInput = form.elements.namedItem('action') as HTMLInputElement;
+    const idInput = form.elements.namedItem('id') as HTMLInputElement;
+    if (mode === 'edit' && data) {
+      heading.textContent = 'Edit Affiliate Link';
+      submitBtn.textContent = 'Update Link';
+      cancelBtn.hidden = false;
+      actionInput.value = 'edit';
+      idInput.value = data.id || '';
+      (form.elements.namedItem('display_type') as HTMLSelectElement).value = data.displayType || 'text';
+      (form.elements.namedItem('name') as HTMLInputElement).value = data.name || '';
+      (form.elements.namedItem('description') as HTMLInputElement).value = data.description || '';
+      (form.elements.namedItem('url') as HTMLInputElement).value = data.url || '';
+      (form.elements.namedItem('category') as HTMLSelectElement).value = data.category || 'general';
+      (form.elements.namedItem('zone') as HTMLSelectElement).value = data.zone || 'sidebar';
+      (form.elements.namedItem('banner_width') as HTMLInputElement).value = data.bannerWidth || '';
+      (form.elements.namedItem('banner_height') as HTMLInputElement).value = data.bannerHeight || '';
+      (form.elements.namedItem('image_url') as HTMLInputElement).value = data.imageUrl || '';
+      (form.elements.namedItem('banner_html') as HTMLTextAreaElement).value = data.bannerHtml || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      heading.textContent = 'Add New Affiliate Link';
+      submitBtn.textContent = 'Add Link';
+      cancelBtn.hidden = true;
+      actionInput.value = 'add';
+      idInput.value = '';
+      form.reset();
+    }
+    errorEl.hidden = true;
+    updateConditionalFields();
+  }
+
+  // Show/hide image-only and html-only field groups based on display_type
+  const displayTypeSelect = document.getElementById('display_type') as HTMLSelectElement;
+  function updateConditionalFields() {
+    const current = displayTypeSelect?.value || 'text';
+    document.querySelectorAll<HTMLElement>('[data-show-when]').forEach((el) => {
+      const want = el.dataset.showWhen;
+      el.style.display = want === current ? '' : 'none';
+    });
+  }
+  displayTypeSelect?.addEventListener('change', updateConditionalFields);
+  updateConditionalFields();
+
+  cancelBtn?.addEventListener('click', () => setMode('add'));
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.hidden = true;
+    submitBtn.disabled = true;
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Saving…';
+
+    try {
+      const fd = new FormData(form);
+      const res = await fetch('/api/admin/affiliate-action', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success !== false) {
+        location.reload();
+      } else {
+        errorEl.textContent = data.error || 'Could not save affiliate link.';
+        errorEl.hidden = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    } catch (err) {
+      errorEl.textContent = 'Network error. Please try again.';
+      errorEl.hidden = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.btn-edit').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setMode('edit', {
+        id: btn.dataset.id || '',
+        name: btn.dataset.name || '',
+        description: btn.dataset.description || '',
+        url: btn.dataset.url || '',
+        category: btn.dataset.category || 'general',
+        zone: btn.dataset.zone || 'sidebar',
+        displayType: btn.dataset.displayType || 'text',
+        bannerWidth: btn.dataset.bannerWidth || '',
+        bannerHeight: btn.dataset.bannerHeight || '',
+        imageUrl: btn.dataset.imageUrl || '',
+        bannerHtml: btn.dataset.bannerHtml || '',
+      });
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-action]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      if (!action || !id) return;
+      if (action === 'delete' && !confirm('Delete this affiliate link?')) return;
+      const res = await fetch('/api/admin/affiliate-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ linkId: id, action }),
+      });
+      if (res.ok) location.reload();
+      else {
+        const body = await res.json().catch(() => ({}));
+        alert(body.error || 'Action failed.');
+      }
+    });
+  });
+</script>
+
+<style>
+  .admin-wrap { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+  h1 { font-size: 22px; margin: 0; font-weight: 600; color: #1a1a1a; }
+  h2 { font-size: 14px; font-weight: 600; color: #1a1a1a; margin: 0 0 12px; }
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .metric { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px; }
+  .metric b { display: block; font-size: 22px; font-weight: 600; color: #1a1a1a; }
+  .metric span { font-size: 12px; color: #666; }
+  .panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+
+  .add-form { display: grid; gap: 12px; }
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .form-row label { flex: 1; min-width: 200px; display: grid; gap: 4px; }
+  .form-row label.full-width { flex: 1 0 100%; }
+  .field-label { font-size: 12px; font-weight: 500; color: #444; }
+  .field { width: 100%; border: 1px solid #e0e0e0; border-radius: 4px; padding: 8px 10px; font-size: 13px; box-sizing: border-box; }
+  .field:focus { outline: none; border-color: #2d6a4f; }
+  .field-textarea { resize: vertical; font-family: monospace; font-size: 12px; }
+
+  .form-actions { display: flex; gap: 8px; }
+  .btn-save { background: #2d6a4f; color: #fff; border: none; border-radius: 4px; padding: 9px 16px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .btn-save:hover { background: #245a42; }
+  .btn-save:disabled { opacity: 0.6; cursor: wait; }
+  .btn-cancel { background: #fff; color: #666; border: 1px solid #e0e0e0; border-radius: 4px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
+
+  .form-error { color: #dc2626; font-size: 12px; margin: 0; padding: 8px 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; }
+
+  .btn-sm { padding: 4px 10px; font-size: 11px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; cursor: pointer; }
+  .btn-sm:hover { background: #f5f5f5; }
+  .btn-edit { color: #2d6a4f; border-color: #cde3d4; }
+  .btn-danger { color: #dc2626; border-color: #fca5a5; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 10px 8px; border-bottom: 1px solid #f5f5f5; text-align: left; vertical-align: middle; }
+  th { font-weight: 600; color: #444; background: #fafafa; font-size: 12px; }
+  .name-cell { display: flex; align-items: center; gap: 8px; max-width: 280px; font-weight: 500; }
+  .thumb { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; border: 1px solid #e0e0e0; }
+  .zone-badge { display: inline-block; padding: 2px 8px; background: #f0f0f0; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+  .status.active { background: #e8f4f0; color: #2d6a4f; }
+  .status.inactive { background: #fef3c7; color: #92400e; }
+  .actions { display: flex; gap: 4px; flex-wrap: wrap; }
+  .empty { text-align: center; color: #aaa; padding: 2rem; }
+  .dim { color: #888; font-size: 12px; }
+
+  @media (max-width: 760px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    header { flex-direction: column; align-items: flex-start; }
+    .form-row label { min-width: 100%; }
+  }
+</style>

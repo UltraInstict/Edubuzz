@@ -1,0 +1,67 @@
+[
+  {
+    "title": "Registered Nurse (ICU)",
+    "company": "Netcare Milpark Hospital",
+    "category": "Health",
+    "province": "Gauteng",
+    "city": "Johannesburg",
+    "description": "We are looking for a registered ICU nurse with a minimum of 2 years critical care experience. SANC registration required. Competitive salary and benefits offered.",
+    "apply_url": "https://netcare.co.za/careers",
+    "salary_min": 25000,
+    "salary_max": 38000,
+    "job_type": "Full-time",
+    "source": "csv_import"
+  },
+  {
+    "title": "Software Developer (React)",
+    "company": "Takealot Group",
+    "category": "IT and Tech",
+    "province": "Western Cape",
+    "city": "Cape Town",
+    "description": "Join our engineering team building South Africa's largest e-commerce platform. 3+ years React experience required. Remote-friendly position with great benefits.",
+    "apply_url": "https://takealot.com/about/careers",
+    "salary_min": 45000,
+    "salary_max": 75000,
+    "job_type": "Full-time",
+    "source": "csv_import"
+  },
+  {
+    "title": "Learnership: Business Administration NQF 3",
+    "company": "Momentum Metropolitan",
+    "category": "Finance",
+    "province": "Gauteng",
+    "city": "Centurion",
+    "description": "12-month accredited learnership in Business Administration. Open to unemployed youth aged 18-35. Stipend provided. SETA accredited. Apply with Grade 12 certificate.",
+    "apply_url": "https://momentum.co.za/learnership",
+    "salary_min": 3500,
+    "salary_max": 3500,
+    "job_type": "Learnership",
+    "source": "csv_import"
+  },
+  {
+    "title": "Graduate Internship: Civil Engineering",
+    "company": "Aurecon South Africa",
+    "category": "Engineering",
+    "province": "KwaZulu-Natal",
+    "city": "Durban",
+    "description": "12-month graduate internship for BSc Civil Engineering graduates. Gain hands-on experience in infrastructure projects across KZN. ECSA registration support provided.",
+    "apply_url": "https://aurecongroup.com/careers",
+    "salary_min": 18000,
+    "salary_max": 22000,
+    "job_type": "Graduate Programme",
+    "source": "csv_import"
+  },
+  {
+    "title": "Store Manager — Clothing Retail",
+    "company": "Woolworths South Africa",
+    "category": "Retail & Hospitality",
+    "province": "Eastern Cape",
+    "city": "Port Elizabeth",
+    "description": "Experienced retail store manager needed for our Gqeberha branch. 3+ years retail management experience. Strong leadership and customer service skills essential.",
+    "apply_url": "https://woolworths.co.za/careers",
+    "salary_min": 20000,
+    "salary_max": 28000,
+    "job_type": "Full-time",
+    "source": "csv_import"
+  }
+]

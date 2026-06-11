@@ -1,0 +1,105 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JobCard from '../components/JobCard.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getJobs, getCategoriesWithCounts, PROVINCES } from '../lib/pocketbase';
+import { provinceName, slugify } from '../lib/slugify';
+
+const { province: provinceSlug } = Astro.params;
+const province = provinceName(provinceSlug || '');
+if (!province || !PROVINCES.includes(province)) return Astro.redirect('/404');
+
+const page = Math.max(1, Number(Astro.url.searchParams.get('page') || '1'));
+const perPage = 20;
+const [{ items: jobs, totalItems, totalPages }, categories] = await Promise.all([
+  getJobs({ page, perPage, province }),
+  getCategoriesWithCounts(),
+]);
+
+const topCategories = categories.filter(c => c.count > 0).sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 8);
+const summaryText = `Browse ${totalItems.toLocaleString('en-ZA')} jobs in ${province}, South Africa. Find full-time, part-time, government and remote positions in ${province} across all industries.`;
+---
+
+<Layout
+  title={`Jobs in ${province} | ${totalItems.toLocaleString('en-ZA')} Vacancies`}
+  description={summaryText}
+  canonicalUrl={page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.pathname}
+  prevPage={page > 1 ? `${Astro.url.origin}/jobs-in-${provinceSlug}?page=${Math.max(1, page - 1)}` : undefined}
+  nextPage={page < totalPages ? `${Astro.url.origin}/jobs-in-${provinceSlug}?page=${page + 1}` : undefined}
+>
+  <div class="bg-white border-b border-border py-10 px-6">
+    <div class="max-w-6xl mx-auto">
+      <nav class="text-xs text-muted mb-4" aria-label="Breadcrumb">
+        <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href="/provinces" class="hover:text-navy">Provinces</a> &rsaquo; <span class="text-navy font-medium">Jobs in {province}</span>
+      </nav>
+      <h1 class="text-2xl font-semibold text-navy">Jobs in {province}</h1>
+      <p class="text-muted text-sm mt-2">{totalItems.toLocaleString('en-ZA')} jobs available in {province}</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+    <div>
+      {totalItems > 0 && (
+        <>
+          <section class="card p-4 mb-6">
+            <h2 class="text-sm font-semibold text-navy mb-2">Popular Categories in {province}</h2>
+            <div class="flex flex-wrap gap-2">
+              {topCategories.map(cat => (
+                <a href={`/${slugify(cat.name)}-jobs-in-${provinceSlug}`} class="inline-flex items-center px-3 py-1.5 bg-[#e8f4f0] text-[#2d6a4f] text-xs font-medium rounded-full hover:bg-[#d0ebe0] transition-colors">
+                  {cat.name} ({cat.count})
+                </a>
+              ))}
+            </div>
+          </section>
+          <section class="card p-4 mb-6">
+            <h2 class="text-sm font-semibold text-navy mb-2">Other Provinces</h2>
+            <div class="flex flex-wrap gap-2">
+              {PROVINCES.filter(p => p !== province).map(p => (
+                <a href={`/jobs-in-${slugify(p)}`} class="inline-flex items-center px-3 py-1.5 border border-border text-muted text-xs font-medium rounded-full hover:border-accent hover:text-accent transition-colors">
+                  {p}
+                </a>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+      <div class="space-y-3">
+        {jobs.map(job => <JobCard job={job} />)}
+      </div>
+      {totalItems === 0 && (
+        <div class="card text-center py-12">
+          <h2 class="text-lg font-semibold text-navy mb-2">No jobs in {province} right now</h2>
+          <p class="text-muted text-sm mb-4">Check other provinces or browse all jobs.</p>
+          <a href="/jobs" class="inline-flex items-center px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-dark transition-colors">Browse All Jobs</a>
+        </div>
+      )}
+      {totalPages > 1 && (
+        <div class="flex gap-1.5 mt-6 flex-wrap">
+          {page > 1 && <a href={`/jobs-in-${provinceSlug}?page=${page-1}`} class="px-3 py-1.5 border border-border rounded-lg text-sm text-muted hover:border-accent bg-white">Previous</a>}
+          {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+            const p = i + 1;
+            return <a href={`/jobs-in-${provinceSlug}?page=${p}`} class={`px-3 py-1.5 rounded-lg text-sm border ${p === page ? 'border-accent bg-accent text-white font-semibold' : 'border-border text-muted hover:border-accent bg-white'}`}>{p}</a>;
+          })}
+          {page < totalPages && <a href={`/jobs-in-${provinceSlug}?page=${page+1}`} class="px-3 py-1.5 border border-border rounded-lg text-sm text-muted hover:border-accent bg-white">Next</a>}
+        </div>
+      )}
+    </div>
+    <aside class="hidden lg:block"><Sidebar /></aside>
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Jobs in ${province}`,
+    description: summaryText,
+    url: `${Astro.url.origin}/jobs-in-${provinceSlug}`,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: jobs.map((job, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${Astro.url.origin}/job/${job.slug}`,
+      })),
+    },
+  })} />
+</Layout>

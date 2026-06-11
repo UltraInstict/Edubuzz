@@ -1,0 +1,59 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Career Resources for South African Job Seekers" description="Free guides on CV writing, interview preparation, labour law, and more for South African job seekers." canonicalUrl={Astro.url.href}>
+  <main class="page-wrap">
+    <h1>Career Resources</h1>
+    <p class="intro">Free guides to help you land your next job in South Africa.</p>
+
+    <div class="resource-grid">
+      <article class="card">
+        <h2>CV Writing Tips</h2>
+        <p>Learn how to structure a professional CV that stands out to South African employers. From personal details to references, get the template right.</p>
+        <span class="tag">Free resource</span>
+      </article>
+
+      <article class="card">
+        <h2>Interview Preparation</h2>
+        <p>Walk into any interview confident and prepared. Covers common questions, what to research about the company, and how to negotiate your offer.</p>
+        <span class="tag">Free resource</span>
+      </article>
+
+      <article class="card">
+        <h2>South African Labour Law Basics</h2>
+        <p>Understand your rights under the Basic Conditions of Employment Act. Know what your contract should include and what notice periods apply.</p>
+        <span class="tag">Free resource</span>
+      </article>
+
+      <article class="card">
+        <h2>Understanding Your Payslip</h2>
+        <p>Decode UIF, PAYE, and SDL deductions. Learn how to check that your employer is contributing correctly and what each line item means.</p>
+        <span class="tag">Free resource</span>
+      </article>
+
+      <article class="card">
+        <h2>Networking in South Africa</h2>
+        <p>Build a professional network that opens doors. Tips for LinkedIn, industry events, and how to approach recruiters in the local market.</p>
+        <span class="tag">Free resource</span>
+      </article>
+
+      <article class="card">
+        <h2>Remote Work in SA</h2>
+        <p>Find legitimate remote opportunities and set up a productive home office. Covers time zones, internet requirements, and avoiding scams.</p>
+        <span class="tag">Free resource</span>
+      </article>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .page-wrap { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin: 0 0 4px; }
+  .intro { color: #666; font-size: 14px; margin: 0 0 20px; }
+  .resource-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .card h2 { margin: 0; font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .card p { margin: 0; color: #666; font-size: 13px; line-height: 1.6; }
+  .tag { display: inline-block; background: #e8f4f0; color: #2d6a4f; border-radius: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; align-self: flex-start; margin-top: auto; }
+</style>

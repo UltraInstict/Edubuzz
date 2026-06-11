@@ -1,28 +1,127 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { getAuthPb, getUser } from '../../../lib/auth';
-const user = getUser(Astro.request);
-if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
-const pb = getAuthPb(Astro.request);
-const employerList = await pb.collection('employers').getList(1, 1, { filter: `user_id="${(user as any).id}"` }).catch(() => ({ items: [] }));
-const employer = employerList.items[0] as any;
-if (!employer) return Astro.redirect('/register');
-const job: any = await pb.collection('jobs').getOne(Astro.params.jobId || '').catch(() => null);
+import { getEmployerSession } from '../../../lib/auth';
+import { getJobForEmployer, getJobAnalyticsEvents } from '../../../services/jobService';
+
+const session = await getEmployerSession(Astro.request);
+if (!session) return Astro.redirect('/login?next=' + Astro.url.pathname);
+const { employer } = session;
+
+const job = await getJobForEmployer(Astro.params.jobId || '', employer.id);
 if (!job) return new Response('Not found', { status: 404 });
-if (job.employer_id !== employer.id) return new Response('Forbidden', { status: 403 });
-const since = new Date(Date.now() - 30 * 86400000).toISOString();
-const events = await pb.collection('analytics_events').getFullList({ filter: `job_id="${job.id}"&&created>="${since}"`, sort: 'created' }).catch(() => []);
-const views = events.filter((e:any)=>e.event==='view').length;
-const applies = events.filter((e:any)=>e.event==='apply_click').length;
-const refs = Object.entries(events.reduce((acc:any,e:any)=>{acc[e.ref || 'direct']=(acc[e.ref || 'direct']||0)+1;return acc;},{})).sort((a:any,b:any)=>b[1]-a[1]).slice(0,5);
-const days = Array.from({length:30},(_,i)=>new Date(Date.now()-(29-i)*86400000).toISOString().slice(5,10));
-const viewSeries = days.map(d=>events.filter((e:any)=>e.event==='view'&&e.created.slice(5,10)===d).length);
-const applySeries = days.map(d=>events.filter((e:any)=>e.event==='apply_click'&&e.created.slice(5,10)===d).length);
-const max = Math.max(1, ...viewSeries, ...applySeries);
-const points = viewSeries.map((v,i)=>`${(i/29)*600},${160-(v/max)*140}`).join(' ');
-const applyPoints = applySeries.map((v,i)=>`${(i/29)*600},${160-(v/max)*140}`).join(' ');
+
+const events = await getJobAnalyticsEvents(job.id, 30);
+
+const views = events.filter((e: any) => e.event === 'view').length;
+const clicks = events.filter((e: any) => e.event === 'click').length;
+const applies = events.filter((e: any) => e.event === 'apply_click').length;
+const shares = events.filter((e: any) => e.event === 'share').length;
+const clickRate = views ? Math.round((clicks / views) * 1000) / 10 : 0;
+const conversionRate = views ? Math.round((applies / views) * 1000) / 10 : 0;
+
+const refs = Object.entries(
+  events.reduce((acc: any, e: any) => {
+    acc[e.ref || 'direct'] = (acc[e.ref || 'direct'] || 0) + 1;
+    return acc;
+  }, {}),
+)
+  .sort((a: any, b: any) => b[1] - a[1])
+  .slice(0, 5);
+
+const devices = Object.entries(
+  events.reduce((acc: any, e: any) => {
+    acc[e.device || 'desktop'] = (acc[e.device || 'desktop'] || 0) + 1;
+    return acc;
+  }, {}),
+).sort((a: any, b: any) => b[1] - a[1]);
+
+const days = Array.from({ length: 30 }, (_, i) =>
+  new Date(Date.now() - (29 - i) * 86400000).toISOString().slice(5, 10),
+);
+const viewSeries = days.map((d) => events.filter((e: any) => e.event === 'view' && e.created.slice(5, 10) === d).length);
+const max = Math.max(1, ...viewSeries);
+const chartPoints = viewSeries.map((v, i) => `${(i / 29) * 600},${160 - (v / max) * 140}`).join(' ');
 ---
+
 <Layout title={`Analytics for ${job.title}`} description="Job analytics." canonicalUrl={Astro.url.href}>
-<main class="wrap"><h1>Analytics: {job.title}</h1><section class="summary"><div><b>{views}</b><span>Total views</span></div><div><b>{applies}</b><span>Apply clicks</span></div><div><b>{views ? Math.round((applies/views)*100) : 0}%</b><span>Conversion</span></div></section><section class="panel"><svg viewBox="0 0 620 180" role="img"><polyline points={points} fill="none" stroke="#2d6a4f" stroke-width="3"/><polyline points={applyPoints} fill="none" stroke="#f0c040" stroke-width="3"/></svg></section><section class="panel"><h2>Top referrers</h2>{refs.map(([ref,count]:any)=><p>{ref}: {count}</p>)}</section></main>
+  <main class="wrap">
+    <a href="/employer/dashboard" class="back-link">&larr; Back to dashboard</a>
+    <h1>Analytics: {job.title}</h1>
+
+    <section class="summary">
+      <div class="metric"><b>{views.toLocaleString('en-ZA')}</b><span>Views (30 days)</span></div>
+      <div class="metric"><b>{clicks.toLocaleString('en-ZA')}</b><span>Clicks</span></div>
+      <div class="metric"><b>{applies.toLocaleString('en-ZA')}</b><span>Apply clicks</span></div>
+      <div class="metric"><b>{shares}</b><span>Shares</span></div>
+      <div class="metric"><b>{clickRate}%</b><span>CTR</span></div>
+      <div class="metric"><b>{conversionRate}%</b><span>Apply rate</span></div>
+    </section>
+
+    <section class="panel">
+      <h2>Views over time</h2>
+      <svg viewBox="0 0 620 180" role="img" aria-label="Line chart of daily views over 30 days">
+        <polyline points={chartPoints} fill="none" stroke="#2d6a4f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </section>
+
+    <div class="grid-2">
+      <section class="panel">
+        <h2>Top referrers</h2>
+        {refs.length === 0 ? (
+          <p class="dim">No referrer data yet.</p>
+        ) : (
+          <div class="bar-list">
+            {refs.map(([ref, count]: any) => (
+              <div class="bar-row">
+                <span class="bar-label">{ref}</span>
+                <span class="bar-value">{count}</span>
+                <div class="bar-fill" style={`width:${(count / refs[0]![1]) * 100}%`}></div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      <section class="panel">
+        <h2>Device breakdown</h2>
+        {devices.length === 0 ? (
+          <p class="dim">No device data yet.</p>
+        ) : (
+          <div class="bar-list">
+            {devices.map(([device, count]: any) => (
+              <div class="bar-row">
+                <span class="bar-label">{device}</span>
+                <span class="bar-value">{count}</span>
+                <div class="bar-fill bar-device" style={`width:${(count / devices[0]![1]) * 100}%`}></div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  </main>
 </Layout>
-<style>.wrap{max-width:900px;margin:1.5rem auto;padding:0 1.5rem;display:grid;gap:16px}h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.3px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.summary div{background:#fff;border:1px solid #e0e0e0;border-radius:6px;padding:14px}b{display:block;font-size:20px;font-weight:600}span,p{color:#666;font-size:13px}svg{width:100%;height:auto;background:#fff}</style>
+
+<style>
+  .wrap { max-width: 900px; margin: 1.5rem auto; padding: 0 1.5rem; display: grid; gap: 16px; }
+  .back-link { color: #2d6a4f; font-size: 13px; margin-bottom: -8px; }
+  h1 { font-size: 22px; margin: 0; font-weight: 600; letter-spacing: -0.3px; color: #1a1a1a; }
+  h2 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .metric { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px 14px; }
+  .metric b { display: block; font-size: 22px; font-weight: 600; color: #1a1a1a; }
+  .metric span { color: #666; font-size: 12px; margin-top: 2px; display: block; }
+  .panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; }
+  svg { width: 100%; height: auto; background: #fafdfb; border-radius: 4px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .dim { color: #999; font-size: 13px; margin: 0; }
+  .bar-list { display: flex; flex-direction: column; gap: 6px; }
+  .bar-row { position: relative; display: flex; align-items: center; padding: 4px 0; }
+  .bar-label { font-size: 13px; color: #444; min-width: 80px; z-index: 1; }
+  .bar-value { font-size: 12px; color: #888; margin-left: auto; margin-right: 8px; z-index: 1; font-weight: 500; }
+  .bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: #e8f4f0; border-radius: 3px; min-width: 4px; }
+  .bar-device { background: #eff6ff; }
+  @media (max-width: 640px) {
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+</style>

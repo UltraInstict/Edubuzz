@@ -1,26 +1,70 @@
 ---
-import AdSlot from './AdSlot.astro';
-import { getCategories, PROVINCES, slugify } from '../lib/pocketbase';
+import SmartAdSlot from './SmartAdSlot.astro';
+import { getCategoriesWithCounts, PROVINCES, slugify } from '../lib/pocketbase';
+import { generateToken } from '../lib/csrf';
 
-const categories = await getCategories(7);
+interface Props {
+  category?: string;
+}
+
+const { category } = Astro.props;
+
+const categories = await getCategoriesWithCounts();
+const csrfToken = generateToken();
+
+// Static "Most Searched" jobs — hard-coded per spec
+const MOST_SEARCHED = [
+  'General Worker Jobs',
+  'Admin Jobs',
+  'Security Jobs',
+  'Cashier Jobs',
+  'Driver Jobs',
+  'Cleaner Jobs',
+  'Warehouse Jobs',
+  'Receptionist Jobs',
+  'Data Capturer Jobs',
+  'Call Centre Jobs',
+];
+
+// Static Browse Jobs links — hard-coded per spec
+const BROWSE_LINKS = [
+  { label: 'Remote Jobs', href: '/remote-jobs' },
+  { label: 'Internships', href: '/internships' },
+  { label: 'Graduate Jobs', href: '/graduate-jobs' },
+  { label: 'Learnerships', href: '/learnerships' },
+  { label: 'Bursaries', href: '/bursaries' },
+];
 ---
 
 <div class="sidebar-stack">
-  <AdSlot size="rectangle" />
+  <!-- Section 1: Browse Jobs (static) -->
+  <section class="side-card">
+    <h2>Browse Jobs</h2>
+    <div class="link-list">
+      {BROWSE_LINKS.map((link) => (
+        <a href={link.href}>{link.label}</a>
+      ))}
+    </div>
+  </section>
 
+  <!-- Section 2: Sponsored affiliate slot (between Browse Jobs and Most Searched) -->
+  <SmartAdSlot zone="sidebar" category={category} />
+
+  <!-- Browse by category (kept for SEO + navigation) -->
   <section class="side-card">
     <h2>Browse by category</h2>
     <div class="category-list">
       {categories.map((cat) => (
         <a href={`/category/${cat.slug}`} class="category-row">
           <span>{cat.name}</span>
-          <span class="count">{cat.job_count || 0}</span>
+          <span class="count">{cat.count}</span>
         </a>
       ))}
       <a href="/categories" class="view-all">View all</a>
     </div>
   </section>
 
+  <!-- Browse by province (kept for SEO + navigation) -->
   <section class="side-card">
     <h2>Browse by province</h2>
     <div class="province-grid">
@@ -30,9 +74,21 @@ const categories = await getCategories(7);
     </div>
   </section>
 
+  <!-- Section 3: Most Searched (static) -->
+  <section class="side-card">
+    <h2>Most Searched</h2>
+    <div class="link-list">
+      {MOST_SEARCHED.map((term) => (
+        <a href={`/jobs?q=${encodeURIComponent(term.replace(/ Jobs$/, ''))}`}>{term}</a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Section 4: Job Alerts subscription form (unchanged behaviour) -->
   <section class="side-card">
     <h2>Job alert signup</h2>
     <form id="alert-form" action="/api/alerts" method="post" novalidate>
+      <input type="hidden" name="_csrf" value={csrfToken} />
       <label>
         Email
         <input class="form-field" type="email" name="email" required />
@@ -53,8 +109,6 @@ const categories = await getCategories(7);
       <button type="submit">Create alert</button>
     </form>
   </section>
-
-  <AdSlot size="rectangle" />
 </div>
 
 <script>
@@ -79,9 +133,10 @@ const categories = await getCategories(7);
       body: JSON.stringify(Object.fromEntries(new FormData(form))),
     });
     const body = await response.json().catch(() => ({}));
-    status.textContent = response.ok ? 'Alert created.' : (body.message || 'Could not create alert.');
+    const okResponse = response.ok && body.success !== false;
+    status.textContent = okResponse ? 'Alert created.' : (body.error || body.message || 'Could not create alert.');
     status.hidden = false;
-    if (response.ok) form.reset();
+    if (okResponse) form.reset();
   });
 </script>
 
@@ -198,5 +253,30 @@ const categories = await getCategories(7);
 
   .alert-status {
     color: #2d6a4f;
+  }
+
+  .link-list {
+    display: grid;
+    gap: 3px;
+  }
+
+  .link-list a {
+    color: #444;
+    font-size: 13px;
+    padding: 5px 0;
+  }
+
+  .link-list a:hover {
+    color: #2d6a4f;
+  }
+
+  /* Mobile: ensure sidebar stacks comfortably */
+  @media (max-width: 480px) {
+    .side-card {
+      padding: 0.75rem 1rem;
+    }
+    .province-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 </style>

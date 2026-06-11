@@ -21,6 +21,7 @@ const { search = '', province = '', job_type = '', category = '' } = Astro.props
       name="search"
       value={search}
       placeholder="Job title, skill or company…"
+      aria-label="Search by job title, skill or company"
       class="border-0 outline-none text-sm text-ink placeholder-muted w-full font-sans bg-transparent"
     />
   </div>
@@ -41,13 +42,13 @@ const { search = '', province = '', job_type = '', category = '' } = Astro.props
     <svg class="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
     </svg>
-    <select name="job_type" class="border-0 outline-none text-sm text-ink w-full bg-transparent font-sans">
+    <select name="job_type" aria-label="Filter by job type" class="border-0 outline-none text-sm text-ink w-full bg-transparent font-sans">
       <option value="">All types</option>
       {JOB_TYPES.map(t => <option value={t} selected={job_type === t}>{t}</option>)}
     </select>
   </div>
 
-  <button type="submit" class="btn-primary px-6 rounded-xl">
+  <button type="submit" class="inline-flex items-center justify-center border-0 rounded bg-brand text-white text-sm font-medium leading-none px-4 py-2.5 hover:bg-brand-hover transition-colors">
     Search Jobs
   </button>
 </form>

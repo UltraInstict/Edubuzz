@@ -1,19 +1,16 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { getAuthPb, getUser } from '../../../lib/auth';
-const user = getUser(Astro.request);
+import { getUser } from '../../../lib/auth';
+import { getEmployerByUserId, getJobForEmployer, listJobApplicationsFiltered } from '../../../services/jobService';
+const user = await getUser(Astro.request);
 if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
-const pb = getAuthPb(Astro.request);
-const employerList = await pb.collection('employers').getList(1, 1, { filter: `user_id="${(user as any).id}"` }).catch(() => ({ items: [] }));
-const employer = employerList.items[0] as any;
+const employer = await getEmployerByUserId((user as any).id);
 if (!employer) return Astro.redirect('/register');
-const job: any = await pb.collection('jobs').getOne(Astro.params.jobId || '').catch(() => null);
+const job = await getJobForEmployer(Astro.params.jobId || '', employer.id);
 if (!job) return new Response('Not found', { status: 404 });
-if (job.employer_id !== employer.id) return new Response('Forbidden', { status: 403 });
 const status = Astro.url.searchParams.get('status') || '';
-const filter = [`job_id="${job.id}"`];
-if (status) filter.push(`status="${status}"`);
-const apps = await pb.collection('applications').getList(1, 100, { filter: filter.join('&&'), sort: '-created' }).catch(() => ({ items: [] }));
+const items = await listJobApplicationsFiltered(job.id, status);
+const apps = { items };
 const statuses = ['pending','reviewed','shortlisted','rejected'];
 ---
 <Layout title={`Applications for ${job.title}`} description="Review job applications." canonicalUrl={Astro.url.href}>

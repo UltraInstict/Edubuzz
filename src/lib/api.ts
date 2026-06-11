@@ -15,6 +15,16 @@ export function json(data: unknown, init: ResponseInit = {}) {
   });
 }
 
+/** Standardised success response — { success: true, data? } */
+export function ok(data?: unknown, init: ResponseInit = {}) {
+  return json({ success: true, ...(data !== undefined ? { data } : {}) }, init);
+}
+
+/** Standardised error response — { success: false, error } */
+export function fail(error: string, status = 400) {
+  return json({ success: false, error }, { status });
+}
+
 export function checkRateLimit(request: Request) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
   const now = Date.now();

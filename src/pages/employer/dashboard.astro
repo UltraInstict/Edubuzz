@@ -1,41 +1,75 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getPb, getUser } from '../../lib/auth';
+import { getEmployerSession } from '../../lib/auth';
 import { formatSalary } from '../../lib/pocketbase';
+import { getEmployerMetrics, listEmployerJobs } from '../../services/jobService';
 
-const user = getUser(Astro.request);
-if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
+const session = await getEmployerSession(Astro.request);
+if (!session) return Astro.redirect('/login?next=' + Astro.url.pathname);
+const { employer } = session;
 
-const pb = getAuthPb(Astro.request);
-const employerList = await pb.collection('employers').getList(1, 1, {
-  filter: `user_id="${(user as any).id}"`,
-}).catch(() => ({ items: [] }));
-const employer = employerList.items[0] as any;
-if (!employer) return Astro.redirect('/register');
-
-const employerId = employer.id;
-const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-const [jobs, views, applications] = await Promise.all([
-  pb.collection('jobs').getList(1, 50, { filter: `employer_id="${employerId}"`, sort: '-created' }).catch(() => ({ items: [], totalItems: 0 })),
-  pb.collection('analytics_events').getList(1, 1, { filter: `job_id.employer_id="${employerId}"&&event="view"&&created>="${monthStart}"` }).catch(() => ({ totalItems: 0 })),
-  pb.collection('applications').getList(1, 1, { filter: `job_id.employer_id="${employerId}"` }).catch(() => ({ totalItems: 0 })),
+const [metrics, jobsList] = await Promise.all([
+  getEmployerMetrics(employer.id),
+  listEmployerJobs(employer.id),
 ]);
+const jobs = { items: jobsList };
 ---
+
 <Layout title="Employer Dashboard" description="Manage your Edubuzz listings." canonicalUrl={Astro.url.href}>
   <main class="portal-grid">
     <section>
       <h1>Employer dashboard</h1>
       <div class="summary">
-        <div><b>{jobs.items.filter((j:any)=>j.active).length}</b><span>Active listings</span></div>
-        <div><b>{views.totalItems}</b><span>Views this month</span></div>
-        <div><b>{applications.totalItems}</b><span>Applications</span></div>
+        <div><b>{metrics.activeJobs}</b><span>Active listings</span></div>
+        <div><b>{metrics.viewsThisMonth}</b><span>Views this month</span></div>
+        <div><b>{metrics.totalApplications}</b><span>Applications</span></div>
+        <div><b>{metrics.ctr}%</b><span>Click-through rate</span></div>
         <div><b>{employer.plan || 'free'}</b><span>Plan status</span></div>
+        <div><b>{employer.verified ? 'Yes' : 'Pending'}</b><span>Verified</span></div>
       </div>
-      <div class="table-wrap"><table><thead><tr><th>Job title</th><th>Status</th><th>Views</th><th>Applications</th><th>Salary</th><th>Expires</th><th>Actions</th></tr></thead><tbody>
-        {jobs.items.map((job:any)=><tr><td>{job.title}</td><td>{job.active ? 'Active':'Review'}</td><td>{job.views || 0}</td><td><a href={`/employer/applications/${job.id}`}>View</a></td><td>{formatSalary(job.salary_min, job.salary_max)}</td><td>{job.expires?.slice(0,10) || '-'}</td><td><a href={`/employer/edit-job/${job.id}`}>Edit</a> · <a href={`/employer/analytics/${job.id}`}>Analytics</a> · <a href={`/employer/upgrade?job=${job.id}`}>Boost</a></td></tr>)}
-      </tbody></table></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Job title</th><th>Status</th><th>Views</th><th>Applications</th><th>Salary</th><th>Expires</th><th>Actions</th></tr></thead>
+          <tbody>
+            {jobs.items.map((job: any) => (
+              <tr>
+                <td>{job.title}</td>
+                <td>{job.active ? 'Active' : 'Review'}</td>
+                <td>{job.views || 0}</td>
+                <td><a href={`/employer/applications/${job.id}`}>View</a></td>
+                <td>{formatSalary(job.salary_min, job.salary_max)}</td>
+                <td>{job.expires?.slice(0, 10) || '-'}</td>
+                <td>
+                  <a href={`/employer/edit-job/${job.id}`}>Edit</a> ·
+                  <a href={`/employer/analytics/${job.id}`}>Analytics</a> ·
+                  <a href={`/employer/upgrade?job=${job.id}`}>Boost</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
-    <aside class="panel"><h2>{employer.company_name}</h2><a href="/employer/post-job">Post a job</a><a href="/employer/company-profile">Company profile</a><a href="/logout">Logout</a></aside>
+    <aside class="panel">
+      <h2>{employer.company_name}</h2>
+      <a href="/employer/post-job">Post a job</a>
+      <a href="/employer/company-profile">Company profile</a>
+      <a href="/logout">Logout</a>
+    </aside>
   </main>
 </Layout>
-<style>.portal-grid{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;display:grid;grid-template-columns:1fr 240px;gap:16px}h1{font-size:22px;margin:0 0 12px;font-weight:600;letter-spacing:-0.3px}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.summary div{background:#fff;border:1px solid #e0e0e0;border-radius:6px;padding:14px}b{display:block;font-size:20px;font-weight:600}span,td,th{font-size:12px;color:#666}.table-wrap{overflow:auto;background:#fff;border:1px solid #e0e0e0;border-radius:6px}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #f0f0f0;text-align:left;white-space:nowrap}a{color:#2d6a4f}.panel a{display:block;margin-top:7px;font-size:13px}@media(max-width:820px){.portal-grid{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,1fr)}}</style>
+
+<style>
+  .portal-grid { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 240px; gap: 16px; }
+  h1 { font-size: 22px; margin: 0 0 12px; font-weight: 600; letter-spacing: -0.3px; }
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .summary div { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px; }
+  b { display: block; font-size: 20px; font-weight: 600; }
+  span, td, th { font-size: 12px; color: #666; }
+  .table-wrap { overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: left; white-space: nowrap; }
+  td a, aside.panel a { color: #2d6a4f; }
+  aside.panel a { display: block; margin-top: 7px; font-size: 13px; }
+  @media (max-width: 820px) { .portal-grid { grid-template-columns: 1fr; } .summary { grid-template-columns: repeat(2, 1fr); } }
+</style>

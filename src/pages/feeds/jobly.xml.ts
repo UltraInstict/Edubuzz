@@ -1,0 +1,36 @@
+import type { APIRoute } from 'astro';
+import { getPB } from '../../lib/pocketbase';
+
+function cdata(value: unknown) {
+  return `<![CDATA[${String(value ?? '').replaceAll(']]>', ']]]]><![CDATA[>')}]]>`;
+}
+
+function esc(value: unknown) {
+  return String(value ?? '').replace(/[<>&'"]/g, (char) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[char]!));
+}
+
+export const GET: APIRoute = async () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const jobs = await getPB().collection('jobs').getFullList({
+    filter: `active=true&&expires>"${today}"`,
+    sort: '-created',
+    fields: 'id,title,company,city,province,category,description,salary_min,salary_max,slug,created,job_type',
+  }).catch(() => []);
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<jobs>
+  ${(jobs as any[]).map((job) => `<job>
+    <id>${esc(job.id)}</id>
+    <title>${cdata(job.title)}</title>
+    <description>${cdata((job.description || '').replace(/<[^>]+>/g, '').trim())}</description>
+    <city>${cdata(job.city || '')}</city>
+    <state>${cdata(job.province || '')}</state>
+    <company>${cdata(job.company)}</company>
+    <url>${esc(`https://edubuzz.co.za/job/${job.slug}`)}</url>
+    <salary>${cdata(job.salary_min || job.salary_max ? `R${job.salary_min || ''} - R${job.salary_max || ''}` : '')}</salary>
+    <date>${job.created ? new Date(job.created).toISOString().slice(0, 10) : ''}</date>
+    <job_type>${cdata(job.job_type || '')}</job_type>
+  </job>`).join('\n  ')}
+</jobs>`;
+  return new Response(xml, { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
+};

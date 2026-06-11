@@ -1,0 +1,93 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/auth';
+import { listXmlSourcesWithCounts } from '../../services/jobService';
+
+const { redirect } = await requireAdmin(Astro.request);
+if (redirect) return redirect;
+
+const { sources: xmlSources } = await listXmlSourcesWithCounts();
+
+const outboundFeeds = [
+  { name: 'Indeed', url: '/feeds/jobs.xml' },
+  { name: 'Adzuna', url: '/feeds/adzuna.xml' },
+  { name: 'Trovit', url: '/feeds/trovit.xml' },
+  { name: 'Jobly', url: '/feeds/jobly.xml' },
+  { name: 'Careerjet', url: '/feeds/careerjet.xml' },
+  { name: 'RSS 2.0', url: '/feeds/rss.xml' },
+  ...['Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape', 'Limpopo', 'Mpumalanga', 'North West', 'Free State', 'Northern Cape'].map(
+    (p) => ({ name: `Indeed: ${p}`, url: `/feeds/jobs-${p.toLowerCase().replace(/\s+/g, '-')}.xml` })
+  ),
+];
+---
+
+<Layout title="Outbound Feeds | Admin" canonicalUrl={Astro.url.href}>
+  <main class="admin-wrap">
+    <header>
+      <h1>Outbound Feeds</h1>
+      <AdminNav current="feeds" />
+    </header>
+
+    <section class="panel">
+      <h2>Aggregator Feed Endpoints</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Feed</th><th>URL</th><th>Status</th></tr></thead>
+          <tbody>
+            {outboundFeeds.map((feed) => (
+              <tr>
+                <td class="name-cell">{feed.name}</td>
+                <td><a href={feed.url} target="_blank" class="feed-link">{feed.url}</a></td>
+                <td><span class="status active">Active</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Inbound Feed Sources ({xmlSources.length})</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Format</th><th>Last Crawled</th><th>Jobs Found</th><th>Status</th><th>Error</th></tr></thead>
+          <tbody>
+            {(xmlSources as any[]).length === 0 && <tr><td colspan="6" class="empty">No feed sources configured.</td></tr>}
+            {(xmlSources as any[]).map((source: any) => (
+              <tr>
+                <td class="name-cell">{source.name}</td>
+                <td><span class="zone-badge">{source.format}</span></td>
+                <td>{source.last_crawled ? new Date(source.last_crawled).toLocaleString('en-ZA') : 'Never'}</td>
+                <td><b>{source.last_job_count || 0}</b></td>
+                <td><span class={`status ${source.active ? 'active' : 'inactive'}`}>{source.active ? 'Active' : 'Paused'}</span></td>
+                <td class="error-cell">{source.error_log || '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .admin-wrap { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  h1 { font-size: 22px; margin: 0; font-weight: 600; color: #1a1a1a; }
+  h2 { font-size: 14px; font-weight: 600; color: #1a1a1a; margin: 0 0 10px; }
+  .panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 10px 8px; border-bottom: 1px solid #f5f5f5; text-align: left; }
+  th { font-weight: 600; color: #444; background: #fafafa; font-size: 12px; }
+  .name-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+  .feed-link { color: #2d6a4f; font-size: 12px; word-break: break-all; }
+  .zone-badge { display: inline-block; padding: 2px 8px; background: #f0f0f0; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+  .status.active { background: #e8f4f0; color: #2d6a4f; }
+  .status.inactive { background: #fef3c7; color: #92400e; }
+  .error-cell { max-width: 250px; overflow: hidden; text-overflow: ellipsis; color: #dc2626; font-size: 11px; }
+  .empty { text-align: center; color: #aaa; padding: 2rem; }
+  @media (max-width: 760px) { header { flex-direction: column; align-items: flex-start; } }
+</style>

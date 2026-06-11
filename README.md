@@ -4,7 +4,6 @@
 - **Frontend**: Astro 4 (SSR, Node adapter)
 - **Backend**: PocketBase (Go binary, SQLite, auto REST API)
 - **Styling**: Tailwind CSS
-- **AI**: Anthropic Claude Haiku (job description generation)
 - **Hosting**: Ubuntu VPS (Hetzner CX22 ~R90/month)
 
 ---
@@ -38,7 +37,7 @@ unzip pocketbase_linux_amd64.zip
 ### 4. Configure environment
 ```bash
 cp .env.example .env
-# Edit .env — add your ANTHROPIC_API_KEY from console.anthropic.com
+# Edit .env — fill in PB_URL, PB_ADMIN_EMAIL/PASSWORD, SMTP, etc.
 ```
 
 ### 5. Create PocketBase collections
@@ -160,7 +159,6 @@ npm run dev
 - [ ] JSON-LD visible in page source
 - [ ] Apply form submits → record in PocketBase applications
 - [ ] Post a job form submits → record in pending_jobs
-- [ ] AI generate button produces a description (needs ANTHROPIC_API_KEY)
 - [ ] Category page loads at /category/government
 - [ ] Province page loads at /province/gauteng
 - [ ] Sitemap at /sitemap.xml lists all jobs
@@ -249,7 +247,7 @@ rsync -avz --exclude node_modules --exclude .git . edubuzz@YOUR_VPS_IP:~/edubuzz
 cd ~/edubuzz
 npm install --production
 cp .env.example .env
-nano .env  # fill in PB_URL=http://127.0.0.1:8090 and ANTHROPIC_API_KEY
+nano .env  # fill in PB_URL=http://127.0.0.1:8090 and SMTP/payment vars
 
 # Start with pm2
 pm2 start npm --name edubuzz -- start
@@ -295,17 +293,6 @@ In PocketBase admin → Settings → Mail:
 - Port: 587
 - Username: your Brevo login
 - Password: your Brevo SMTP key
-
----
-
-## Adding AI descriptions — quick reference
-The `/api/generate-description` endpoint calls Claude Haiku.
-Cost: ~R0.003 per description. For 1,000 job descriptions = ~R3.
-
-To use Gemini (free) instead, change the API URL in `src/pages/api/generate-description.ts`:
-```
-https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
-```
 
 ---
 

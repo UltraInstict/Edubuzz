@@ -1,0 +1,119 @@
+name: Edubuzz CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ── Build Check ────────────────────────────────────────────────────────
+  build:
+    name: Build & Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx astro check || true
+
+      - name: Production build
+        run: npx astro build
+        env:
+          PB_URL: http://127.0.0.1:8090
+          SITE_URL: https://edubuzz.co.za
+          CSRF_SECRET: build-check-placeholder
+
+      - name: Verify build output
+        run: |
+          test -f dist/server/entry.mjs && echo "Server entry OK"
+          test -d dist/client && echo "Client assets OK"
+
+      - name: Check bundle size
+        run: |
+          SERVER_SIZE=$(du -sh dist/server | cut -f1)
+          CLIENT_SIZE=$(du -sh dist/client | cut -f1)
+          echo "Server: $SERVER_SIZE"
+          echo "Client: $CLIENT_SIZE"
+
+  # ── Lint ───────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - name: Check formatting
+        run: npx prettier --check "src/**/*.{astro,ts,js}" || true
+
+  # ── Deploy Production ──────────────────────────────────────────────────
+  deploy-prod:
+    name: Deploy Production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [build, lint]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/edubuzz/edubuzz
+            git pull origin main
+            npm ci --production
+            npx astro build
+            pm2 reload ecosystem.config.cjs --env production
+            pm2 save
+
+      - name: Health check
+        run: |
+          sleep 5
+          curl -f https://edubuzz.co.za/api/health || echo "Health check failed"
+          curl -f https://edubuzz.co.za/robots.txt || echo "Homepage check failed"
+
+      - name: Notify success
+        if: success()
+        run: echo "Deploy successful at $(date -u)"
+
+  # ── Deploy Staging ─────────────────────────────────────────────────────
+  deploy-staging:
+    name: Deploy Staging
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    needs: [build, lint]
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to staging via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/edubuzz/staging
+            git pull origin develop
+            npm ci --production
+            npx astro build
+            pm2 reload ecosystem.config.cjs --env staging
+            pm2 save

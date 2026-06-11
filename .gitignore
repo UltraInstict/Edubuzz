@@ -4,3 +4,5 @@ dist/
 .astro/
 "dev-server.log"  
 "npm" 
+node_modules
+node_modules

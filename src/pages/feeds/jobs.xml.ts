@@ -7,8 +7,9 @@ function cdata(value: unknown) {
 
 export const GET: APIRoute = async () => {
   const pb = getPB();
+  const today = new Date().toISOString().slice(0, 10);
   const jobs = await pb.collection('jobs').getFullList({
-    filter: 'active=true&&xml_export=true',
+    filter: `active=true&&expires>"${today}"`,
     fields: 'id,title,company,city,province,category,job_type,description,salary_min,salary_max,apply_url,apply_email,created,expires,slug',
     sort: '-created',
   }).catch(() => []);

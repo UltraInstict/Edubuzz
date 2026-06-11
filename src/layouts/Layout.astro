@@ -10,6 +10,9 @@ interface Props {
   ogTitle?: string;
   ogDescription?: string;
   ogType?: string;
+  noindex?: boolean;
+  prevPage?: string;
+  nextPage?: string;
 }
 
 const stats = await getSiteStats();
@@ -21,6 +24,9 @@ const {
   ogTitle = title,
   ogDescription = description,
   ogType = 'website',
+  noindex = false,
+  prevPage,
+  nextPage,
 } = Astro.props;
 ---
 
@@ -43,18 +49,67 @@ const {
     <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={ogDescription} />
     <meta name="twitter:image" content={ogImage} />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap.xml" />
+    {prevPage && <link rel="prev" href={prevPage} />}
+    {nextPage && <link rel="next" href={nextPage} />}
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
+    <!-- AdSense: add your ca-pub-XXXXXXXXXX ID above -->
+    <script>
+      window.googletag = window.googletag || {cmd:[]};
+    </script>
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Edubuzz',
+      url: Astro.url.origin,
+      description: 'South African job marketplace connecting employers with qualified candidates across all sectors.',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${Astro.url.origin}/?search={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Edubuzz',
+        url: Astro.url.origin,
+        logo: {
+          '@type': 'ImageObject',
+          url: `${Astro.url.origin}/favicon.svg`,
+        },
+      },
+    })} />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Edubuzz',
+      url: Astro.url.origin,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${Astro.url.origin}/favicon.svg`,
+      },
+      description: 'South African job board connecting employers with qualified candidates across government, health, IT, and education sectors.',
+      sameAs: [
+        'https://www.facebook.com/edubuzzsa',
+        'https://www.linkedin.com/company/edubuzzsa',
+        'https://twitter.com/edubuzzsa',
+      ],
+    })} />
     <slot name="head" />
   </head>
-  <body>
+  <body class="site-body">
     <div class="stats-bar">
-      Over {stats.jobs.toLocaleString('en-ZA')} active jobs across South Africa - updated daily
+      {stats.jobs === 1 ? '1 active job' : `${stats.jobs.toLocaleString('en-ZA')} active jobs`} across South Africa — updated daily
     </div>
 
     <nav class="site-nav" aria-label="Main navigation">
@@ -63,8 +118,7 @@ const {
         <div class="nav-links">
           <a href="/jobs">Browse Jobs</a>
           <a href="/companies">Companies</a>
-          <a href="/salary-guide">Salary Guide</a>
-          <a href="/resources">Resources</a>
+          <a href="/post-job">Post a Job</a>
         </div>
         <a href="/post-job" class="post-link">Post a Job</a>
         <details class="mobile-menu">
@@ -72,17 +126,15 @@ const {
           <div class="mobile-drawer">
             <a href="/jobs">Browse Jobs</a>
             <a href="/companies">Companies</a>
-            <a href="/salary-guide">Salary Guide</a>
-            <a href="/resources">Resources</a>
             <a href="/post-job">Post a Job</a>
           </div>
         </details>
       </div>
     </nav>
 
-    <main>
+    <div class="page-wrapper">
       <slot />
-    </main>
+    </div>
 
     <footer class="site-footer">
       <div class="container footer-inner">
@@ -96,13 +148,13 @@ const {
             <a href="/jobs">Browse jobs</a>
             <a href="/categories">By category</a>
             <a href="/provinces">By province</a>
-            <a href="/job-alerts">Job alerts</a>
+            <a href="/resources">Resources</a>
           </div>
           <div>
             <h2>Employers</h2>
             <a href="/post-job">Post a job</a>
             <a href="/pricing">Pricing</a>
-            <a href="/featured-listings">Featured listings</a>
+            <a href="/advertise">Advertise</a>
           </div>
           <div>
             <h2>Company</h2>
@@ -122,14 +174,28 @@ const {
 </html>
 
 <style>
+  .site-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  .site-body>.page-wrapper {
+    flex: 1;
+  }
+
   .stats-bar {
     width: 100%;
     background: #2d6a4f;
     color: #ffffff;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 12px;
     line-height: 1.4;
     padding: 6px 1rem;
+    min-height: 30px;
   }
 
   .site-nav {

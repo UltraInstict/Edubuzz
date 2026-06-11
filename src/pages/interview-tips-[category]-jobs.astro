@@ -1,0 +1,106 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JobCard from '../components/JobCard.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getJobs, getCategoryBySlug, getCategoriesWithCounts } from '../lib/pocketbase';
+import { titleFromSlug, slugify } from '../lib/slugify';
+
+const { category: categorySlug } = Astro.params;
+const category = await getCategoryBySlug(categorySlug || '');
+if (!category) return Astro.redirect('/404');
+
+const page = Math.max(1, Number(Astro.url.searchParams.get('page') || '1'));
+const perPage = 10;
+const { items: jobs, totalItems } = await getJobs({ page, perPage, category: category.name });
+const categoriesWithJobs = (await getCategoriesWithCounts()).filter(c => c.count > 0).slice(0, 8);
+
+const faq = [
+  { q: `What are common interview questions for ${category.name.toLowerCase()} jobs?`, a: `Expect questions about your relevant experience, technical skills specific to ${category.name.toLowerCase()}, problem-solving scenarios, and how you handle challenges in a ${category.name.toLowerCase()} environment.` },
+  { q: `How should I prepare for a ${category.name.toLowerCase()} interview?`, a: `Research the company, review common ${category.name.toLowerCase()} industry trends, prepare specific examples of your achievements, and practice answering behavioral questions using the STAR method.` },
+  { q: `What should I wear to a ${category.name.toLowerCase()} interview?`, a: `Dress professionally — a suit or smart business attire is recommended. For more casual ${category.name.toLowerCase()} environments, smart casual may be appropriate, but it's better to overdress than underdress.` },
+  { q: `How do I explain employment gaps in my ${category.name.toLowerCase()} interview?`, a: `Be honest and positive. Explain what you learned or how you stayed current with ${category.name.toLowerCase()} industry developments during the gap.` },
+];
+---
+
+<Layout
+  title={`Interview Tips for ${category.name} Jobs in South Africa`}
+  description={`Prepare for your ${category.name.toLowerCase()} job interview with expert tips. Common questions, preparation advice, and what employers in the ${category.name.toLowerCase()} sector look for.`}
+  canonicalUrl={Astro.url.href}
+>
+  <div class="bg-white border-b border-border py-10 px-6">
+    <div class="max-w-6xl mx-auto">
+      <nav class="text-xs text-muted mb-4" aria-label="Breadcrumb">
+        <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href="/resources" class="hover:text-navy">Resources</a> &rsaquo; <span class="text-navy font-medium">Interview Tips: {category.name} Jobs</span>
+      </nav>
+      <h1 class="text-2xl font-semibold text-navy">Interview Tips for {category.name} Jobs</h1>
+      <p class="text-muted text-sm mt-2">Ace your {category.name.toLowerCase()} interview with these expert preparation tips</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+    <div>
+      <article class="prose max-w-none mb-8">
+        <p class="text-muted">Landing a {category.name.toLowerCase()} job interview is an achievement — now it's time to prepare. South African employers in the {category.name.toLowerCase()} sector look for candidates who combine technical expertise with strong soft skills and cultural fit.</p>
+
+        <h2 class="text-lg font-semibold text-navy mt-6">Before the Interview</h2>
+        <ul class="list-disc pl-5 text-muted space-y-1">
+          <li>Research the company's history, mission, and recent projects in the {category.name.toLowerCase()} space.</li>
+          <li>Review the job description and match your experience to each requirement.</li>
+          <li>Prepare 3-5 success stories using the STAR method (Situation, Task, Action, Result).</li>
+          <li>Practice common interview questions specific to {category.name.toLowerCase()} roles.</li>
+          <li>Prepare thoughtful questions about the role, team, and company culture.</li>
+        </ul>
+
+        <h2 class="text-lg font-semibold text-navy mt-6">During the Interview</h2>
+        <ul class="list-disc pl-5 text-muted space-y-1">
+          <li>Arrive 10-15 minutes early for in-person interviews or test your tech setup for virtual ones.</li>
+          <li>Maintain professional body language and eye contact.</li>
+          <li>Listen carefully and answer questions directly and concisely.</li>
+          <li>Use specific examples from your experience in the {category.name.toLowerCase()} field.</li>
+          <li>Show enthusiasm for the role and the company.</li>
+        </ul>
+
+        <h2 class="text-lg font-semibold text-navy mt-6">After the Interview</h2>
+        <ul class="list-disc pl-5 text-muted space-y-1">
+          <li>Send a thank-you email within 24 hours.</li>
+          <li>Reference specific conversation points to show you were engaged.</li>
+          <li>Follow up professionally if you haven't heard back within the stated timeline.</li>
+        </ul>
+      </article>
+
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-navy mb-4">Interview Tips by Field</h2>
+        <div class="flex flex-wrap gap-2">
+          {categoriesWithJobs.map(cat => (
+            <a href={`/interview-tips-${cat.slug}-jobs`} class="inline-flex items-center px-3 py-1.5 bg-[#e8f4f0] text-[#2d6a4f] text-xs font-medium rounded-full hover:bg-[#d0ebe0] transition-colors">
+              {cat.name} Interview Tips
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-navy mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4" itemscope itemtype="https://schema.org/FAQPage">
+          {faq.map(item => (
+            <div class="card p-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+              <h3 class="font-medium text-navy text-sm mb-1" itemprop="name">{item.q}</h3>
+              <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                <p class="text-muted text-xs" itemprop="text">{item.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {totalItems > 0 && (
+        <section>
+          <h2 class="text-lg font-semibold text-navy mb-4">Latest {category.name} Jobs</h2>
+          <div class="space-y-3">{jobs.map(job => <JobCard job={job} />)}</div>
+        </section>
+      )}
+    </div>
+
+    <aside><Sidebar /></aside>
+  </div>
+</Layout>

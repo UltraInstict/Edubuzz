@@ -2,8 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import JobCard from '../components/JobCard.astro';
 import Sidebar from '../components/Sidebar.astro';
-import AdSlot from '../components/AdSlot.astro';
-import SponsoredStrip from '../components/SponsoredStrip.astro';
+import SmartAdSlot from '../components/SmartAdSlot.astro';
 import { getFeaturedJobs, getJobs, PROVINCES } from '../lib/pocketbase';
 
 const params = Astro.url.searchParams;
@@ -25,8 +24,8 @@ const pills = [
   { label: 'Contract', value: 'Contract' },
   { label: 'Remote', value: 'Remote' },
   { label: 'Internship', value: 'Internship' },
-  { label: 'Government', value: 'Government' },
-  { label: 'Education', value: 'Education' },
+  { label: 'Learnership', value: 'Learnership' },
+  { label: 'Graduate', value: 'Graduate Programme' },
 ];
 
 function withParams(next: Record<string, string>) {
@@ -59,6 +58,8 @@ const resultSummary = summaryParts.length
   title="Find Jobs in South Africa"
   description="Search thousands of jobs across government, health, IT, education and more."
   canonicalUrl={Astro.url.origin + Astro.url.pathname}
+  prevPage={page > 1 ? pageUrl(Math.max(1, page - 1)) : undefined}
+  nextPage={page < totalPages ? pageUrl(page + 1) : undefined}
 >
   <section class="hero">
     <div class="container">
@@ -87,7 +88,7 @@ const resultSummary = summaryParts.length
 
   <div class="page-grid">
     <main>
-      <AdSlot size="leaderboard" />
+      <SmartAdSlot zone="strip" />
 
       {featuredJobs.length > 0 && (
         <section class="jobs-section">
@@ -98,12 +99,6 @@ const resultSummary = summaryParts.length
           {featuredJobs.map((job) => <JobCard job={job} />)}
         </section>
       )}
-
-      <SponsoredStrip
-        message="Promote your vacancy to South African job seekers this week."
-        url="/post-job"
-        cta="Sponsor a listing"
-      />
 
       <section class="jobs-section">
         <div class="section-head">
@@ -122,7 +117,7 @@ const resultSummary = summaryParts.length
             {jobs.map((job, index) => (
               <>
                 <JobCard job={job} />
-                {page === 1 && index === 9 && <AdSlot size="leaderboard" />}
+                {(index + 1) % 5 === 0 && index < jobs.length - 1 && <SmartAdSlot zone="infeed" />}
               </>
             ))}
           </>

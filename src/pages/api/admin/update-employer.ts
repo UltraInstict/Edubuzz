@@ -3,7 +3,7 @@ import { getAdminPB, requireAdmin } from '../../../lib/auth';
 import { cleanString, json } from '../../../lib/api';
 
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect } = requireAdmin(request);
+  const { redirect } = await requireAdmin(request);
   if (redirect) return redirect;
   try {
     const data = await request.json();

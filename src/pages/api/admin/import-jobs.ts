@@ -6,7 +6,15 @@ import { PROVINCES, provinceName } from '../../../lib/slugify';
 
 type ImportResult = { imported: number; skipped: number; errors: number };
 
-function addDays(days: number) {
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+}
+
+function addDays(days: number): string {
   return new Date(Date.now() + days * 86400000).toISOString();
 }
 
@@ -45,6 +53,19 @@ async function importJobs(jobs: RawJob[], source = 'import'): Promise<ImportResu
       continue;
     }
     try {
+      let slug = slugify(title);
+      // simple batch uniqueness check
+      let unique = slug;
+      let u = 1;
+      while (true) {
+        const dup = await pb.collection('jobs').getList(1, 1, {
+          filter: `slug="${unique}"`,
+          fields: 'id',
+        });
+        if (dup.totalItems === 0) break;
+        unique = `${slug}-${u}`;
+        u++;
+      }
       await pb.collection('jobs').create({
         title,
         company,
@@ -59,6 +80,7 @@ async function importJobs(jobs: RawJob[], source = 'import'): Promise<ImportResu
         apply_email: cleanString(raw.apply_email, 120),
         source: jobSource,
         source_ref,
+        slug: unique,
         active: true,
         expires: raw.expires || addDays(30),
         xml_export: true,
@@ -82,7 +104,7 @@ function parseCsv(data: string): RawJob[] {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect } = requireAdmin(request);
+  const { redirect } = await requireAdmin(request);
   if (redirect) return redirect;
 
   try {

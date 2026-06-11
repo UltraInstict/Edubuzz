@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import JobCard from '../../components/JobCard.astro';
 import Sidebar from '../../components/Sidebar.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getJobs, PROVINCES } from '../../lib/pocketbase';
 
 const { slug } = Astro.params;
@@ -15,14 +16,20 @@ const { items: jobs, totalItems, totalPages } = await getJobs({ page, perPage: 2
 <Layout
   title={`Jobs in ${province} | Edubuzz`}
   description={`Find ${totalItems} jobs in ${province}, South Africa. Browse full-time, part-time and government roles in ${province}.`}
+  canonicalUrl={page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.pathname}
+  prevPage={page > 1 ? `${Astro.url.origin}/province/${slug}?page=${Math.max(1, page - 1)}` : undefined}
+  nextPage={page < totalPages ? `${Astro.url.origin}/province/${slug}?page=${page + 1}` : undefined}
 >
   <div class="bg-white border-b border-border py-10 px-6">
     <div class="max-w-6xl mx-auto">
-      <a href="/" class="text-xs text-muted hover:text-navy mb-4 inline-block">← All jobs</a>
-      <div class="flex items-center gap-3 mb-2">
-        <span class="text-3xl">📍</span>
-        <h1 class="font-serif text-3xl text-navy">Jobs in {province}</h1>
+      <div class="mb-4">
+        <Breadcrumbs items={[
+          { label: 'Home', href: '/' },
+          { label: 'Provinces', href: '/provinces' },
+          { label: `Jobs in ${province}` },
+        ]} />
       </div>
+      <h1 class="text-2xl font-semibold text-navy">Jobs in {province}</h1>
       <p class="text-muted text-sm">{totalItems.toLocaleString()} jobs available in {province}</p>
     </div>
   </div>

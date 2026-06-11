@@ -21,7 +21,7 @@ const shortDescription = (job.description || '').length > plainDescription.lengt
     <div class="job-top">
       <div>
         <h2 class="job-title">{job.title}</h2>
-        <p class="job-company">{job.company} · {job.city || job.province}</p>
+        <p class="job-company">{job.company} &middot; {job.city || job.province}</p>
       </div>
       <div class="badges">
         {job.featured && <span class="badge featured">Featured</span>}
@@ -45,7 +45,7 @@ const shortDescription = (job.description || '').length > plainDescription.lengt
       <span class={`job-salary ${isSalaryDisclosed(job.salary_min, job.salary_max) ? '' : 'muted'}`}>
         {formatSalary(job.salary_min, job.salary_max)}
       </span>
-      {!compact && <span class="apply-btn">Apply now</span>}
+      {!compact && <span class="apply-btn">View job &rarr;</span>}
     </div>
   </article>
 </a>
@@ -170,7 +170,8 @@ const shortDescription = (job.description || '').length > plainDescription.lengt
 
 <script>
   document.querySelectorAll('[data-job-id]').forEach((card) => {
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
       const jobId = (card as HTMLElement).dataset.jobId;
       if (jobId) {
         fetch('/api/track', {

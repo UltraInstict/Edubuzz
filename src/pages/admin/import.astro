@@ -1,58 +1,510 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getAdminPB, getUser } from '../../lib/auth';
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/auth';
+import { listXmlSources } from '../../services/jobService';
 
-const user = getUser(Astro.request);
-if (!user || user.role !== 'admin') return Astro.redirect('/login');
-const pb = await getAdminPB();
-const sources = await pb.collection('xml_sources').getList(1, 50, { sort: 'name' }).catch(() => ({ items: [] }));
+const { redirect } = await requireAdmin(Astro.request);
+if (redirect) return redirect;
+
+const sources = await listXmlSources();
+
+// All outbound feed endpoints — submit these to aggregator partner portals.
+const PROVINCES_FEED = [
+  ['Gauteng', 'gauteng'],
+  ['Western Cape', 'western-cape'],
+  ['KwaZulu-Natal', 'kwazulu-natal'],
+  ['Eastern Cape', 'eastern-cape'],
+  ['Limpopo', 'limpopo'],
+  ['Mpumalanga', 'mpumalanga'],
+  ['North West', 'north-west'],
+  ['Free State', 'free-state'],
+  ['Northern Cape', 'northern-cape'],
+];
+
+const OUTBOUND_FEEDS = [
+  { name: 'Indeed', path: '/feeds/jobs.xml', format: 'Indeed XML', desc: 'Submit to Indeed XML feed partner portal' },
+  { name: 'Adzuna', path: '/feeds/adzuna.xml', format: 'Adzuna XML', desc: 'Adzuna aggregator feed' },
+  { name: 'Trovit', path: '/feeds/trovit.xml', format: 'Trovit XML', desc: 'Trovit job board feed' },
+  { name: 'Jobly', path: '/feeds/jobly.xml', format: 'Jobly XML', desc: 'Jobly aggregator feed' },
+  { name: 'Careerjet', path: '/feeds/careerjet.xml', format: 'Careerjet XML', desc: 'Careerjet aggregator feed' },
+  { name: 'RSS', path: '/feeds/rss.xml', format: 'RSS 2.0', desc: 'General RSS for any reader/aggregator' },
+  ...PROVINCES_FEED.map(([label, slug]) => ({
+    name: `Indeed — ${label}`,
+    path: `/feeds/jobs-${slug}.xml`,
+    format: 'Indeed XML',
+    desc: `Province-filtered feed (${label})`,
+  })),
+];
+
+const siteOrigin = Astro.url.origin;
 ---
-<Layout title="Admin Import" description="Import jobs into Edubuzz." canonicalUrl={Astro.url.href}>
+
+<Layout title="Imports — Admin" description="Manage inbound and outbound feeds." canonicalUrl={Astro.url.href}>
   <main class="admin-wrap">
-    <header><h1>Job imports</h1><a href="/admin">Dashboard</a></header>
-    <section class="panel">
-      <h2>Manual CSV/JSON import</h2>
-      <textarea id="import-data" rows="10" class="form-field" placeholder="Paste CSV or JSON here"></textarea>
-      <div class="actions"><button data-type="csv">Import CSV</button><button data-type="json">Import JSON</button></div>
-      <p id="result" hidden></p>
-    </section>
-    <section class="panel">
-      <h2>XML feed sources</h2>
-      <form id="source-form" class="source-form">
-        <input class="form-field" name="name" placeholder="Feed name" required />
-        <input class="form-field" name="feed_url" placeholder="https://feed.example/jobs.xml" required />
-        <select class="form-field" name="format"><option value="indeed_xml">Indeed XML</option><option value="jobsora">Jobsora</option><option value="generic_rss">Generic RSS</option></select>
-        <button>Add feed</button>
+    <header>
+      <h1>Imports & Feeds</h1>
+      <AdminNav current="import" />
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="inbound" id="tab-inbound">Inbound Recruiter Feeds</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="outbound" id="tab-outbound">Outbound Feeds</button>
+    </div>
+
+    <!-- ───────── CSV upload ───────── -->
+    <section class="csv-section">
+      <h2>Import from CSV file</h2>
+      <p class="panel-desc">Upload a CSV with columns: <code>title, company, category, province, city, description, apply_url, apply_email, salary_min, salary_max, job_type, source</code>. Other columns are ignored.</p>
+      <form id="csv-form" enctype="multipart/form-data">
+        <div class="csv-row">
+          <label class="csv-file">
+            <input type="file" name="file" accept=".csv,text/csv" required />
+          </label>
+          <label class="csv-toggle">
+            <input type="checkbox" name="active" value="true" />
+            <span>Mark all imported jobs as <strong>active</strong> immediately</span>
+          </label>
+          <label class="csv-toggle">
+            <input type="checkbox" name="featured" value="true" />
+            <span>Mark all imported jobs as <strong>featured</strong></span>
+          </label>
+        </div>
+        <button type="submit" class="btn-primary" id="csv-submit">Import CSV</button>
       </form>
-      <table>
-        <thead><tr><th>Name</th><th>Format</th><th>Last imported</th><th>Count</th><th></th></tr></thead>
-        <tbody>{sources.items.map((source: any) => <tr><td>{source.name}</td><td>{source.format}</td><td>{source.last_imported || '-'}</td><td>{source.import_count || 0}</td><td><button data-feed={source.id}>Import now</button></td></tr>)}</tbody>
-      </table>
+      <div id="csv-result" hidden></div>
+    </section>
+
+    <!-- ───────── JSON upload ───────── -->
+    <section class="csv-section">
+      <h2>Import from JSON file</h2>
+      <p class="panel-desc">Upload a JSON file containing an array of job objects, or an object with a <code>jobs</code> array. Same field names as CSV.</p>
+      <form id="json-form" enctype="multipart/form-data">
+        <div class="csv-row">
+          <label class="csv-file">
+            <input type="file" name="file" accept=".json,application/json" required />
+          </label>
+          <label class="csv-toggle">
+            <input type="checkbox" name="active" value="true" />
+            <span>Mark all imported jobs as <strong>active</strong> immediately</span>
+          </label>
+          <label class="csv-toggle">
+            <input type="checkbox" name="featured" value="true" />
+            <span>Mark all imported jobs as <strong>featured</strong></span>
+          </label>
+        </div>
+        <button type="submit" class="btn-primary" id="json-submit">Import JSON</button>
+      </form>
+      <div id="json-result" hidden></div>
+    </section>
+
+    <!-- ───────── Tab 1: Inbound Recruiter Feeds ───────── -->
+    <section class="tab-panel" id="panel-inbound" role="tabpanel" aria-labelledby="tab-inbound">
+      <div class="panel-head">
+        <p class="panel-desc">Pull jobs <strong>from</strong> recruiters. We crawl each feed every 6 hours.</p>
+        <button class="btn-primary" id="open-add">+ Add Feed</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Feed Name</th>
+              <th>URL</th>
+              <th>Format</th>
+              <th>Status</th>
+              <th>Last Crawled</th>
+              <th>Last Count</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sources.length === 0 && (
+              <tr><td colspan="7" class="empty">No inbound feeds yet. Click <em>Add Feed</em> to create one.</td></tr>
+            )}
+            {sources.map((s: any) => (
+              <>
+                <tr data-row={s.id}>
+                  <td class="name">{s.name}</td>
+                  <td class="url"><a href={s.feed_url} target="_blank" rel="noopener noreferrer">{s.feed_url}</a></td>
+                  <td><span class="zone-badge">{s.format}</span></td>
+                  <td>
+                    <span class={`status ${s.active ? 'on' : 'off'}`}>{s.active ? 'Active' : 'Paused'}</span>
+                  </td>
+                  <td class="dim">{s.last_crawled ? new Date(s.last_crawled).toLocaleString('en-ZA') : 'Never'}</td>
+                  <td>{s.last_job_count ?? 0}</td>
+                  <td class="actions">
+                    <button class="btn-sm" data-edit={s.id} data-name={s.name} data-url={s.feed_url} data-format={s.format} data-active={String(!!s.active)}>Edit</button>
+                    <button class="btn-sm" data-crawl={s.id}>Crawl Now</button>
+                    <button class="btn-sm btn-danger" data-delete={s.id}>Delete</button>
+                  </td>
+                </tr>
+                {s.error_log && (
+                  <tr class="error-row"><td colspan="7"><details><summary>Last error</summary><pre>{s.error_log}</pre></details></td></tr>
+                )}
+              </>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ───────── Tab 2: Outbound Feeds (Read-Only Directory) ───────── -->
+    <section class="tab-panel" id="panel-outbound" role="tabpanel" aria-labelledby="tab-outbound" hidden>
+      <p class="panel-desc">Submit these URLs directly to each aggregator's partner portal. Feeds are live and update automatically.</p>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Aggregator</th>
+              <th>Feed URL</th>
+              <th>Format</th>
+              <th>Description</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {OUTBOUND_FEEDS.map((f) => (
+              <tr>
+                <td class="name">{f.name}</td>
+                <td class="url"><a href={f.path} target="_blank" rel="noopener noreferrer">{siteOrigin}{f.path}</a></td>
+                <td><span class="zone-badge">{f.format}</span></td>
+                <td class="dim">{f.desc}</td>
+                <td><button class="btn-sm" data-copy={`${siteOrigin}${f.path}`}>Copy URL</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   </main>
+
+  <!-- Add / Edit Feed Modal -->
+  <div id="feed-modal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <button type="button" class="modal-close" aria-label="Close">&times;</button>
+      <h3 id="modal-title">Add Feed</h3>
+      <form id="feed-form">
+        <input type="hidden" name="id" value="" />
+        <label>Feed Name<input class="form-field" name="name" required /></label>
+        <label>Feed URL<input class="form-field" name="feed_url" type="url" required placeholder="https://example.com/feed.xml" /></label>
+        <label>Format
+          <select class="form-field" name="format" required>
+            <option value="xml">XML (generic)</option>
+            <option value="indeed_xml">Indeed XML</option>
+            <option value="json">JSON</option>
+            <option value="rss">RSS 2.0</option>
+          </select>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" name="active" value="true" checked />
+          <span>Active (crawl every 6 hours)</span>
+        </label>
+        <p id="modal-error" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </Layout>
+
 <script>
-const result = document.getElementById('result') as HTMLParagraphElement;
-document.querySelectorAll('[data-type]').forEach((button) => button.addEventListener('click', async () => {
-  const type = (button as HTMLButtonElement).dataset.type;
-  const raw = (document.getElementById('import-data') as HTMLTextAreaElement).value;
-  const data = type === 'json' ? JSON.parse(raw || '[]') : raw;
-  const response = await fetch('/api/admin/import-jobs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type, data }) });
-  const body = await response.json();
-  result.textContent = `${body.imported || 0} imported, ${body.skipped || 0} skipped, ${body.errors || 0} errors`;
-  result.hidden = false;
-}));
-document.querySelectorAll('[data-feed]').forEach((button) => button.addEventListener('click', async () => {
-  const response = await fetch('/api/admin/import-jobs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type:'xml_feed', feedId:(button as HTMLButtonElement).dataset.feed }) });
-  const body = await response.json();
-  alert(`${body.imported || 0} imported, ${body.skipped || 0} skipped, ${body.errors || 0} errors`);
-}));
-document.getElementById('source-form')?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  await fetch('/api/admin/xml-source', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(Object.fromEntries(new FormData(event.currentTarget as HTMLFormElement))) });
-  location.reload();
-});
+  // ─── CSV Upload ─────────────────────────────────────────────────
+  function renderImportResult(target: HTMLDivElement, body: any, ok: boolean) {
+    if (ok && body.success !== false) {
+      const d = body.data || {};
+      const imported = d.imported ?? 0;
+      const skipped = d.skipped ?? 0;
+      const errors: string[] = Array.isArray(d.errors) ? d.errors : [];
+      let html = `<div class="result-success"><strong>Successfully imported: ${imported} job${imported === 1 ? '' : 's'}</strong></div>`;
+      if (skipped > 0) {
+        html += `<div class="result-warn">Skipped: ${skipped} ${skipped === 1 ? 'row' : 'rows'} (missing title)</div>`;
+      }
+      if (errors.length > 0) {
+        const escaped = errors.map(e => e.replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c] as string))).join('\n');
+        html += `<details class="result-errors"><summary>${errors.length} error${errors.length === 1 ? '' : 's'}</summary><pre>${escaped}</pre></details>`;
+      }
+      target.innerHTML = html;
+    } else {
+      target.innerHTML = `<div class="result-error">${body.error || 'Import failed.'}</div>`;
+    }
+    target.hidden = false;
+  }
+
+  const csvForm = document.getElementById('csv-form') as HTMLFormElement;
+  const csvSubmit = document.getElementById('csv-submit') as HTMLButtonElement;
+  const csvResult = document.getElementById('csv-result') as HTMLDivElement;
+
+  csvForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    csvSubmit.disabled = true;
+    const original = csvSubmit.textContent;
+    csvSubmit.textContent = 'Importing…';
+    csvResult.hidden = true;
+
+    try {
+      const fd = new FormData(csvForm);
+      const res = await fetch('/api/admin/import-csv', { method: 'POST', body: fd });
+      const body = await res.json().catch(() => ({}));
+      renderImportResult(csvResult, body, res.ok);
+      if (res.ok && body.success !== false) csvForm.reset();
+    } catch {
+      csvResult.innerHTML = `<div class="result-error">Network error during import.</div>`;
+      csvResult.hidden = false;
+    } finally {
+      csvSubmit.disabled = false;
+      csvSubmit.textContent = original;
+    }
+  });
+
+  // ─── JSON Upload ────────────────────────────────────────────────
+  const jsonForm = document.getElementById('json-form') as HTMLFormElement;
+  const jsonSubmit = document.getElementById('json-submit') as HTMLButtonElement;
+  const jsonResult = document.getElementById('json-result') as HTMLDivElement;
+
+  jsonForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    jsonSubmit.disabled = true;
+    const original = jsonSubmit.textContent;
+    jsonSubmit.textContent = 'Importing…';
+    jsonResult.hidden = true;
+
+    try {
+      const fd = new FormData(jsonForm);
+      const res = await fetch('/api/admin/import-json', { method: 'POST', body: fd });
+      const body = await res.json().catch(() => ({}));
+      renderImportResult(jsonResult, body, res.ok);
+      if (res.ok && body.success !== false) jsonForm.reset();
+    } catch {
+      jsonResult.innerHTML = `<div class="result-error">Network error during import.</div>`;
+      jsonResult.hidden = false;
+    } finally {
+      jsonSubmit.disabled = false;
+      jsonSubmit.textContent = original;
+    }
+  });
+
+  // ─── Tabs ────────────────────────────────────────────────────────
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.tab');
+  const panels = document.querySelectorAll<HTMLElement>('.tab-panel');
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach((t) => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      const target = tab.dataset.tab;
+      panels.forEach((p) => { p.hidden = p.id !== `panel-${target}`; });
+    });
+  });
+
+  // ─── Copy URL buttons ────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const url = btn.dataset.copy || '';
+      try {
+        await navigator.clipboard.writeText(url);
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      } catch {
+        // Fallback for older browsers
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+        btn.textContent = 'Copied!';
+      }
+    });
+  });
+
+  // ─── Modal handling ──────────────────────────────────────────────
+  const modal = document.getElementById('feed-modal') as HTMLElement;
+  const modalTitle = document.getElementById('modal-title') as HTMLElement;
+  const modalError = document.getElementById('modal-error') as HTMLParagraphElement;
+  const form = document.getElementById('feed-form') as HTMLFormElement;
+
+  function openModal(mode: 'add' | 'edit', data?: { id: string; name: string; url: string; format: string; active: boolean }) {
+    modalError.hidden = true;
+    form.reset();
+    if (mode === 'edit' && data) {
+      modalTitle.textContent = 'Edit Feed';
+      (form.elements.namedItem('id') as HTMLInputElement).value = data.id;
+      (form.elements.namedItem('name') as HTMLInputElement).value = data.name;
+      (form.elements.namedItem('feed_url') as HTMLInputElement).value = data.url;
+      (form.elements.namedItem('format') as HTMLSelectElement).value = data.format;
+      (form.elements.namedItem('active') as HTMLInputElement).checked = data.active;
+    } else {
+      modalTitle.textContent = 'Add Feed';
+      (form.elements.namedItem('id') as HTMLInputElement).value = '';
+    }
+    modal.hidden = false;
+  }
+
+  function closeModal() { modal.hidden = true; }
+
+  document.getElementById('open-add')?.addEventListener('click', () => openModal('add'));
+  document.querySelector('.modal-close')?.addEventListener('click', closeModal);
+  document.querySelector('.modal-cancel')?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-edit]').forEach((btn) => {
+    btn.addEventListener('click', () => openModal('edit', {
+      id: btn.dataset.edit || '',
+      name: btn.dataset.name || '',
+      url: btn.dataset.url || '',
+      format: btn.dataset.format || 'xml',
+      active: btn.dataset.active === 'true',
+    }));
+  });
+
+  // ─── Submit feed (add/edit) ───────────────────────────────────────
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const payload = {
+      id: fd.get('id') || undefined,
+      name: fd.get('name'),
+      feed_url: fd.get('feed_url'),
+      format: fd.get('format'),
+      active: fd.get('active') === 'true',
+    };
+    const res = await fetch('/api/admin/xml-source', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      location.reload();
+    } else {
+      const body = await res.json().catch(() => ({}));
+      modalError.textContent = body.error || 'Could not save feed.';
+      modalError.hidden = false;
+    }
+  });
+
+  // ─── Crawl Now buttons ────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('[data-crawl]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const original = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Crawling…';
+      const res = await fetch('/api/admin/trigger-crawl', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceId: btn.dataset.crawl }),
+      });
+      const body = await res.json().catch(() => ({}));
+      btn.disabled = false;
+      btn.textContent = original;
+      if (body.success) {
+        location.reload();
+      } else {
+        alert(body.error || 'Crawl failed.');
+      }
+    });
+  });
+
+  // ─── Delete buttons ────────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('[data-delete]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this feed source? This will not remove already-imported jobs.')) return;
+      const res = await fetch('/api/admin/xml-source', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: btn.dataset.delete, _action: 'delete' }),
+      });
+      if (res.ok) location.reload();
+    });
+  });
 </script>
+
 <style>
-.admin-wrap{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;display:grid;gap:16px}header{display:flex;justify-content:space-between}h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.3px}h2{font-size:14px;margin:0 0 10px;font-weight:600}.actions,.source-form{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}button{border:1px solid #2d6a4f;background:#2d6a4f;color:#fff;border-radius:4px;padding:8px 10px;font-size:13px}a{color:#2d6a4f}table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}th,td{border-bottom:1px solid #f0f0f0;text-align:left;padding:7px}
+  /* ─── CSV upload section ─── */
+  .csv-section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+  .csv-section h2 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--text); }
+  .csv-section .panel-desc { margin: 0 0 12px; font-size: 12px; color: var(--text-muted); }
+  .csv-section code { background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+  .csv-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .csv-file input[type="file"] { font-size: 13px; padding: 6px; border: 1px dashed #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+  .csv-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+  .csv-toggle input { width: 16px; height: 16px; }
+  .result-success { background: #e8f4f0; color: #2d6a4f; padding: 10px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 8px; }
+  .result-warn { background: #fef3c7; color: #92400e; padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 8px; }
+  .result-error { background: #fef2f2; color: #991b1b; padding: 10px 12px; border-radius: 4px; font-size: 13px; }
+  .result-errors { margin-top: 8px; }
+  .result-errors summary { cursor: pointer; font-size: 12px; color: #dc2626; }
+  .result-errors pre { background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #fecaca; font-size: 11px; white-space: pre-wrap; margin-top: 6px; max-height: 200px; overflow-y: auto; }
+
+  .admin-wrap { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+  h1 { font-size: 22px; margin: 0; font-weight: 600; letter-spacing: -0.3px; color: var(--text); }
+
+  /* ─── Tabs ─── */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .tab { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 8px 14px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; }
+  .tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  .tab-panel { display: block; }
+  .tab-panel[hidden] { display: none; }
+
+  .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
+  .panel-desc { margin: 0; font-size: 13px; color: var(--text-muted); }
+
+  /* ─── Table ─── */
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { text-align: left; padding: 10px 8px; font-weight: 600; color: var(--text-secondary); background: #fafafa; border-bottom: 2px solid var(--border); font-size: 12px; white-space: nowrap; }
+  .data-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  .data-table tr:last-child td { border-bottom: 0; }
+  .data-table .empty { padding: 2rem; text-align: center; color: var(--text-muted); }
+  .data-table .name { font-weight: 600; color: var(--text); }
+  .data-table .url a { color: var(--brand); font-size: 12px; word-break: break-all; }
+  .data-table .dim { color: var(--text-muted); font-size: 12px; }
+  .zone-badge { display: inline-block; padding: 2px 8px; background: #f0f0f0; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+  .status.on { background: var(--brand-light); color: var(--brand); }
+  .status.off { background: var(--warning-light); color: #92400e; }
+  .actions { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  /* ─── Buttons ─── */
+  .btn-primary { background: var(--brand); color: #fff; border: 1px solid var(--brand); padding: 7px 14px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .btn-primary:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
+  .btn-secondary { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); padding: 7px 14px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+  .btn-sm { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+  .btn-sm:hover { background: #f5f5f5; }
+  .btn-danger { color: #dc2626; border-color: #fca5a5; }
+  .btn-danger:hover { background: #fef2f2; }
+
+  .error-row td { background: #fef2f2; padding: 6px 8px; }
+  .error-row details { font-size: 12px; }
+  .error-row summary { color: #dc2626; cursor: pointer; font-weight: 500; }
+  .error-row pre { margin: 6px 0 0; white-space: pre-wrap; font-size: 11px; color: #991b1b; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #fecaca; }
+
+  /* ─── Modal ─── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+  .modal-overlay[hidden] { display: none; }
+  .modal { background: #fff; border-radius: 8px; padding: 24px; width: 90%; max-width: 460px; position: relative; }
+  .modal-close { position: absolute; top: 10px; right: 14px; background: none; border: 0; font-size: 22px; color: #888; cursor: pointer; }
+  .modal h3 { margin: 0 0 14px; font-size: 16px; font-weight: 600; }
+  .modal form { display: grid; gap: 12px; }
+  .modal label { display: grid; gap: 4px; font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+  .checkbox-row { display: flex !important; align-items: center; gap: 8px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+  .form-field { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+  #modal-error { color: #dc2626; font-size: 12px; margin: 0; }
+
+  /* ─── Mobile ─── */
+  @media (max-width: 640px) {
+    .panel-head { flex-direction: column; align-items: stretch; }
+    .actions { flex-direction: column; }
+    .btn-sm { width: 100%; text-align: center; }
+    .data-table { font-size: 12px; }
+    .data-table th, .data-table td { padding: 8px 6px; }
+  }
 </style>

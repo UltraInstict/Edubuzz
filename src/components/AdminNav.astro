@@ -1,0 +1,60 @@
+---
+interface Props {
+  current: string;
+}
+const { current } = Astro.props;
+
+const links = [
+  { href: '/admin', label: 'Dashboard', key: 'dashboard' },
+  { href: '/admin/jobs', label: 'Jobs', key: 'jobs' },
+  { href: '/admin/employers', label: 'Employers', key: 'employers' },
+  { href: '/admin/applications', label: 'Applications', key: 'applications' },
+  { href: '/admin/affiliates', label: 'Affiliates', key: 'affiliates' },
+  { href: '/admin/import', label: 'Import', key: 'import' },
+  { href: '/admin/feeds', label: 'Feeds', key: 'feeds' },
+  { href: '/admin/alerts', label: 'Alerts', key: 'alerts' },
+  { href: '/admin/settings', label: 'Settings', key: 'settings' },
+];
+---
+
+<nav class="admin-nav">
+  {links.map((link) => (
+    <a href={link.href} class={link.key === current ? 'active' : ''}>{link.label}</a>
+  ))}
+</nav>
+
+<style>
+  .admin-nav {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #ffffff;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 4px;
+  }
+
+  .admin-nav a {
+    color: #888888;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 10px;
+    transition: color 0.15s ease, background 0.15s ease;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+  }
+
+  .admin-nav a:hover {
+    color: #1a1a1a;
+    background: transparent;
+  }
+
+  .admin-nav a.active {
+    color: #2d6a4f;
+    font-weight: 600;
+    border-bottom-color: #2d6a4f;
+  }
+</style>

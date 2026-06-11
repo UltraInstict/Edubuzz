@@ -4,9 +4,8 @@
 onRecordBeforeCreateRequest((e) => {
   if (e.record.collection().name !== 'jobs') return;
 
-  const title   = e.record.get('title') || '';
-  const company = e.record.get('company') || '';
-  let slug = (title + '-' + company)
+  const title = e.record.get('title') || '';
+  let slug = title
     .toLowerCase()
     .replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e')
     .replace(/[^a-z0-9]+/g, '-')
@@ -52,7 +51,6 @@ onRecordAfterUpdateRequest((e) => {
     expires.setDate(expires.getDate() + 30);
     job.set('expires',     expires.toISOString());
     job.set('featured',    false);
-    job.set('ai_written',  false);
     $app.dao().saveRecord(job);
 
     $app.logger().info('Approved employer job', 'title', e.record.get('title'));
@@ -143,5 +141,96 @@ onRecordBeforeUpdateRequest((e) => {
   const expires = e.record.get('expires');
   if (expires && new Date(expires).getTime() <= Date.now()) {
     e.record.set('active', false);
+    $app.logger().info('Auto-deactivated expired job', 'slug', e.record.get('slug'));
   }
 }, 'jobs');
+
+// ─── Audit logging ─────────────────────────────────────────────────────────
+function auditLog(event, details) {
+  try {
+    const auditCol = $app.dao().findCollectionByNameOrId('audit_logs');
+    const log = new Record(auditCol);
+    log.set('event', event);
+    log.set('details', JSON.stringify(details));
+    log.set('created', new Date().toISOString());
+    $app.dao().saveRecord(log);
+  } catch {
+    // Audit collection may not exist yet — skip silently
+  }
+}
+
+onRecordAfterCreateRequest((e) => {
+  auditLog('record_created', {
+    collection: e.record.collection().name,
+    id: e.record.id,
+  });
+});
+
+onRecordAfterUpdateRequest((e) => {
+  auditLog('record_updated', {
+    collection: e.record.collection().name,
+    id: e.record.id,
+  });
+});
+
+onRecordAfterDeleteRequest((e) => {
+  auditLog('record_deleted', {
+    collection: e.record.collection().name,
+    id: e.record.id,
+  });
+});
+
+// ─── Job expiry reminder (daily at 09:00 SAST) ──────────────────────────
+cronAdd('send-expiry-reminders', '0 7 * * *', () => {
+  try {
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+    const threeDaysStr = threeDaysFromNow.toISOString().slice(0, 10);
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    const expiringJobs = $app.dao().findRecordsByFilter(
+      'jobs',
+      `active=true&&expires>="${todayStr}"&&expires<="${threeDaysStr}"`,
+      'expires',
+      100,
+      0
+    );
+
+    for (const job of expiringJobs) {
+      const employerId = job.get('employer_id');
+      const slug = job.get('slug');
+      const title = job.get('title');
+      const company = job.get('company');
+      const expires = job.get('expires');
+
+      if (!employerId) continue;
+
+      try {
+        const employer = $app.dao().findRecordById('employers', employerId);
+        const email = employer.get('contact_email') || employer.get('company_email');
+        if (!email) continue;
+
+        const jobUrl = `https://edubuzz.co.za/job/${slug}`;
+        const renewalUrl = `https://edubuzz.co.za/employer/upgrade`;
+
+        $app.newMailClient().send({
+          from: { address: $app.settings().smtp.username, name: 'Edubuzz' },
+          to: [{ address: email }],
+          subject: `Your listing "${title}" expires in 3 days — renew now`,
+          html: `<p>Hi there,</p>
+<p>Your job listing for <strong>${title}</strong> at ${company} will expire on <strong>${new Date(expires).toLocaleDateString('en-ZA')}</strong>.</p>
+<p>Don't lose your applicants! Renew the listing or upgrade to a featured listing to get more visibility.</p>
+<p><a href="${renewalUrl}" style="background:#2d6a4f;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block;margin-top:8px">Renew or Upgrade Now</a></p>
+<p style="margin-top:12px"><a href="${jobUrl}">View your listing</a></p>
+<p style="color:#888;font-size:12px">Edubuzz.co.za — Find jobs in South Africa</p>`,
+        });
+
+        $app.logger().info('Sent expiry reminder', 'job', slug, 'email', email);
+      } catch (err) {
+        $app.logger().error('Failed to send expiry reminder for job', 'slug', slug, 'error', err);
+      }
+    }
+  } catch (err) {
+    $app.logger().error('Expiry reminder cron failed', 'error', err);
+  }
+});

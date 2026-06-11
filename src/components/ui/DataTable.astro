@@ -1,0 +1,109 @@
+---
+export interface Column {
+  key: string;
+  label: string;
+  render?: 'text' | 'badge' | 'date' | 'number' | 'link' | 'actions';
+  width?: string;
+  align?: 'left' | 'center' | 'right';
+}
+
+export interface Props {
+  columns: Column[];
+  rows: Record<string, any>[];
+  emptyMessage?: string;
+}
+
+const { columns, rows, emptyMessage = 'No data found.' } = Astro.props;
+
+function renderCell(value: unknown, render?: string): string {
+  const v = value ?? '';
+  if (render === 'date') return String(v).slice(0, 10);
+  if (render === 'number') return Number(v).toLocaleString('en-ZA');
+  return String(v);
+}
+---
+
+<div class="dt-wrap">
+  <table class="dt">
+    <thead>
+      <tr>
+        {columns.map((col) => (
+          <th style={col.width ? `width:${col.width}` : ''} class={col.align ? `dt-${col.align}` : ''}>
+            {col.label}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.length === 0 ? (
+        <tr>
+          <td colspan={columns.length} class="dt-empty">{emptyMessage}</td>
+        </tr>
+      ) : (
+        rows.map((row) => (
+          <tr>
+            {columns.map((col) => (
+              <td class={col.align ? `dt-${col.align}` : ''}>
+                <slot name={`cell-${col.key}`} row={row}>
+                  <slot name="cell" row={row} column={col.key}>
+                    {renderCell(row[col.key], col.render)}
+                  </slot>
+                </slot>
+              </td>
+            ))}
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .dt-wrap {
+    overflow-x: auto;
+    background: var(--color-white, #fff);
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: var(--radius-md, 6px);
+  }
+
+  .dt {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm, 0.8125rem);
+  }
+
+  .dt th {
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    font-weight: var(--font-semibold, 600);
+    color: var(--color-navy, #1a1a1a);
+    background: #fafafa;
+    border-bottom: 2px solid var(--color-border, #e0e0e0);
+    white-space: nowrap;
+    font-size: 0.75rem;
+  }
+
+  .dt td {
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid #f5f5f5;
+    color: var(--color-muted, #666);
+    white-space: nowrap;
+  }
+
+  .dt tr:last-child td {
+    border-bottom: none;
+  }
+
+  .dt tr:hover td {
+    background: #fafdfb;
+  }
+
+  .dt-empty {
+    padding: 3rem 1rem !important;
+    text-align: center !important;
+    color: #aaa !important;
+  }
+
+  .dt-center { text-align: center; }
+  .dt-right { text-align: right; }
+</style>

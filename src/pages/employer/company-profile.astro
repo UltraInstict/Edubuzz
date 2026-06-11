@@ -1,13 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getPb, getUser } from '../../lib/auth';
+import { getUser } from '../../lib/auth';
+import { getEmployerByUserId } from '../../services/jobService';
 import { PROVINCES } from '../../lib/pocketbase';
 import { generateToken } from '../../lib/csrf';
-const user = getUser(Astro.request);
+const user = await getUser(Astro.request);
 if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
-const pb = getAuthPb(Astro.request);
-const employerList = await pb.collection('employers').getList(1, 1, { filter: `user_id="${(user as any).id}"` }).catch(() => ({ items: [] }));
-const employer = employerList.items[0] as any;
+const employer = await getEmployerByUserId((user as any).id);
 if (!employer) return Astro.redirect('/register');
 const csrfToken = generateToken();
 ---
@@ -20,7 +19,7 @@ const csrfToken = generateToken();
 <label>Description <textarea class="form-field" name="description" rows="6">{employer.description}</textarea></label>
 <div class="grid"><label>Province <select class="form-field" name="province"><option value="">Select province</option>{PROVINCES.map(p=><option value={p} selected={p===employer.province}>{p}</option>)}</select></label><label>City <input class="form-field" name="city" value={employer.city} /></label></div>
 <label>Logo <input class="form-field" type="file" name="logo" accept="image/*" /></label>
-<p id="message" hidden></p><button>Save profile</button>
+<p id="message" hidden aria-live="polite"></p><button>Save profile</button>
 </form></main></Layout>
 <script>document.getElementById('profile-form')?.addEventListener('submit',async(e)=>{e.preventDefault();const res=await fetch('/api/employer/company-profile',{method:'POST',body:new FormData(e.currentTarget as HTMLFormElement)});const msg=document.getElementById('message') as HTMLParagraphElement;msg.textContent=res.ok?'Profile saved.':'Could not save profile.';msg.hidden=false;});</script>
 <style>.form-page{max-width:720px;margin:1.5rem auto}h1{font-size:22px;margin:0 0 16px;font-weight:600;letter-spacing:-0.3px}form{display:grid;gap:12px}label{display:grid;gap:4px;color:#444;font-size:12px;font-weight:500}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}button{border:1px solid #2d6a4f;border-radius:4px;background:#2d6a4f;color:#fff;padding:10px 14px;font-weight:600}@media(max-width:560px){.grid{grid-template-columns:1fr}}</style>

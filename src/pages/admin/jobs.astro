@@ -1,54 +1,132 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getAdminPB, getUser } from '../../lib/auth';
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/auth';
+import { listAdminJobsFiltered } from '../../services/jobService';
 import { PROVINCES } from '../../lib/pocketbase';
 
-const user = getUser(Astro.request);
-if (!user || user.role !== 'admin') return Astro.redirect('/login');
-const pb = await getAdminPB();
+const { redirect } = await requireAdmin(Astro.request);
+if (redirect) return redirect;
 
 const params = Astro.url.searchParams;
-const filters = [];
 const status = params.get('status') || '';
 const province = params.get('province') || '';
 const source = params.get('source') || '';
-if (status === 'active') filters.push('active=true');
-if (status === 'pending') filters.push('active=false');
-if (status === 'expired') filters.push(`expires<"${new Date().toISOString().slice(0, 10)}"`);
-if (province) filters.push(`province="${province}"`);
-if (source) filters.push(`source="${source}"`);
 
-const jobs = await pb.collection('jobs').getList(1, 50, {
-  filter: filters.join('&&'),
-  sort: '-created',
-  fields: 'id,title,company,province,active,source,featured,views,created',
-}).catch(() => ({ items: [], totalItems: 0 }));
+const jobs = await listAdminJobsFiltered({ status, province, source, page: 1, perPage: 50 });
+
+const now = Date.now();
+const SEVEN_DAYS = 7 * 86400000;
+
+function isJobExpired(active: boolean, expires?: string): boolean {
+  return Boolean(expires && new Date(expires).getTime() < now);
+}
+
+function statusBadge(active: boolean, expires?: string) {
+  if (isJobExpired(active, expires)) return { cls: 'bg-gray-100 text-gray-500', label: 'expired' };
+  if (active) return { cls: 'bg-green-100 text-green-800', label: 'active' };
+  return { cls: 'bg-yellow-100 text-yellow-800', label: 'pending' };
+}
+
+function rowBg(active: boolean, expires?: string) {
+  if (isJobExpired(active, expires)) return 'row-expired';
+  if (!active) return 'row-pending';
+  return '';
+}
+
+/** Format ISO date as DD/MM/YYYY */
+function formatDate(iso?: string): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+}
+
+/** Colour-code expiry: green > 7d, orange ≤ 7d, red expired */
+function expiresClass(expires?: string): string {
+  if (!expires) return 'expires-none';
+  const t = new Date(expires).getTime();
+  if (isNaN(t)) return 'expires-none';
+  if (t < now) return 'expires-red';
+  if (t - now < SEVEN_DAYS) return 'expires-orange';
+  return 'expires-green';
+}
 ---
 
 <Layout title="Admin Jobs" description="Manage Edubuzz jobs." canonicalUrl={Astro.url.href}>
   <main class="admin-wrap">
-    <header><h1>Jobs</h1><a href="/admin">Dashboard</a></header>
+    <header>
+      <h1>Jobs</h1>
+      <AdminNav current="jobs" />
+    </header>
+
     <form class="filters">
-      <select name="status"><option value="">All statuses</option>{['pending','active','expired'].map((s) => <option value={s} selected={s === status}>{s}</option>)}</select>
-      <select name="province"><option value="">All provinces</option>{PROVINCES.map((p) => <option value={p} selected={p === province}>{p}</option>)}</select>
-      <select name="source"><option value="">All sources</option>{['manual','import','xml_feed'].map((s) => <option value={s} selected={s === source}>{s}</option>)}</select>
-      <button>Filter</button>
+      <select name="status" class="form-select">
+        <option value="">All statuses</option>
+        {['pending','active','expired'].map((s) => <option value={s} selected={s === status}>{s}</option>)}
+      </select>
+      <select name="province" class="form-select">
+        <option value="">All provinces</option>
+        {PROVINCES.map((p) => <option value={p} selected={p === province}>{p}</option>)}
+      </select>
+      <select name="source" class="form-select">
+        <option value="">All sources</option>
+        {['manual','import','xml_feed','csv_import','json_import'].map((s) => <option value={s} selected={s === source}>{s}</option>)}
+      </select>
+      <button class="form-btn">Filter</button>
     </form>
+
+    <p class="count-line">{jobs.totalItems} job{jobs.totalItems !== 1 ? 's' : ''} found</p>
+
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Title</th><th>Company</th><th>Province</th><th>Status</th><th>Source</th><th>Featured</th><th>Views</th><th>Created</th><th>Actions</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Title</th><th>Company</th><th>Province</th><th>Status</th>
+            <th>Source</th><th>Featured</th><th>Views</th><th>Created</th>
+            <th>Expires</th><th>Actions</th>
+          </tr>
+        </thead>
         <tbody>
-          {jobs.items.map((job: any) => (
+          {jobs.items.length === 0 && (
             <tr>
-              <td>{job.title}</td><td>{job.company}</td><td>{job.province}</td><td>{job.active ? 'active' : 'pending'}</td><td>{job.source}</td><td>{job.featured ? 'yes' : 'no'}</td><td>{job.views || 0}</td><td>{job.created?.slice(0, 10)}</td>
-              <td class="actions">
-                <button data-id={job.id} data-action="approve">Approve</button>
-                <button data-id={job.id} data-action="reject">Reject</button>
-                <button data-id={job.id} data-action="toggle_featured">Feature</button>
-                <button data-ai={job.id}>Regenerate</button>
-              </td>
+              <td colspan="10" class="empty-cell">No jobs found.</td>
             </tr>
-          ))}
+          )}
+          {jobs.items.map((job: any) => {
+            const badge = statusBadge(job.active, job.expires);
+            const expired = isJobExpired(job.active, job.expires);
+            return (
+              <tr class={rowBg(job.active, job.expires)}>
+                <td class="title-cell">{job.title}</td>
+                <td>{job.company}</td>
+                <td>{job.province}</td>
+                <td><span class={`badge ${badge.cls}`}>{badge.label}</span></td>
+                <td>{job.source}</td>
+                <td>{job.featured ? 'yes' : 'no'}</td>
+                <td>{job.views || 0}</td>
+                <td class="date-cell">{formatDate(job.created)}</td>
+                <td class={`date-cell ${expiresClass(job.expires)}`}>{formatDate(job.expires)}</td>
+                <td class="actions">
+                  <a href={`/job/${job.slug}`} target="_blank" class="btn-view">View</a>
+                  {!expired && job.active === false && (
+                    <button data-id={job.id} data-action="approve" class="btn-approve">Approve</button>
+                  )}
+                  {job.active && (
+                    <button data-id={job.id} data-action="reject" class="btn-reject">Reject</button>
+                  )}
+                  <button data-id={job.id} data-action="toggle_featured"
+                    class={job.featured ? 'btn-unfeature' : 'btn-feature'}>
+                    {job.featured ? 'Unfeature' : 'Feature'}
+                  </button>
+                  {expired && (
+                    <button data-id={job.id} data-action="repost" class="btn-repost">Repost</button>
+                  )}
+                  <button data-id={job.id} data-action="delete" class="btn-delete" data-title={job.title}>Delete</button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -56,33 +134,117 @@ const jobs = await pb.collection('jobs').getList(1, 50, {
 </Layout>
 
 <script>
-  document.querySelectorAll('[data-action]').forEach((button) => {
+  document.querySelectorAll<HTMLButtonElement>('[data-action]').forEach((button) => {
     button.addEventListener('click', async () => {
-      const el = button as HTMLButtonElement;
-      await fetch('/api/admin/job-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId: el.dataset.id, action: el.dataset.action }) });
-      location.reload();
-    });
-  });
-  document.querySelectorAll('[data-ai]').forEach((button) => {
-    button.addEventListener('click', async () => {
-      const el = button as HTMLButtonElement;
-      await fetch('/api/admin/generate-description', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId: el.dataset.ai }) });
-      location.reload();
+      const action = button.dataset.action;
+      const id = button.dataset.id;
+      if (!action || !id) return;
+
+      // Confirm destructive actions
+      if (action === 'delete') {
+        const title = button.dataset.title || 'this job';
+        const ok = confirm(`Are you sure you want to permanently delete "${title}"? This cannot be undone.`);
+        if (!ok) return;
+      }
+
+      const original = button.textContent;
+      button.disabled = true;
+      button.textContent = '\u2026';
+
+      try {
+        const res = await fetch('/api/admin/job-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: id, action })
+        });
+        const body = await res.json().catch(() => ({}));
+
+        if (res.ok && body.success !== false) {
+          if (action === 'delete') {
+            // Remove the row in-place without a full reload
+            const row = button.closest('tr');
+            if (row) row.remove();
+          } else {
+            location.reload();
+          }
+        } else {
+          alert(body.error || `Action failed: ${action}`);
+          button.disabled = false;
+          button.textContent = original;
+        }
+      } catch {
+        alert('Network error. Please try again.');
+        button.disabled = false;
+        button.textContent = original;
+      }
     });
   });
 </script>
 
 <style>
-  .admin-wrap { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
-  header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-  h1 { font-size:22px; font-weight:600; margin:0; letter-spacing:-0.3px; }
-  header a, button { color:#2d6a4f; }
-  .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
-  select, .filters button { border:1px solid #e0e0e0; border-radius:4px; background:#fff; padding:7px 9px; font-size:13px; }
-  .table-wrap { overflow:auto; background:#fff; border:1px solid #e0e0e0; border-radius:6px; }
-  table { width:100%; border-collapse:collapse; font-size:12px; }
-  th, td { padding:8px; border-bottom:1px solid #f0f0f0; text-align:left; white-space:nowrap; }
-  th { font-weight:600; color:#444; }
-  .actions { display:flex; gap:5px; }
-  .actions button { border:1px solid #e0e0e0; border-radius:4px; background:#fff; font-size:12px; padding:4px 6px; }
+  .admin-wrap { max-width: 1200px; margin: 1.5rem auto; padding: 0 1.5rem; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.3px; }
+
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .form-select, .form-btn { border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; padding: 7px 9px; font-size: 13px; }
+  .form-btn { background: #2d6a4f; color: #fff; border-color: #2d6a4f; padding: 7px 14px; cursor: pointer; }
+
+  .count-line { color: #666; font-size: 13px; margin: 0 0 8px; }
+
+  .table-wrap { overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; text-align: left; white-space: nowrap; }
+  th { font-weight: 600; color: #444; background: #fafafa; }
+  .title-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+  .date-cell { color: #888; font-size: 12px; }
+  .empty-cell { padding: 3rem 1rem; text-align: center; color: #aaa; font-size: 13px; }
+
+  .row-pending td { background: #fffbeb; }
+  .row-expired td { background: #fafafa; color: #888; }
+
+  .expires-green { color: #15803d; font-weight: 500; }
+  .expires-orange { color: #c2410c; font-weight: 500; }
+  .expires-red { color: #b91c1c; font-weight: 500; }
+  .expires-none { color: #aaa; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .bg-green-100 { background: #dcfce7; }
+  .text-green-800 { color: #166534; }
+  .bg-yellow-100 { background: #fef9c3; }
+  .text-yellow-800 { color: #854d0e; }
+  .bg-gray-100 { background: #f3f4f6; }
+  .text-gray-500 { color: #6b7280; }
+
+  .actions { display: flex; gap: 5px; flex-wrap: wrap; white-space: nowrap; }
+  .btn-view, .btn-approve, .btn-reject, .btn-feature, .btn-unfeature, .btn-repost, .btn-delete {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+  .btn-view { border-color: #ddd; color: #666; background: #fff; }
+  .btn-view:hover { background: #f5f5f5; }
+  .btn-approve { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
+  .btn-approve:hover { background: #245a42; }
+  .btn-reject { background: #fff; color: #c2410c; border-color: #fdba74; }
+  .btn-reject:hover { background: #fff7ed; }
+  .btn-feature { border-color: #2d6a4f; color: #2d6a4f; background: #fff; }
+  .btn-feature:hover { background: #f0faf5; }
+  .btn-unfeature { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+  .btn-unfeature:hover { background: #fde68a; }
+  .btn-repost { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+  .btn-repost:hover { background: #1e40af; }
+  .btn-delete { background: #dc2626; color: #fff; border-color: #dc2626; }
+  .btn-delete:hover { background: #b91c1c; }
+  .btn-approve:disabled, .btn-reject:disabled, .btn-feature:disabled,
+  .btn-unfeature:disabled, .btn-repost:disabled, .btn-delete:disabled { opacity: 0.5; cursor: wait; }
+
+  @media (max-width: 860px) {
+    header { flex-direction: column; align-items: flex-start; }
+  }
 </style>

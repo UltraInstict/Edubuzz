@@ -1,15 +1,109 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import JobCard from '../../components/JobCard.astro';
-import { getEmployerBySlug, getJobs } from '../../lib/pocketbase';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import EmptyState from '../../components/ui/EmptyState.astro';
+import { getEmployerBySlug } from '../../lib/pocketbase';
+import { listCompanyJobs } from '../../services/jobService';
 
 const employer = await getEmployerBySlug(Astro.params.slug || '');
 if (!employer) return Astro.redirect('/404');
+
 const page = Math.max(1, Number(Astro.url.searchParams.get('page') || '1'));
-const jobs = await getJobs({ page, perPage: 10 });
-const companyJobs = jobs.items.filter((job) => job.company === employer.company_name || job.employer_id === employer.id);
+const perPage = 10;
+
+const result = await listCompanyJobs(employer.id, employer.company_name, page, perPage);
+
+const companyJobs = result.items;
+const totalItems = result.totalItems;
+const totalPages = result.totalPages;
 ---
-<Layout title={`${employer.company_name} Jobs in South Africa`} description={`Browse all current job openings at ${employer.company_name}. Find ${companyJobs.length} jobs in ${employer.province || 'South Africa'}.`} canonicalUrl={`${Astro.url.origin}/company/${employer.company_slug}`}>
-<main class="company-page"><section class="panel header-card"><div class="logo-box">{employer.company_name.slice(0,1)}</div><div><h1>{employer.company_name}</h1><p>{[employer.city, employer.province].filter(Boolean).join(', ')}</p>{employer.website && <a href={employer.website} target="_blank" rel="noopener">Website</a>}</div></section>{employer.description && <section class="panel"><p>{employer.description}</p></section>}<section><div class="section-head"><h2>Active jobs by this company</h2></div>{companyJobs.length ? companyJobs.map((job)=><JobCard job={job}/>) : <div class="panel">No active listings from this company right now.</div>}</section></main>
+
+<Layout
+  title={`${employer.company_name} Jobs in South Africa`}
+  description={`Browse all current job openings at ${employer.company_name}. Find ${totalItems} jobs in ${employer.province || 'South Africa'}.`}
+  canonicalUrl={`${Astro.url.origin}/company/${employer.company_slug}`}
+>
+  <main class="company-page">
+    <div style="margin-bottom:12px">
+      <Breadcrumbs items={[
+        { label: 'Home', href: '/' },
+        { label: 'Companies', href: '/companies' },
+        { label: employer.company_name },
+      ]} />
+    </div>
+
+    <section class="panel header-card">
+      <div class="logo-box">
+        {employer.logo
+          ? <img src={employer.logo} alt={`${employer.company_name} logo`} width="54" height="54" style="object-fit:contain" />
+          : employer.company_name.slice(0, 2).toUpperCase()}
+      </div>
+      <div>
+        <h1>{employer.company_name}</h1>
+        <p>{[employer.city, employer.province].filter(Boolean).join(', ') || 'South Africa'}</p>
+        <div class="header-meta">
+          {employer.verified && <span class="verified-badge">Verified Employer</span>}
+          {employer.website && <a href={employer.website} target="_blank" rel="noopener noreferrer" class="website-link">Visit website &rarr;</a>}
+        </div>
+      </div>
+    </section>
+
+    {employer.description && (
+      <section class="panel">
+        <p>{employer.description}</p>
+      </section>
+    )}
+
+    <section>
+      <div class="section-head">
+        <h2>Active jobs at {employer.company_name}</h2>
+        <span class="job-count">{totalItems} open position{totalItems !== 1 ? 's' : ''}</span>
+      </div>
+
+      {companyJobs.length > 0 ? (
+        <>
+          {companyJobs.map((job: any) => <JobCard job={job} />)}
+          {totalPages > 1 && (
+            <nav class="pagination">
+              {page > 1 && <a href={`/company/${employer.company_slug}?page=${page - 1}`}>Previous</a>}
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                const p = i + 1;
+                return <a href={`/company/${employer.company_slug}?page=${p}`} class={p === page ? 'active' : ''}>{p}</a>;
+              })}
+              {page < totalPages && <a href={`/company/${employer.company_slug}?page=${page + 1}`}>Next</a>}
+            </nav>
+          )}
+        </>
+      ) : (
+        <EmptyState
+          icon="none"
+          title="No active jobs right now"
+          description={`${employer.company_name} doesn't have any open positions at the moment. Check back soon or browse other companies.`}
+          action={{ label: 'Browse all jobs', href: '/jobs' }}
+        />
+      )}
+    </section>
+  </main>
 </Layout>
-<style>.company-page{max-width:900px;margin:1.5rem auto;padding:0 1.5rem;display:grid;gap:16px}.header-card{display:flex;gap:14px;align-items:center}.logo-box{width:54px;height:54px;border:1px solid #e0e0e0;border-radius:6px;display:grid;place-items:center;font-size:22px;font-weight:600;color:#2d6a4f}h1{font-size:22px;margin:0 0 4px;font-weight:600;letter-spacing:-0.3px}p{margin:0;color:#666;font-size:13px}a{color:#2d6a4f;font-size:13px}</style>
+
+<style>
+  .company-page { max-width: 900px; margin: 1.5rem auto; padding: 0 1.5rem; display: grid; gap: 16px; }
+  .header-card { display: flex; gap: 14px; align-items: center; }
+  .logo-box { width: 54px; height: 54px; border: 1px solid #e0e0e0; border-radius: 6px; display: grid; place-items: center; font-size: 18px; font-weight: 600; color: #2d6a4f; overflow: hidden; background: #f9f9f9; }
+  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; letter-spacing: -0.3px; color: #1a1a1a; }
+  p { margin: 0; color: #666; font-size: 13px; }
+  .header-meta { display: flex; gap: 12px; align-items: center; margin-top: 6px; }
+  .verified-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: #2d6a4f; font-weight: 500; }
+  .website-link { color: #2d6a4f; font-size: 13px; font-weight: 500; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .section-head h2 { margin: 0; font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  .job-count { font-size: 13px; color: #888; }
+  .pagination { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .pagination a { border: 1px solid #e0e0e0; background: #fff; border-radius: 4px; padding: 5px 10px; font-size: 12px; color: #444; }
+  .pagination a.active { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
+  @media (max-width: 640px) {
+    .header-card { flex-direction: column; align-items: flex-start; }
+    .company-page { padding: 0 1rem; }
+  }
+</style>

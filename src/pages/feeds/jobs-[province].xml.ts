@@ -9,8 +9,9 @@ function cdata(value: unknown) {
 export const GET: APIRoute = async ({ params }) => {
   const slug = (params.province || '').replace(/^jobs-/, '').replace(/\.xml$/, '');
   const province = provinceName(slug);
+  const today = new Date().toISOString().slice(0, 10);
   const jobs = await getPB().collection('jobs').getFullList({
-    filter: `active=true&&xml_export=true&&province="${province}"`,
+    filter: `active=true&&expires>"${today}"&&province="${province}"`,
     sort: '-created',
     fields: 'id,title,company,city,province,category,job_type,description,salary_min,salary_max,created,expires,slug',
   }).catch(() => []);

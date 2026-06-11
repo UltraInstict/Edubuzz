@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { cleanString } from '../../lib/api';
 import { trackEvent } from '../../lib/analytics';
 
-const allowed = new Set(['view', 'click', 'apply_click', 'share']);
+const allowed = new Set(['view', 'click', 'apply_click', 'share', 'save', 'search', 'job_viewed', 'job_searched', 'job_applied', 'job_shared', 'job_saved']);
 
 export const POST: APIRoute = async ({ request }) => {
   try {

@@ -1,0 +1,49 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCategoriesWithCounts } from '../services/jobService';
+
+const categories = await getCategoriesWithCounts();
+---
+
+<Layout title="Browse Jobs by Category | Edubuzz" description="Browse South African jobs by category on Edubuzz." canonicalUrl={Astro.url.href}>
+  <main class="container" style="max-width:900px;margin:1.5rem auto;padding:0 1.5rem;">
+    <h1 style="font-size:22px;font-weight:600;margin:0 0 16px;letter-spacing:-0.3px;">Browse by category</h1>
+    <div class="category-grid">
+      {categories.map((cat) => (
+        <a href={`/category/${cat.slug}`} class="category-card">
+          <h2>{cat.name}</h2>
+          <span>{cat.count.toLocaleString('en-ZA')} jobs</span>
+        </a>
+      ))}
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .category-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 16px;
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .category-card:hover {
+    border-color: #2d6a4f;
+  }
+  .category-card h2 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  .category-card span {
+    font-size: 12px;
+    color: #666;
+  }
+</style>

@@ -3,15 +3,30 @@ import Layout from '../layouts/Layout.astro';
 import JobCard from '../components/JobCard.astro';
 import { getJobs } from '../lib/pocketbase';
 
-const suggestions = await getJobs({ perPage: 4 }).catch(() => ({ items: [] }));
+const url = new URL(Astro.request.url);
+const isJobUrl = url.pathname.startsWith('/job/');
+const isGone = url.searchParams.get('reason') === 'expired';
+
+const suggestions = (isJobUrl || isGone) ? await getJobs({ perPage: 4 }).catch(() => ({ items: [] })) : { items: [] };
+
+Astro.response.status = isGone ? 410 : 404;
 ---
 
-<Layout title="Page not found" description="This page doesn't exist." canonicalUrl="">
+<Layout title={isGone ? 'Job expired' : 'Page not found'} description={isGone ? 'This job has expired.' : 'This page doesn\'t exist.'} canonicalUrl="" noindex={true}>
   <main class="not-found">
-    <p class="code">404</p>
-    <h1>This job may have expired</h1>
-    <p>The listing you're looking for has been removed, filled, or never existed.</p>
-    <a href="/" class="btn-home">Browse all jobs -></a>
+    <p class="code">{isGone ? '410' : '404'}</p>
+    {isJobUrl || isGone ? (
+      <>
+        <h1>{isGone ? 'This job has expired' : 'This job may have expired'}</h1>
+        <p>The listing you're looking for has been removed, filled, or never existed.</p>
+      </>
+    ) : (
+      <>
+        <h1>Page not found</h1>
+        <p>The page you're looking for doesn't exist.</p>
+      </>
+    )}
+    <a href="/" class="btn-home">Go to homepage &rarr;</a>
     {suggestions.items.length > 0 && (
       <section class="suggestions">
         <p>Or try one of these:</p>

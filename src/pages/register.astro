@@ -2,19 +2,20 @@
 import Layout from '../layouts/Layout.astro';
 import { generateToken } from '../lib/csrf';
 const csrfToken = generateToken();
+const serverError = Astro.url.searchParams.get('error') || '';
 ---
 
 <Layout title="Create employer account" description="Register on Edubuzz" canonicalUrl="/register">
   <div class="auth-wrap">
     <div class="auth-card">
       <h1>Create employer account</h1>
-      <div id="error-msg" class="error-msg" hidden></div>
-      <form id="reg-form">
+      <div id="error-msg" class="error-msg" aria-live="polite" hidden={!serverError}>{serverError}</div>
+      <form id="reg-form" action="/api/auth/register" method="post">
         <input type="hidden" name="_csrf" value={csrfToken} />
-        <label>Name<input type="text" name="name" required /></label>
-        <label>Email<input type="email" name="email" required /></label>
-        <label>Password<input type="password" name="password" required minlength="8" /></label>
-        <label>Company name<input type="text" name="company" required /></label>
+        <label>Name<input type="text" name="name" required autocomplete="name" /></label>
+        <label>Email<input type="email" name="email" required autocomplete="email" /></label>
+        <label>Password<input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>
+        <label>Company name<input type="text" name="company" required autocomplete="organization" /></label>
         <button type="submit" id="submit-btn">Create account</button>
         <p>Already registered? <a href="/login">Login</a></p>
       </form>

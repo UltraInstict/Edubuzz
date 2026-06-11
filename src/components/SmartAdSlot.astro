@@ -1,0 +1,424 @@
+---
+/**
+ * SmartAdSlot — single ad slot driven by admin settings.
+ *
+ * Priority waterfall:
+ *   1. Google AdSense (if adsense_enabled && publisher id && slot id all set)
+ *   2. Affiliate link (matched by zone + optional category)
+ *      - Renders by display_type: text | image | html
+ *   3. Preview placeholder (ONLY when adsense_preview_mode === 'true')
+ *   4. Render nothing (zero height)
+ *
+ * Zones:
+ *   - strip      Full-width banner
+ *   - sidebar    Vertical native card, max 300px wide
+ *   - infeed     Compact horizontal card between job cards
+ *   - jobs-top   Same as strip but with subtle green tint
+ */
+import { getAdminSettings } from '../services/jobService';
+import { getAffiliateLinkByCategory, getCategoryForAffiliate, PB_FILE_BASE } from '../services/affiliateService';
+
+export interface Props {
+  zone: 'strip' | 'sidebar' | 'infeed' | 'jobs-top';
+  category?: string;
+}
+
+const { zone, category } = Astro.props;
+
+const settings = await getAdminSettings([
+  'adsense_enabled',
+  'adsense_publisher_id',
+  'adsense_slot_strip',
+  'adsense_slot_sidebar',
+  'adsense_slot_infeed',
+  'adsense_slot_jobs_top',
+  'adsense_preview_mode',
+]).catch(() => ({} as Record<string, string>));
+
+const adsenseEnabled = settings.adsense_enabled === 'true';
+const publisherId = (settings.adsense_publisher_id || '').trim();
+const slotKey = `adsense_slot_${zone.replace('-', '_')}`;
+const slotId = (settings[slotKey] || '').trim();
+const previewMode = settings.adsense_preview_mode === 'true';
+
+const useAdSense = adsenseEnabled && !!publisherId && !!slotId;
+
+type AffiliateRender = {
+  id: string;
+  name: string;
+  description?: string;
+  url: string;
+  display_type: 'text' | 'image' | 'html';
+  banner_html?: string;
+  image_url?: string;
+  banner_file?: string;
+  banner_width?: number;
+  banner_height?: number;
+  collectionId?: string;
+};
+
+let affiliate: AffiliateRender | null = null;
+if (!useAdSense) {
+  const matchCategory = getCategoryForAffiliate(category);
+  const link = await getAffiliateLinkByCategory(matchCategory, zone).catch(() => null);
+  if (link) {
+    const l = link as any;
+    let display: 'text' | 'image' | 'html' = (l.display_type as any) || 'text';
+    if (!['text', 'image', 'html'].includes(display)) display = 'text';
+    affiliate = {
+      id: l.id,
+      name: l.name,
+      description: l.description,
+      url: l.url,
+      display_type: display,
+      banner_html: l.banner_html,
+      image_url: l.image_url,
+      banner_file: l.banner_file,
+      banner_width: l.banner_width,
+      banner_height: l.banner_height,
+      collectionId: l.collectionId,
+    };
+  }
+}
+
+let bannerFileUrl = '';
+if (affiliate?.banner_file && affiliate?.id && affiliate?.collectionId) {
+  bannerFileUrl = `${PB_FILE_BASE}/api/files/${affiliate.collectionId}/${affiliate.id}/${affiliate.banner_file}`;
+}
+
+const showAdSense = useAdSense;
+const showAffiliate = !useAdSense && !!affiliate;
+const showPreview = !useAdSense && !affiliate && previewMode;
+
+// Subtitle for text ads — use description or first 80 chars of title
+let textSubtitle = '';
+if (affiliate?.display_type === 'text') {
+  const desc = (affiliate.description || '').trim();
+  if (desc) {
+    textSubtitle = desc;
+  } else if (affiliate.name && affiliate.name.length > 0) {
+    // Fallback: only show truncated title as subtitle if it's longer than 40 chars
+    // (otherwise it duplicates the headline awkwardly)
+    if (affiliate.name.length > 40) {
+      textSubtitle = affiliate.name.length > 80 ? affiliate.name.slice(0, 80).trim() + '…' : affiliate.name;
+    }
+  }
+}
+
+const ctaLabel = zone === 'jobs-top' ? 'Claim offer' : 'Learn more';
+
+const previewDims: Record<string, { width: string; height: string; label: string }> = {
+  strip:      { width: '728px', height: '90px',  label: 'Leaderboard 728×90' },
+  sidebar:    { width: '300px', height: '250px', label: 'Medium Rectangle 300×250' },
+  infeed:     { width: '468px', height: '60px',  label: 'Banner 468×60' },
+  'jobs-top': { width: '728px', height: '90px',  label: 'Leaderboard 728×90' },
+};
+const preview = previewDims[zone];
+
+const dims: Record<string, { format: string; style: string }> = {
+  strip:      { format: 'horizontal', style: 'display:block;width:100%;min-height:90px' },
+  sidebar:    { format: 'rectangle',  style: 'display:block;width:100%;min-height:250px' },
+  infeed:     { format: 'fluid',      style: 'display:block;width:100%;min-height:90px' },
+  'jobs-top': { format: 'horizontal', style: 'display:block;width:100%;min-height:90px' },
+};
+const dim = dims[zone];
+
+function imgStyle(): string {
+  const parts: string[] = ['display:block', 'max-width:100%', 'height:auto'];
+  if (affiliate?.banner_width) {
+    const max = zone === 'sidebar' ? Math.min(affiliate.banner_width, 300) : affiliate.banner_width;
+    parts.push(`width:${max}px`);
+  }
+  return parts.join(';');
+}
+
+// ── Decide which render mode to use ────────────────────────────────────
+// The order matters: AdSense > affiliate (by display_type) > preview > nothing.
+//
+// Per spec: when display_type === 'image' but no image is configured, render
+// nothing for that slot — do NOT fall back to text. Same for 'html' with no
+// banner_html. Only display_type === 'text' (or missing/null) renders the
+// text card.
+
+type RenderMode = 'adsense' | 'affiliate-html' | 'affiliate-image' | 'affiliate-text' | 'preview' | 'none';
+
+let mode: RenderMode = 'none';
+if (showAdSense) {
+  mode = 'adsense';
+} else if (showAffiliate) {
+  const dt = affiliate!.display_type;
+  if (dt === 'html') {
+    mode = affiliate!.banner_html ? 'affiliate-html' : 'none';
+  } else if (dt === 'image') {
+    mode = (bannerFileUrl || affiliate!.image_url) ? 'affiliate-image' : 'none';
+  } else {
+    // text, undefined, or unknown → text ad card
+    mode = 'affiliate-text';
+  }
+} else if (showPreview) {
+  mode = 'preview';
+}
+---
+
+{mode === 'adsense' && (
+  <div class={`smart-ad smart-ad--${zone}`} data-ad-type="adsense">
+    <span class="smart-ad__label">SPONSORED</span>
+    <ins
+      class="adsbygoogle"
+      style={dim.style}
+      data-ad-client={publisherId}
+      data-ad-slot={slotId}
+      data-ad-format={dim.format}
+      data-full-width-responsive="true"
+    ></ins>
+    <script>
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+)}
+
+{mode === 'affiliate-html' && (
+  <div class={`smart-ad smart-ad--${zone} smart-ad--html`} data-ad-type="affiliate-html">
+    <span class="smart-ad__label">SPONSORED</span>
+    <div class="smart-ad__banner" set:html={affiliate!.banner_html} />
+  </div>
+)}
+
+{mode === 'affiliate-image' && (
+  <div class={`smart-ad smart-ad--${zone} smart-ad--image`} data-ad-type="affiliate-image">
+    <span class="smart-ad__label">SPONSORED</span>
+    <a href={affiliate!.url} target="_blank" rel="nofollow sponsored noopener noreferrer" class="smart-ad__img-link" data-affiliate-id={affiliate!.id}>
+      <img
+        src={bannerFileUrl || affiliate!.image_url}
+        alt={affiliate!.name}
+        loading="lazy"
+        style={imgStyle()}
+        width={affiliate!.banner_width || undefined}
+        height={affiliate!.banner_height || undefined}
+      />
+    </a>
+  </div>
+)}
+
+{mode === 'affiliate-text' && (
+  <a
+    href={affiliate!.url}
+    target="_blank"
+    rel="nofollow sponsored noopener noreferrer"
+    class={`text-ad text-ad--${zone}`}
+    data-ad-type="affiliate-text"
+    data-affiliate-id={affiliate!.id}
+  >
+    <div class="text-ad__body">
+      <span class="text-ad__label">SPONSORED</span>
+      <span class="text-ad__title">{affiliate!.name}</span>
+      {textSubtitle && <span class="text-ad__subtitle">{textSubtitle}</span>}
+    </div>
+    <span class="text-ad__cta">{ctaLabel}</span>
+  </a>
+)}
+
+{mode === 'preview' && (
+  <div class={`smart-ad smart-ad--${zone} smart-ad--preview`} data-ad-type="preview">
+    <span class="smart-ad__label">SPONSORED</span>
+    <div class="smart-ad__placeholder" style={`max-width:${preview.width};height:${preview.height}`}>
+      <span class="smart-ad__placeholder-label">Advertisement</span>
+      <span class="smart-ad__placeholder-size">{preview.label}</span>
+    </div>
+  </div>
+)}
+
+<script>
+  document.querySelectorAll('[data-affiliate-id]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const linkId = (el as HTMLElement).dataset.affiliateId;
+      if (!linkId) return;
+      fetch('/api/track-affiliate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ linkId }),
+        keepalive: true,
+      }).catch(() => {});
+    });
+  });
+</script>
+
+<style>
+  .smart-ad {
+    display: block;
+    margin: 0 0 12px;
+  }
+  .smart-ad--infeed { margin: 0 0 12px; }
+  .smart-ad--sidebar { max-width: 300px; margin-top: 0; }
+  .smart-ad--jobs-top { width: 100%; }
+
+  /* Sponsored label used by image, html, and adsense renders */
+  .smart-ad__label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  /* ─── TEXT AD — high-conversion native card ───────────────────────── */
+  .text-ad {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: #ffffff;
+    border-left: 3px solid #2d6a4f;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 150ms ease, transform 150ms ease;
+    margin: 0 0 12px;
+  }
+  .text-ad:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .text-ad__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  .text-ad__label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+  }
+  .text-ad__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.3;
+  }
+  .text-ad__subtitle {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+  }
+  .text-ad__cta {
+    flex-shrink: 0;
+    background: #2d6a4f;
+    color: #ffffff;
+    border-radius: 20px;
+    padding: 0.4rem 1rem;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 150ms ease;
+  }
+  .text-ad:hover .text-ad__cta {
+    background: #245a42;
+  }
+
+  /* Strip zone — full width row */
+  .text-ad--strip {
+    width: 100%;
+  }
+
+  /* Sidebar zone — vertical stack, full-width CTA */
+  .text-ad--sidebar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    max-width: 100%;
+  }
+  .text-ad--sidebar .text-ad__title { font-size: 14px; }
+  .text-ad--sidebar .text-ad__subtitle { font-size: 12px; }
+  .text-ad--sidebar .text-ad__cta {
+    text-align: center;
+    width: 100%;
+    padding: 0.5rem 1rem;
+  }
+
+  /* Infeed zone — compact, with subtle top/bottom borders */
+  .text-ad--infeed {
+    padding: 0.6rem 1rem;
+    border-top: 1px solid #ececec;
+    border-bottom: 1px solid #ececec;
+    border-left: 3px solid #2d6a4f;
+    border-radius: 6px;
+  }
+  .text-ad--infeed .text-ad__title { font-size: 14px; }
+
+  /* Jobs-top zone — warm green tint to feel like a relevant opportunity */
+  .text-ad--jobs-top {
+    background: #f0faf4;
+  }
+
+  /* Mobile: stack and full-width CTA on strip/jobs-top */
+  @media (max-width: 560px) {
+    .text-ad--strip,
+    .text-ad--jobs-top,
+    .text-ad--infeed {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .text-ad--strip .text-ad__cta,
+    .text-ad--jobs-top .text-ad__cta,
+    .text-ad--infeed .text-ad__cta {
+      text-align: center;
+      width: 100%;
+      padding: 0.5rem 1rem;
+    }
+  }
+
+  /* ─── IMAGE ad ───────────────────────── */
+  .smart-ad__img-link { display: inline-block; line-height: 0; }
+  .smart-ad__img-link img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+  .smart-ad--sidebar .smart-ad__img-link img { max-width: 300px; }
+
+  /* ─── HTML ad ───────────────────────── */
+  .smart-ad__banner { display: block; max-width: 100%; }
+  .smart-ad__banner :global(iframe),
+  .smart-ad__banner :global(img) { max-width: 100%; height: auto; }
+
+  /* ─── Preview placeholder (preview mode only) ─── */
+  .smart-ad__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    background: #f5f5f5;
+    border: 2px dashed #ccc;
+    border-radius: 6px;
+  }
+  .smart-ad__placeholder-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+  }
+  .smart-ad__placeholder-size { font-size: 10px; color: #bbb; }
+
+  @media (max-width: 480px) {
+    .smart-ad__placeholder {
+      max-width: 100% !important;
+      height: auto !important;
+      min-height: 60px;
+      padding: 12px;
+    }
+  }
+</style>

@@ -7,86 +7,172 @@
 // ── 1. jobs ──────────────────────────────────────────────────
 // Type: Base collection
 // Fields:
-//   title         Text        required
-//   slug          Text        required, unique
-//   company       Text        required
-//   category      Text        
-//   province      Text        
-//   city          Text        
-//   description   Editor      (rich text)
-//   apply_url     URL
-//   apply_email   Email
-//   salary_min    Number
-//   salary_max    Number
-//   job_type      Select      values: Full-time,Part-time,Contract,Internship,Temporary,Remote
-//   source        Text        default: "manual"
-//   featured      Bool        default: false
-//   ai_written    Bool        default: false
-//   active        Bool        default: true
-//   expires       Date
+//   title           Text     required
+//   slug            Text     required, unique
+//   company         Text     required
+//   category        Text
+//   province        Text
+//   city            Text
+//   description     Editor   (rich text)
+//   apply_url       URL
+//   apply_email     Email
+//   salary_min      Number
+//   salary_max      Number
+//   job_type        Select   values: Full-time,Part-time,Contract,Internship,Learnership,Graduate Programme,Bursary,Temporary,Remote
+//   source          Text     default: "manual"
+//   source_ref      Text     (unique id from inbound feed)
+//   employer_id     Text     (relation, kept as text for portability)
+//   views           Number
+//   clicks          Number
+//   apply_clicks    Number
+//   featured        Bool     default: false
+//   featured_expires Date
+//   active          Bool     default: true
+//   expires         Date
+//   xml_export      Bool     default: true
 // API Rules: List/View = "" (public), Create/Update/Delete = @request.auth.id != ""
 
 // ── 2. categories ────────────────────────────────────────────
-// Type: Base collection
 // Fields:
-//   name          Text        required, unique
-//   slug          Text        required, unique
-//   icon          Text        (emoji, e.g. 🏥)
-//   color         Text        (Tailwind class hint)
-//   job_count     Number      (updated manually or via hook)
+//   name       Text   required, unique
+//   slug       Text   required, unique
+//   icon       Text
+//   color      Text
+//   job_count  Number
 // API Rules: List/View = "" (public), all others = admin only
 
 // ── 3. applications ──────────────────────────────────────────
-// Type: Base collection
 // Fields:
-//   job           Relation    → jobs (required)
-//   name          Text        required
-//   email         Email       required
-//   phone         Text
-//   cover_letter  Text (long)
-//   resume        File        (single file, max 5MB)
+//   job          Relation → jobs (required)
+//   name         Text     required
+//   email        Email    required
+//   phone        Text
+//   text         Text (long)   (cover letter)
+//   cv_file      File     (single file, max 5MB)
+//   status       Select   pending,reviewed,shortlisted,rejected,quick
 // API Rules: List/View = admin only, Create = "" (public)
 
 // ── 4. pending_jobs ──────────────────────────────────────────
-// Type: Base collection
 // Fields:
-//   employer_name  Text       required
-//   employer_email Email      required
-//   company        Text       required
-//   title          Text       required
-//   description    Editor     required
-//   province       Text       required
+//   employer_name  Text   required
+//   employer_email Email  required
+//   company        Text   required
+//   title          Text   required
+//   category       Text
+//   description    Editor required
+//   province       Text   required
 //   city           Text
-//   job_type       Select     same values as jobs
+//   job_type       Select (same values as jobs)
 //   salary_min     Number
 //   salary_max     Number
 //   apply_url      URL
 //   apply_email    Email
-//   status         Select     values: pending,approved,rejected  default: pending
+//   status         Select pending,approved,rejected  default: pending
 // API Rules: List/View = admin only, Create = "" (public)
 
 // ── 5. job_alerts ────────────────────────────────────────────
-// Type: Base collection
 // Fields:
-//   email         Email       required
-//   keyword       Text
-//   province      Text
-//   category      Text
+//   email     Email  required
+//   keyword   Text
+//   province  Text
+//   category  Text
 // API Rules: List/View = admin only, Create = "" (public)
 
-// ── 6. blog_posts (optional) ─────────────────────────────────
-// Type: Base collection
+// ── 6. employers ─────────────────────────────────────────────
 // Fields:
-//   title         Text        required
-//   slug          Text        required, unique
-//   content       Editor
-//   excerpt       Text
-//   cover         File
-//   published     Bool        default: false
-// API Rules: List/View = "" (public)
+//   user_id        Text
+//   company_name   Text  required
+//   company_slug   Text  required, unique
+//   logo           File
+//   website        URL
+//   description    Text (long)
+//   province       Text
+//   city           Text
+//   verified       Bool  default: false
+//   blocked        Bool  default: false
+//   plan           Text
+//   plan_expires   Date
+//   contact_email  Email
+// API Rules: List/View = "" (public, only verified), all others = admin only
+
+// ── 7. analytics_events ──────────────────────────────────────
+// Fields:
+//   job_id   Text
+//   event    Text   (job_viewed, job_searched, job_applied, job_shared, job_saved)
+//   ref      Text
+//   device   Text
+//   bot      Text
+//   created  Date
+// API Rules: List/View = admin only, Create = "" (public)
+
+// ── 8. saved_jobs ────────────────────────────────────────────
+// Fields:
+//   user_id  Text required
+//   job_id   Text required
+//   created  Date
+// API Rules: List/View/Create = @request.auth.id != ""
+
+// ── 9. payments ──────────────────────────────────────────────
+// Fields:
+//   amount       Number required
+//   status       Text   required (complete, pending, failed)
+//   job_id       Text
+//   employer_id  Text
+//   created      Date
+// API Rules: admin only
+
+// ── 10. audit_logs ───────────────────────────────────────────
+// Fields:
+//   event    Text required
+//   details  Text (long)
+//   created  Date
+// API Rules: admin only
+
+// ── 11. admin_settings ───────────────────────────────────────
+// Fields:
+//   key    Text required, unique
+//   value  Text
+// API Rules: admin only
+//
+// Required keys (used by SmartAdSlot):
+//   adsense_publisher_id   ca-pub-XXXXXXXXXXXXXXXX
+//   adsense_enabled        true | false
+//   adsense_slot_strip     <slot id>
+//   adsense_slot_sidebar   <slot id>
+//   adsense_slot_infeed    <slot id>
+
+// ── 12. xml_sources ──────────────────────────────────────────
+// Fields:
+//   name             Text   required
+//   feed_url         URL    required
+//   format           Select xml,json,rss,indeed_xml
+//   active           Bool   default: true
+//   import_count     Number
+//   last_crawled     Date
+//   last_job_count   Number
+//   error_log        Text (long)
+// API Rules: admin only
+
+// ── 13. affiliate_links ──────────────────────────────────────
+// Fields:
+//   name      Text   required
+//   url       URL    required
+//   category  Text   (or "all" / "general")
+//   zone      Select strip,sidebar,infeed,all
+//   active    Bool   default: true
+//   clicks    Number default: 0
+// API Rules: List/View = "" (public), all others = admin only
+
+// ── 14. affiliate_clicks ─────────────────────────────────────
+// Fields:
+//   link_id  Text required
+//   job_id   Text
+//   device   Text
+//   created  Date
+// API Rules: List/View = admin only, Create = "" (public)
 
 // ============================================================
-//  SEED CATEGORIES (paste into PocketBase admin one by one)
+//  SEED CATEGORIES
 // ============================================================
 const SEED_CATEGORIES = [
   { name: 'Government',     slug: 'government',     icon: '🏛', color: 'accent' },
@@ -107,8 +193,7 @@ const SEED_CATEGORIES = [
 ];
 
 // ============================================================
-//  SEED JOBS — paste these into PocketBase admin manually
-//  or use the PocketBase SDK in a seed script
+//  SEED JOBS
 // ============================================================
 const SEED_JOBS = [
   {
@@ -120,7 +205,7 @@ const SEED_JOBS = [
     job_type: 'Full-time',
     salary_min: 240000,
     salary_max: 360000,
-    description: '<p><strong>About the role:</strong></p><p>We are looking for a passionate Junior Software Developer to join our growing team in Johannesburg. You will work on exciting web projects using modern technologies.</p><ul><li>Build and maintain web applications</li><li>Collaborate with senior developers</li><li>Write clean, well-documented code</li></ul>',
+    description: '<p><strong>About the role:</strong></p><p>We are looking for a passionate Junior Software Developer to join our growing team in Johannesburg.</p><ul><li>Build and maintain web applications</li><li>Collaborate with senior developers</li><li>Write clean, well-documented code</li></ul>',
     source: 'manual',
     active: true,
     featured: true,
@@ -134,7 +219,7 @@ const SEED_JOBS = [
     job_type: 'Full-time',
     salary_min: 300000,
     salary_max: 420000,
-    description: '<p>Netcare is seeking a qualified Registered Nurse for our Cape Town facilities.</p><ul><li>Patient care and monitoring</li><li>Administer medication as prescribed</li><li>Maintain accurate patient records</li></ul>',
+    description: '<p>Netcare is seeking a qualified Registered Nurse for our Cape Town facilities.</p>',
     source: 'manual',
     active: true,
   },
@@ -147,7 +232,7 @@ const SEED_JOBS = [
     job_type: 'Full-time',
     salary_min: 60000,
     salary_max: 80000,
-    description: '<p>Shoprite is hiring General Workers for our Gauteng stores. No experience required — we will train you.</p><ul><li>Packing shelves and maintaining store cleanliness</li><li>Assisting customers</li><li>Stock management</li></ul>',
+    description: '<p>Shoprite is hiring General Workers for our Gauteng stores.</p>',
     source: 'manual',
     active: true,
   },

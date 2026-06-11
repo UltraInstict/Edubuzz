@@ -1,29 +1,149 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getAdminPB, getUser } from '../../lib/auth';
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/auth';
+import { listAdminEmployers } from '../../services/jobService';
 
-const user = getUser(Astro.request);
-if (!user || user.role !== 'admin') return Astro.redirect('/login');
-const pb = await getAdminPB();
+const { redirect } = await requireAdmin(Astro.request);
+if (redirect) return redirect;
 
-const employers = await pb.collection('employers').getList(1, 100, { sort: '-created' }).catch(() => ({ items: [] }));
+const employers = await listAdminEmployers();
 ---
+
 <Layout title="Admin Employers" description="Manage employers." canonicalUrl={Astro.url.href}>
   <main class="admin-wrap">
-    <header><h1>Employers</h1><a href="/admin">Dashboard</a></header>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Company</th><th>Email</th><th>Plan</th><th>Verified</th><th>Registered</th><th>Actions</th></tr></thead>
-      <tbody>{employers.items.map((employer: any) => <tr><td>{employer.company_name}</td><td>{employer.contact_email}</td><td>{employer.plan}</td><td>{employer.verified ? 'yes' : 'no'}</td><td>{employer.created?.slice(0,10)}</td><td><button data-id={employer.id} data-verified={!employer.verified}>{employer.verified ? 'Unverify' : 'Verify'}</button></td></tr>)}</tbody>
-    </table></div>
+    <header>
+      <h1>Employers</h1>
+      <AdminNav current="employers" />
+    </header>
+
+    <p class="text-sm text-gray-500 mb-4">{employers.length} employer{employers.length !== 1 ? 's' : ''} registered</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Company</th><th>Email</th><th>Plan</th><th>Verified</th>
+            <th>Registered</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {employers.length === 0 && (
+            <tr>
+              <td colspan="6" class="py-12 text-center text-gray-500 text-sm">
+                No employers registered yet.
+              </td>
+            </tr>
+          )}
+          {employers.map((employer: any) => (
+            <tr>
+              <td>{employer.company_name || employer.name}</td>
+              <td>{employer.contact_email || employer.email}</td>
+              <td>
+                <span class={employer.plan === 'featured'
+                  ? 'px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800'
+                  : 'px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600'}>
+                  {employer.plan || 'free'}
+                </span>
+              </td>
+              <td>
+                {employer.verified
+                  ? <span class="text-green-600 text-sm font-medium">&#10003; Verified</span>
+                  : <span class="text-gray-500 text-sm">&mdash;</span>}
+              </td>
+              <td class="text-sm text-gray-500">
+                {new Date(employer.created).toLocaleDateString('en-ZA')}
+              </td>
+              <td class="actions">
+                <button data-id={employer.id} data-verified={String(!employer.verified)}
+                  class={employer.verified
+                    ? 'px-3 py-1 text-xs rounded border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors'
+                    : 'px-3 py-1 text-xs rounded bg-[#2d6a4f] text-white hover:bg-[#245a42] transition-colors'}>
+                  {employer.verified ? 'Unverify' : 'Verify'}
+                </button>
+                <button data-id={employer.id} data-blocked={String(!employer.blocked)}
+                  class={employer.blocked
+                    ? 'px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700 transition-colors'
+                    : 'px-3 py-1 text-xs rounded border border-red-300 text-red-600 hover:bg-red-50 transition-colors'}>
+                  {employer.blocked ? 'Unblock' : 'Block'}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   </main>
 </Layout>
+
 <script>
-document.querySelectorAll('[data-verified]').forEach((button) => button.addEventListener('click', async () => {
-  const el = button as HTMLButtonElement;
-  await fetch('/api/admin/update-employer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: el.dataset.id, verified: el.dataset.verified === 'true' }) });
-  location.reload();
-}));
+  document.querySelectorAll('[data-verified]').forEach((button) => button.addEventListener('click', async () => {
+    const el = button as HTMLButtonElement;
+    await fetch('/api/admin/update-employer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: el.dataset.id, verified: el.dataset.verified === 'true' }) });
+    location.reload();
+  }));
+  document.querySelectorAll('[data-blocked]').forEach((button) => button.addEventListener('click', async () => {
+    const el = button as HTMLButtonElement;
+    await fetch('/api/admin/update-employer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: el.dataset.id, blocked: el.dataset.blocked === 'true' }) });
+    location.reload();
+  }));
 </script>
+
 <style>
-.admin-wrap{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}h1{font-size:22px;font-weight:600;margin:0;letter-spacing:-0.3px}a,button{color:#2d6a4f}.table-wrap{overflow:auto;background:#fff;border:1px solid #e0e0e0;border-radius:6px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid #f0f0f0;text-align:left}button{border:1px solid #e0e0e0;background:#fff;border-radius:4px;padding:4px 7px}
+  .admin-wrap {
+    max-width: 1100px;
+    margin: 1.5rem auto;
+    padding: 0 1.5rem;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.3px;
+  }
+
+  .table-wrap {
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 8px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: left;
+  }
+
+  th {
+    font-weight: 600;
+    color: #444444;
+  }
+
+  .actions {
+    display: flex;
+    gap: 5px;
+  }
+
+  @media (max-width: 860px) {
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
 </style>

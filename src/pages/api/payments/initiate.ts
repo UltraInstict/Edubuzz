@@ -8,7 +8,7 @@ async function md5(value: string) {
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getEmployerSession(request);
-  if (!session) return Response.redirect('/login?next=/employer/upgrade', 302);
+  if (!session) return new Response(null, { status: 302, headers: { Location: '/login?next=/employer/upgrade' } });
   const form = await request.formData();
   const jobId = String(form.get('jobId') || '');
   const site = import.meta.env.SITE_URL || 'https://edubuzz.co.za';

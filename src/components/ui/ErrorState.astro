@@ -1,0 +1,55 @@
+---
+export interface Props {
+  message?: string;
+  retry?: string;
+}
+
+const { message = 'Something went wrong. Please try again.', retry } = Astro.props;
+---
+
+<div class="error-state" role="alert">
+  <span class="error-icon" aria-hidden="true">⚠️</span>
+  <p class="error-msg">{message}</p>
+  {retry && (
+    <button class="error-retry" onclick="location.reload()">{retry}</button>
+  )}
+</div>
+
+<style>
+  .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    background: var(--color-danger-bg, #fef2f2);
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-md, 6px);
+  }
+  .error-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .error-msg {
+    margin: 0 0 0.75rem;
+    font-size: var(--text-sm, 0.8125rem);
+    color: #991b1b;
+    max-width: 400px;
+    line-height: 1.5;
+  }
+  .error-retry {
+    padding: 0.5rem 1rem;
+    background: var(--color-white, #fff);
+    color: var(--color-danger, #dc2626);
+    border: 1px solid #fca5a5;
+    border-radius: var(--radius-sm, 4px);
+    font-size: var(--text-sm, 0.8125rem);
+    font-weight: var(--font-medium, 500);
+    cursor: pointer;
+    transition: background var(--transition-fast, 0.15s ease);
+  }
+  .error-retry:hover {
+    background: #fee2e2;
+  }
+</style>

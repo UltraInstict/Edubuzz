@@ -1,16 +1,14 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { getPb, getUser } from '../../../lib/auth';
+import { getUser } from '../../../lib/auth';
+import { getEmployerByUserId, getJobForEmployer } from '../../../services/jobService';
 import { getCategories, JOB_TYPES, PROVINCES } from '../../../lib/pocketbase';
-const user = getUser(Astro.request);
+const user = await getUser(Astro.request);
 if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
-const pb = getAuthPb(Astro.request);
-const employerList = await pb.collection('employers').getList(1, 1, { filter: `user_id="${(user as any).id}"` }).catch(() => ({ items: [] }));
-const employer = employerList.items[0] as any;
+const employer = await getEmployerByUserId((user as any).id);
 if (!employer) return Astro.redirect('/register');
-const job: any = await pb.collection('jobs').getOne(Astro.params.id || '').catch(() => null);
+const job = await getJobForEmployer(Astro.params.id || '', employer.id);
 if (!job) return new Response('Not found', { status: 404 });
-if (job.employer_id !== employer.id) return new Response('Forbidden', { status: 403 });
 const categories = await getCategories();
 ---
 <Layout title={`Edit ${job.title}`} description="Edit a job listing." canonicalUrl={Astro.url.href}>
@@ -22,7 +20,7 @@ const categories = await getCategories();
 <div class="grid"><label>Salary min <input class="form-field" type="number" name="salary_min" value={job.salary_min} /></label><label>Salary max <input class="form-field" type="number" name="salary_max" value={job.salary_max} /></label></div>
 <div class="grid"><label>Apply email <input class="form-field" type="email" name="apply_email" value={job.apply_email} /></label><label>Apply URL <input class="form-field" type="url" name="apply_url" value={job.apply_url} /></label></div>
 <label>Description <textarea class="form-field" name="description" rows="10" required>{job.description}</textarea></label>
-<p id="message" hidden></p><button>Save changes</button>
+<p id="message" hidden aria-live="polite"></p><button>Save changes</button>
 </form></main></Layout>
 <script>document.getElementById('job-form')?.addEventListener('submit',async(e)=>{e.preventDefault();const form=e.currentTarget as HTMLFormElement;const res=await fetch('/api/employer/save-job',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(form)))});const msg=document.getElementById('message') as HTMLParagraphElement;msg.textContent=res.ok?'Changes saved and sent for review.':'Could not save job.';msg.hidden=false;});</script>
 <style>.form-page{max-width:760px;margin:1.5rem auto}h1{font-size:22px;margin:0 0 16px;font-weight:600;letter-spacing:-0.3px}form{display:grid;gap:12px}label{display:grid;gap:4px;color:#444;font-size:12px;font-weight:500}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}button{border:1px solid #2d6a4f;border-radius:4px;background:#2d6a4f;color:#fff;padding:10px 14px;font-weight:600}@media(max-width:560px){.grid{grid-template-columns:1fr}}</style>
