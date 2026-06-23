@@ -2,5 +2,16 @@ name = "edubuzz"
 compatibility_date = "2025-06-11"
 compatibility_flags = ["nodejs_compat"]
 
+[assets]
+binding = "ASSETS"
+directory = "dist/client"
+
+[[kv_namespaces]]
+binding = "SESSION"
+id = "dfc357407e434730ab7fbcdce640b737"
+
+[images]
+binding = "IMAGES"
+
 [observability]
 enabled = true
