@@ -9,7 +9,7 @@
     "start": "node dist/server/entry.mjs"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^13.7.0",
+    "@astrojs/node": "^10.1.4",
     "astro": "^6.4.6",
     "dotenv": "^17.4.2",
     "pocketbase": "^0.21.5"
