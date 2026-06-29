@@ -1,7 +1,7 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 // ─── Auto-slug on job create ────────────────────────────────────────────────
-onRecordBeforeCreateRequest((e) => {
+onRecordCreate((e) => {
   if (e.record.collection().name !== 'jobs') return;
 
   const title = e.record.get('title') || '';
@@ -27,7 +27,7 @@ onRecordBeforeCreateRequest((e) => {
 }, 'jobs');
 
 // ─── Auto-approve pending jobs → copy to live jobs ──────────────────────────
-onRecordAfterUpdateRequest((e) => {
+onRecordAfterUpdateSuccess((e) => {
   if (e.record.collection().name !== 'pending_jobs') return;
   if (e.record.get('status') !== 'approved') return;
 
@@ -60,7 +60,7 @@ onRecordAfterUpdateRequest((e) => {
 }, 'pending_jobs');
 
 // ─── Send confirmation email when application received ──────────────────────
-onRecordAfterCreateRequest((e) => {
+onRecordAfterCreateSuccess((e) => {
   if (e.record.collection().name !== 'applications') return;
 
   try {
@@ -89,7 +89,7 @@ onRecordAfterCreateRequest((e) => {
 }, 'applications');
 
 // ─── Send job alert emails when new job is created ──────────────────────────
-onRecordAfterCreateRequest((e) => {
+onRecordAfterCreateSuccess((e) => {
   if (e.record.collection().name !== 'jobs') return;
   if (!e.record.get('active')) return;
 
@@ -127,7 +127,8 @@ onRecordAfterCreateRequest((e) => {
   }
 }, 'jobs');
 
-onRecordBeforeCreateRequest((e) => {
+// ─── Set default 30-day expiry on job create ──────────────────────────────
+onRecordCreate((e) => {
   if (e.record.collection().name !== 'jobs') return;
   if (!e.record.get('expires')) {
     const expires = new Date();
@@ -136,7 +137,8 @@ onRecordBeforeCreateRequest((e) => {
   }
 }, 'jobs');
 
-onRecordBeforeUpdateRequest((e) => {
+// ─── Auto-deactivate expired jobs on update ─────────────────────────────
+onRecordUpdate((e) => {
   if (e.record.collection().name !== 'jobs') return;
   const expires = e.record.get('expires');
   if (expires && new Date(expires).getTime() <= Date.now()) {
@@ -159,29 +161,29 @@ function auditLog(event, details) {
   }
 }
 
-onRecordAfterCreateRequest((e) => {
+onRecordAfterCreateSuccess((e) => {
   auditLog('record_created', {
     collection: e.record.collection().name,
     id: e.record.id,
   });
 });
 
-onRecordAfterUpdateRequest((e) => {
+onRecordAfterUpdateSuccess((e) => {
   auditLog('record_updated', {
     collection: e.record.collection().name,
     id: e.record.id,
   });
 });
 
-onRecordAfterDeleteRequest((e) => {
+onRecordAfterDeleteSuccess((e) => {
   auditLog('record_deleted', {
     collection: e.record.collection().name,
     id: e.record.id,
   });
 });
 
-// ─── Job expiry reminder (daily at 09:00 SAST) ──────────────────────────
-cronAdd('send-expiry-reminders', '0 7 * * *', () => {
+// ─── Job expiry reminder (daily at 09:00 SAST = 07:00 UTC) ──────────────────
+$app.cron().add('send-expiry-reminders', '0 7 * * *', () => {
   try {
     const threeDaysFromNow = new Date();
     threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
