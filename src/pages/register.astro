@@ -29,11 +29,15 @@ document.getElementById('reg-form').addEventListener('submit', async e => {
   const btn = e.target.querySelector('button[type=submit]');
   const err = document.getElementById('error-msg');
   btn.disabled = true; btn.textContent = 'Creating account\u2026'; err.hidden = true;
-  const res = await fetch('/api/auth/register', { method: 'POST', body: new FormData(e.target) });
-  const d = await res.json();
+  const res = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { Accept: 'application/json' },
+    body: new FormData(e.target),
+  });
+  const d = await res.json().catch(() => ({}));
   if (d.success) { location.href = '/employer/dashboard'; }
   else {
-    err.textContent = d.error; err.hidden = false;
+    err.textContent = d.error || 'Could not create account.'; err.hidden = false;
     btn.disabled = false; btn.textContent = 'Create account';
   }
 });
