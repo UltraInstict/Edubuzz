@@ -4,11 +4,6 @@ import node from '@astrojs/node';
 
 export default defineConfig({
   output: 'server',
-  site: 'https://edubuzz.co.za',
-  server: {
-    host: '127.0.0.1',
-    port: 4321,
-  },
   adapter: node({ mode: 'standalone' }),
   vite: {
     define: {
