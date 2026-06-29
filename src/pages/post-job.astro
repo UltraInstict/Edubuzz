@@ -9,12 +9,18 @@ const csrfToken = generateToken();
 
 <Layout
   title="Post a Job"
-  description="Post a South African job listing on Edubuzz and reach active candidates across every province."
+  description="Reach thousands of South African job seekers. Basic listings are free. Featured listings from R299."
   canonicalUrl={Astro.url.href}
 >
+  <div class="hero">
+    <div class="container">
+      <h1>Post a job on Edubuzz</h1>
+      <p>Reach thousands of South African job seekers. Basic listings are free. Featured listings from R299.</p>
+    </div>
+  </div>
+
   <div class="post-grid">
     <main class="panel">
-      <h1>Post a Job</h1>
       <form id="post-job-form">
         <input type="hidden" name="_csrf" value={csrfToken} />
         <div class="field-grid">
@@ -73,8 +79,8 @@ const csrfToken = generateToken();
           <label><input type="radio" name="listing_type" value="featured" checked /> Featured listing &mdash; R299 (60 days, top of results, Featured badge)</label>
         </div>
         <div class="actions">
-          <button type="button" id="draft-btn">Save as draft</button>
-          <button type="submit" id="post-btn">Post Job &mdash; R299</button>
+          <button type="button" id="draft-btn" class="secondary-btn">Save as draft</button>
+          <button type="submit" id="post-btn" class="primary-btn">Post Job &mdash; R299</button>
         </div>
         <p id="post-message" hidden></p>
       </form>
@@ -143,7 +149,6 @@ const csrfToken = generateToken();
     message.hidden = false;
   });
 
-  // Restore draft on page load
   const saved = localStorage.getItem('edubuzz_job_draft');
   if (saved) {
     try {
@@ -157,146 +162,24 @@ const csrfToken = generateToken();
 </script>
 
 <style>
-  .post-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 16px;
-    max-width: 1100px;
-    margin: 1.5rem auto;
-    padding: 0 1.5rem;
-  }
-
-  h1 {
-    margin: 0 0 16px;
-    color: #1a1a1a;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-    line-height: 1.3;
-  }
-
-  form {
-    display: grid;
-    gap: 14px;
-  }
-
-  label {
-    display: grid;
-    gap: 4px;
-    color: #444444;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  .field-grid,
-  .salary-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .salary-grid span {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .salary-grid b {
-    color: #666666;
-    font-weight: 500;
-  }
-
-  .listing-type-row {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 0;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    padding: 9px 10px;
-  }
-
-  .listing-type-row label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-  }
-
-  .actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .actions button {
-    border: 1px solid #2d6a4f;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 10px 14px;
-  }
-
-  .actions button[type='button'] {
-    background: #ffffff;
-    color: #444444;
-    border-color: #e0e0e0;
-  }
-
-  .actions button[type='submit'] {
-    background: #2d6a4f;
-    color: #ffffff;
-  }
-
-  .pricing-card {
-    display: grid;
-    gap: 12px;
-    align-self: start;
-  }
-
-  .pricing-card > div {
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 1rem 1.25rem;
-  }
-
-  .pricing-card .selected {
-    border: 2px solid #2d6a4f;
-  }
-
-  .pricing-card h2 {
-    margin: 0 0 4px;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .pricing-card strong {
-    display: block;
-    margin-bottom: 8px;
-    color: #2d6a4f;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .pricing-card p,
-  #post-message {
-    margin: 0;
-    color: #666666;
-    font-size: 13px;
-  }
-
-  @media (max-width: 860px) {
-    .post-grid {
-      grid-template-columns: 1fr;
-      padding: 0 1rem;
-    }
-  }
-
-  @media (max-width: 560px) {
-    .field-grid,
-    .salary-grid {
-      grid-template-columns: 1fr;
-    }
-  }
+  .hero { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 1.5rem 0; }
+  .hero h1 { margin: 0; color: #111827; font-size: 1.875rem; font-weight: 700; letter-spacing: -0.02em; }
+  .hero p { margin: 0.25rem 0 0; color: #6b7280; font-size: 1rem; }
+  .post-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 1rem; max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
+  form { display: grid; gap: 0.875rem; }
+  label { display: grid; gap: 0.25rem; color: #6b7280; font-size: 0.75rem; font-weight: 500; }
+  .field-grid, .salary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+  .salary-grid span { display: flex; align-items: center; gap: 0.375rem; }
+  .salary-grid b { color: #6b7280; font-weight: 500; }
+  .listing-type-row { display: flex; flex-direction: column; gap: 0.375rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.5625rem 0.625rem; }
+  .listing-type-row label { display: flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; }
+  .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .pricing-card { display: grid; gap: 0.75rem; align-self: start; }
+  .pricing-card > div { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 1rem 1.25rem; }
+  .pricing-card .selected { border: 2px solid #166534; }
+  .pricing-card h2 { margin: 0 0 0.25rem; font-size: 0.875rem; font-weight: 600; }
+  .pricing-card strong { display: block; margin-bottom: 0.5rem; color: #166534; font-size: 0.875rem; font-weight: 600; }
+  .pricing-card p, #post-message { margin: 0; color: #6b7280; font-size: 0.875rem; }
+  @media (max-width: 860px) { .post-grid { grid-template-columns: 1fr; padding: 0 1rem; } }
+  @media (max-width: 560px) { .field-grid, .salary-grid { grid-template-columns: 1fr; } }
 </style>

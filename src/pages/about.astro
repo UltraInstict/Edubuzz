@@ -2,25 +2,21 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="About Edubuzz | South Africa's Job Board" description="Learn about Edubuzz, South Africa's job board." canonicalUrl={Astro.url.href}>
-  <main class="content-page panel">
+<Layout title="About Edubuzz" description="Edubuzz is South Africa's dedicated job board, connecting job seekers with employers across all nine provinces." canonicalUrl={Astro.url.href}>
+  <main class="content-page">
     <h1>About Edubuzz</h1>
-    <p>Edubuzz is South Africa's job board connecting job seekers with opportunities across government, health, education, IT, finance, and more.</p>
-    <p>Founded to make job searching simpler and more accessible for South Africans, we publish jobs from employers across all nine provinces daily.</p>
+    <p>Edubuzz is South Africa's dedicated job board, built to connect job seekers with employers across all nine provinces. We focus on making job searching simple, accessible, and free for every South African.</p>
+    <p>Whether you are looking for your first job, a learnership, a government position, or a senior role in IT or finance — Edubuzz lists opportunities across every sector and province daily.</p>
+    <p>For employers, Edubuzz offers affordable, targeted job listings that reach thousands of active South African job seekers every day. Our platform is simple to use, with no long-term contracts.</p>
+    <h2>Our mission</h2>
+    <p>To reduce unemployment in South Africa by making job opportunities visible, accessible, and easy to apply for — regardless of where you live or what device you use.</p>
     <div class="actions">
-      <a href="/contact">Contact us</a>
-      <a class="primary" href="/post-job">Post a job</a>
+      <a href="/jobs" class="primary-btn">Browse Jobs</a>
+      <a href="/post-job" class="secondary-btn">Post a Job</a>
     </div>
   </main>
 </Layout>
 
 <style>
-  .content-page { max-width: 760px; margin: 1.5rem auto; }
-  h1 { margin: 0 0 12px; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-  p { color: #444; font-size: 14px; }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
-  a { color: #2d6a4f; font-size: 13px; font-weight: 500; border: 1px solid #2d6a4f; border-radius: 4px; padding: 9px 12px; }
-  a:hover { background: #e8f4f0; }
-  .primary { background: #2d6a4f; color: #fff; }
-  .primary:hover { background: #245a42; border-color: #245a42; }
+  .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
 </style>
