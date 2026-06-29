@@ -1,17 +1,18 @@
 ---
 import Layout from '../layouts/Layout.astro';
 ---
+
 <Layout title="Privacy Policy | Edubuzz" description="Edubuzz privacy policy — how we collect, use, and protect your personal information." canonicalUrl={Astro.url.href}>
-  <main class="content-page panel">
-    <h1>Privacy Policy</h1>
-    <p>Last updated: May 2026</p>
-    <p>Edubuzz ("we", "us", "our") operates edubuzz.co.za. This policy explains how we collect, use, and protect your personal information in compliance with the Protection of Personal Information Act (POPIA), 2013.</p>
+  <div class="max-w-2xl mx-auto px-4 py-10">
+    <h1 class="text-2xl font-bold text-gray-900 mb-4">Privacy Policy</h1>
+    <p class="text-sm text-gray-600 leading-relaxed mb-2">Last updated: May 2026</p>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">Edubuzz ("we", "us", "our") operates edubuzz.co.za. This policy explains how we collect, use, and protect your personal information in compliance with the Protection of Personal Information Act (POPIA), 2013.</p>
 
-    <h2>Information we collect</h2>
-    <p>When you register as a job seeker or employer, we collect: name, email address, phone number (optional), and company details (for employers). When you apply for jobs, we collect your application details including your CV. We also collect anonymous usage data via standard analytics tools.</p>
+    <h2 class="text-xl font-semibold text-gray-900 mb-3 mt-8">Information we collect</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">When you register as a job seeker or employer, we collect: name, email address, phone number (optional), and company details (for employers). When you apply for jobs, we collect your application details including your CV. We also collect anonymous usage data via standard analytics tools.</p>
 
-    <h2>How we use your information</h2>
-    <ul>
+    <h2 class="text-xl font-semibold text-gray-900 mb-3 mt-8">How we use your information</h2>
+    <ul class="text-sm text-gray-600 leading-relaxed space-y-1 list-disc pl-5 mb-4">
       <li>To provide and maintain our job board services</li>
       <li>To notify you about job alerts you've subscribed to</li>
       <li>To connect employers with job seekers</li>
@@ -19,28 +20,19 @@ import Layout from '../layouts/Layout.astro';
       <li>To comply with legal obligations under South African law</li>
     </ul>
 
-    <h2>Data sharing</h2>
-    <p>We do not sell your personal information. We share your CV and application details only with the specific employer whose job you applied for. Your registration data is never shared with third parties for marketing.</p>
+    <h2 class="text-xl font-semibold text-gray-900 mb-3 mt-8">Data sharing</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">We do not sell your personal information. We share your CV and application details only with the specific employer whose job you applied for. Your registration data is never shared with third parties for marketing.</p>
 
-    <h2>Data retention</h2>
-    <p>We retain your account data while your account is active. You may request deletion of your account and associated data at any time by contacting us. Job applications and related data are retained for up to 12 months after the job posting expires.</p>
+    <h2 class="text-xl font-semibold text-gray-900 mb-3 mt-8">Data retention</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">We retain your account data while your account is active. You may request deletion of your account and associated data at any time by contacting us. Job applications and related data are retained for up to 12 months after the job posting expires.</p>
 
-    <h2>Your rights</h2>
-    <p>Under POPIA, you have the right to: access your personal data, request correction of inaccurate data, request deletion of your data, withdraw consent at any time, and lodge a complaint with the Information Regulator.</p>
+    <h2 class="text-xl font-semibold text-gray-900 mb-3 mt-8">Your rights</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">Under POPIA, you have the right to: access your personal data, request correction of inaccurate data, request deletion of your data, withdraw consent at any time, and lodge a complaint with the Information Regulator.</p>
 
-    <h2>Security</h2>
-    <p>We implement reasonable security measures to protect your data. All data is transmitted over HTTPS and passwords are stored using industry-standard hashing.</p>
+    <h2 class="text-xl font-semibold text-gray-900 mb-3 mt-8">Security</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">We implement reasonable security measures to protect your data. All data is transmitted over HTTPS and passwords are stored using industry-standard hashing.</p>
 
-    <h2>Contact</h2>
-    <p>For privacy-related queries, contact us at <a href="/contact">edubuzz.co.za/contact</a>.</p>
-  </main>
+    <h2 class="text-xl font-semibold text-gray-900 mb-3 mt-8">Contact</h2>
+    <p class="text-sm text-gray-600 leading-relaxed">For privacy-related queries, contact us at <a href="/contact" class="text-green-800 hover:text-green-900 hover:underline">edubuzz.co.za/contact</a>.</p>
+  </div>
 </Layout>
-
-<style>
-  .content-page { max-width: 760px; margin: 1.5rem auto; }
-  h1 { margin: 0 0 8px; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-  h2 { margin: 20px 0 8px; font-size: 15px; font-weight: 600; color: #1a1a1a; }
-  p, li { color: #444; font-size: 14px; line-height: 1.7; margin-bottom: 10px; }
-  ul { padding-left: 20px; margin-bottom: 10px; }
-  a { color: #2d6a4f; }
-</style>
