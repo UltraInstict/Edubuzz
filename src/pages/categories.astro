@@ -1,33 +1,21 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getCategoriesWithCounts } from '../services/jobService';
-
 const categories = await getCategoriesWithCounts();
 ---
 
-<Layout title="Browse Jobs by Category" description="Find jobs in your field across all nine South African provinces. Browse opportunities by category on Edubuzz." canonicalUrl={Astro.url.href}>
-  <main class="content-page">
-    <h1>Browse jobs by category</h1>
-    <p class="intro">Find jobs in your field across all nine provinces.</p>
-    <div class="category-grid">
-      {categories.map((cat) => (
-        <a href={`/category/${cat.slug}`} class="category-card">
-          <h2>{cat.name}</h2>
-          <span>{cat.count.toLocaleString('en-ZA')} jobs</span>
+<Layout title="Browse Jobs by Category" description="Find jobs in your field across all nine South African provinces." canonicalUrl={Astro.url.href}>
+  <div class="max-w-2xl mx-auto px-4 py-10">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Browse jobs by category</h1>
+    <p class="text-sm text-gray-600 leading-relaxed mb-6">Find jobs in your field across all nine provinces.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      {categories.map(cat => (
+        <a href={`/category/${cat.slug}`} class="bg-white border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors block">
+          <span class="text-sm font-medium text-gray-900">{cat.name}</span>
+          <span class="block text-xs text-gray-500 mt-0.5">{cat.count.toLocaleString('en-ZA')} jobs</span>
         </a>
       ))}
     </div>
-    <p class="footer-text">Can't find your category? <a href="/jobs">Browse all jobs</a> or use the search bar to find roles by keyword.</p>
-  </main>
+    <p class="text-sm text-gray-600 mt-6">Can't find your category? <a href="/jobs" class="text-green-800 hover:text-green-900 hover:underline font-medium">Browse all jobs</a> or use the search bar to find roles by keyword.</p>
+  </div>
 </Layout>
-
-<style>
-  .intro { color: #6b7280; font-size: var(--text-base); margin: 0 0 1.25rem; }
-  .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
-  .category-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 1rem; transition: border-color 150ms ease; }
-  .category-card:hover { border-color: #166534; }
-  .category-card h2 { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 600; color: #111827; }
-  .category-card span { font-size: 0.75rem; color: #6b7280; }
-  .footer-text { margin-top: 1.5rem; font-size: 0.875rem; color: #6b7280; }
-  .footer-text a { color: #166534; font-weight: 500; }
-</style>

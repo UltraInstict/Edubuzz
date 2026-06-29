@@ -1,69 +1,45 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { generateToken } from '../lib/csrf';
-
 const csrfToken = generateToken();
 ---
 
 <Layout title="Contact Edubuzz" description="Contact the Edubuzz team for advertising, job posting help, or general enquiries." canonicalUrl={Astro.url.href}>
-  <main class="form-page panel">
-    <h1>Contact Edubuzz</h1>
-    <p class="intro">Have a question, want to advertise, or need help posting a job? Get in touch and we will respond within one business day.</p>
-    <form id="contact-form">
+  <div class="max-w-2xl mx-auto px-4 py-10">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Contact Edubuzz</h1>
+    <p class="text-sm text-gray-600 leading-relaxed mb-6">Have a question, want to advertise, or need help posting a job? Get in touch and we will respond within one business day.</p>
+    <form id="contact-form" class="space-y-5">
       <input type="hidden" name="_csrf" value={csrfToken} />
-      <div class="hp-field" aria-hidden="true">
-        <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
-      </div>
-      <label>Name<input class="form-field" name="name" required /></label>
-      <label>Email<input class="form-field" type="email" name="email" required /></label>
-      <label>Subject
-        <select class="form-field" name="subject" required>
-          <option value="">Select a topic</option>
-          <option value="General Enquiry">General Enquiry</option>
-          <option value="Post a Job">Post a Job</option>
-          <option value="Advertise">Advertise</option>
-          <option value="Technical Issue">Technical Issue</option>
-          <option value="Other">Other</option>
-        </select>
-      </label>
-      <label>Message<textarea class="form-field" name="message" rows="6" required></textarea></label>
-      <p id="message" hidden aria-live="polite"></p>
-      <button type="submit" class="primary-btn">Send message</button>
+      <div class="sr-only"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Name</label><input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="name" required /></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Email</label><input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="email" name="email" required /></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><select class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="subject" required>
+        <option value="">Select a topic</option>
+        <option value="General Enquiry">General Enquiry</option>
+        <option value="Post a Job">Post a Job</option>
+        <option value="Advertise">Advertise</option>
+        <option value="Technical Issue">Technical Issue</option>
+        <option value="Other">Other</option>
+      </select></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Message</label><textarea class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="message" rows="6" required></textarea></div>
+      <p id="message" hidden class="text-sm"></p>
+      <button type="submit" class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Send message</button>
     </form>
-    <div class="below-form">
-      <p>Prefer email? Reach us at <a href="mailto:hello@edubuzz.co.za">hello@edubuzz.co.za</a></p>
-      <p class="response-note">We typically respond within 1 business day.</p>
+    <div class="mt-6 text-center text-sm text-gray-600">
+      <p>Prefer email? Reach us at <a href="mailto:hello@edubuzz.co.za" class="text-green-800 hover:text-green-900 hover:underline font-medium">hello@edubuzz.co.za</a></p>
+      <p class="text-xs text-gray-400 mt-1">We typically respond within 1 business day.</p>
     </div>
-  </main>
+  </div>
 </Layout>
 
 <script>
-  document.getElementById('contact-form')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget as HTMLFormElement;
-    const res = await fetch('/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.fromEntries(new FormData(form))),
-    });
+  document.getElementById('contact-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    const res = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
     const data = await res.json().catch(() => ({}));
     const msg = document.getElementById('message') as HTMLParagraphElement;
-    const okResponse = res.ok && (data.success !== false);
-    msg.textContent = okResponse ? 'Message sent. We will get back to you within 1 business day.' : (data.error || 'Could not send your message.');
+    msg.textContent = (res.ok && data.success !== false) ? 'Message sent. We will get back to you within 1 business day.' : (data.error || 'Could not send your message.');
     msg.hidden = false;
-    if (okResponse) form.reset();
   });
 </script>
-
-<style>
-  .form-page { max-width: 560px; margin: 1.5rem auto; }
-  h1 { margin: 0 0 0.25rem; }
-  .intro { color: #6b7280; font-size: var(--text-base); margin: 0 0 1.25rem; }
-  form { display: grid; gap: 0.75rem; }
-  label { display: grid; gap: 0.25rem; color: #6b7280; font-size: var(--text-sm); font-weight: 500; }
-  .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-  .below-form { margin-top: 1.25rem; text-align: center; }
-  .below-form p { font-size: var(--text-sm); color: #6b7280; margin: 0.25rem 0; }
-  .below-form a { color: #166534; font-weight: 500; }
-  .response-note { font-size: var(--text-xs); color: #9ca3af; }
-</style>

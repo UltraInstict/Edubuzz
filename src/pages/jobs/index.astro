@@ -4,110 +4,69 @@ import JobCard from '../../components/JobCard.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import SmartAdSlot from '../../components/SmartAdSlot.astro';
 import { getJobs, PROVINCES } from '../../lib/pocketbase';
-import { provinceName } from '../../lib/slugify';
 
 const params = Astro.url.searchParams;
 const page = Math.max(1, Number(params.get('page') || '1'));
 const search = params.get('search') || params.get('q') || '';
-const provinceParam = params.get('province') || '';
-const province = provinceParam ? provinceName(provinceParam) : '';
+const province = params.get('province') || '';
 const job_type = params.get('job_type') || params.get('type') || '';
-const { items: jobs, totalItems, totalPages } = await getJobs({ page, perPage: 20, search, province, job_type });
-
-const pills = [
-  { label: 'All', value: '' },
-  { label: 'Full-time', value: 'Full-time' },
-  { label: 'Part-time', value: 'Part-time' },
-  { label: 'Contract', value: 'Contract' },
-  { label: 'Remote', value: 'Remote' },
-  { label: 'Internship', value: 'Internship' },
-  { label: 'Learnership', value: 'Learnership' },
-  { label: 'Graduate', value: 'Graduate Programme' },
-];
+const result = await getJobs({ page, perPage: 20, search, province, job_type });
+const jobs = result.items;
+const totalItems = result.totalItems;
+const totalPages = result.totalPages;
 
 function withParams(next: Record<string, string>) {
   const out = new URLSearchParams();
   if (search) out.set('search', search);
   if (province) out.set('province', province);
   if (job_type) out.set('job_type', job_type);
-  Object.entries(next).forEach(([key, value]) => value ? out.set(key, value) : out.delete(key));
-  const query = out.toString();
-  return query ? `/jobs?${query}` : '/jobs';
+  for (const [k, v] of Object.entries(next)) {
+    if (v) out.set(k, v); else out.delete(k);
+  }
+  const q = out.toString();
+  return q ? `/jobs?${q}` : '/jobs';
 }
-
-function pageUrl(nextPage: number) {
-  return withParams({ page: String(nextPage) });
-}
+function pageUrl(n: number) { return withParams({ page: String(n) }); }
 ---
 
-<Layout title="Browse Jobs in South Africa" description="Browse all active jobs across South Africa." canonicalUrl={page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.pathname} prevPage={page > 1 ? pageUrl(Math.max(1, page - 1)) : undefined} nextPage={page < totalPages ? pageUrl(page + 1) : undefined}>
-  <section class="hero">
-    <div class="container">
-      <h1>Browse jobs</h1>
-      <p>Search all active job listings across South Africa.</p>
-      <form class="search-bar" action="/jobs" method="get">
-        <input type="search" name="search" value={search} placeholder="Job title, keyword, or company" />
-        <span class="divider" aria-hidden="true"></span>
-        <select name="province">
+<Layout title="Browse Jobs in South Africa" description="Browse all active jobs across South Africa." canonicalUrl={Astro.url.href}>
+  <div class="bg-white border-b border-gray-200 py-10">
+    <div class="max-w-6xl mx-auto px-4">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Browse jobs</h1>
+      <p class="text-sm text-gray-600 mb-6">Search all active job listings across South Africa.</p>
+      <form class="flex border-2 border-green-800 rounded-md overflow-hidden bg-white" action="/jobs" method="get" style="max-width:640px">
+        <input type="search" name="search" value={search} placeholder="Job title, keyword, or company" class="flex-1 border-none px-4 py-2.5 text-sm text-gray-900 outline-none" />
+        <select name="province" class="w-36 border-l border-gray-200 bg-gray-50 text-sm text-gray-600 outline-none px-2">
           <option value="">All provinces</option>
-          {PROVINCES.map((p) => <option value={p} selected={p === province}>{p}</option>)}
+          {PROVINCES.map(p => <option value={p} selected={p === province}>{p}</option>)}
         </select>
-        <button type="submit">Search</button>
+        <button type="submit" class="bg-green-800 text-white text-sm font-medium px-5 hover:bg-green-900 transition-colors">Search</button>
       </form>
-      <div class="filter-pills">
-        {pills.map((pill) => (
-          <a class={pill.value === job_type ? 'active' : ''} href={withParams({ job_type: pill.value, page: '' })}>{pill.label}</a>
-        ))}
+      <div class="flex gap-2 mt-3 flex-wrap">
+        {[{label:'All',value:''},{label:'Full-time',value:'Full-time'},{label:'Part-time',value:'Part-time'},{label:'Contract',value:'Contract'},{label:'Remote',value:'Remote'},{label:'Internship',value:'Internship'},{label:'Learnership',value:'Learnership'},{label:'Graduate',value:'Graduate Programme'}].map(p => {
+          const active = p.value === job_type;
+          return <a href={withParams({job_type:p.value,page:''})} class={active ? 'bg-green-800 text-white text-sm px-4 py-1.5 rounded-md' : 'border border-gray-200 text-gray-600 text-sm px-4 py-1.5 rounded-md hover:border-green-800 hover:text-green-800'}>{p.label}</a>
+        })}
       </div>
     </div>
-  </section>
-
-  <div class="page-grid">
-    <main>
-      <SmartAdSlot zone="strip" />
-      <div class="section-head">
-        <h2>All jobs</h2>
-        <a href="/">Latest jobs -></a>
+  </div>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+      <div>
+        <SmartAdSlot zone="strip" />
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xl font-semibold text-gray-900">All jobs</h2>
+          <a href="/" class="text-sm text-green-800 hover:underline font-medium">Latest jobs</a>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">Showing {jobs.length} of {totalItems.toLocaleString('en-ZA')} jobs</p>
+        {jobs.length > 0 ? jobs.map(j => <JobCard job={j} />) : <div class="bg-white border border-gray-200 rounded-md p-8 text-center"><p class="text-sm text-gray-600">No jobs found. Try adjusting your search.</p></div>}
+        {totalPages > 1 && <div class="flex gap-1 mt-4 flex-wrap">
+          {page > 1 && <a href={pageUrl(page-1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-gray-600 hover:border-green-800">Previous</a>}
+          {Array.from({length: Math.min(totalPages, 7)}, (_, i) => i + 1).map(p => <a href={pageUrl(p)} class={p === page ? 'bg-green-800 text-white rounded-md px-3 py-1.5 text-sm' : 'border border-gray-200 rounded-md px-3 py-1.5 text-sm text-gray-600 hover:border-green-800'}>{p}</a>)}
+          {page < totalPages && <a href={pageUrl(page+1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-gray-600 hover:border-green-800">Next</a>}
+        </div>}
       </div>
-      <p class="count">Showing {jobs.length} of {totalItems.toLocaleString('en-ZA')} jobs</p>
-      {jobs.length ? jobs.map((job, index) => (
-        <>
-          <JobCard job={job} />
-          {(index + 1) % 5 === 0 && index < jobs.length - 1 && <SmartAdSlot zone="infeed" />}
-        </>
-      )) : <div class="panel">No jobs found for "{search}"{province ? ` in ${province}` : ''}.</div>}
-      {totalPages > 1 && (
-        <nav class="pagination">
-          {page > 1 && <a href={pageUrl(page - 1)}>Previous</a>}
-          {Array.from({ length: Math.min(totalPages, 7) }, (_, index) => <a href={pageUrl(index + 1)} class={index + 1 === page ? 'active' : ''}>{index + 1}</a>)}
-          {page < totalPages && <a href={pageUrl(page + 1)}>Next</a>}
-        </nav>
-      )}
-    </main>
-    <aside><Sidebar /></aside>
+      <aside><Sidebar /></aside>
+    </div>
   </div>
 </Layout>
-
-<style>
-  .hero { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 1.5rem 0; }
-  .hero h1 { margin: 0; color: #1a1a1a; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; line-height: 1.3; }
-  .hero p { margin: 6px 0 12px; color: #666; font-size: 13px; }
-  .search-bar { display: flex; width: 100%; max-width: 820px; border: 2px solid #2d6a4f; border-radius: 6px; overflow: hidden; background: #fff; }
-  .search-bar input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 12px 14px; font-size: 14px; }
-  .divider { width: 1px; background: #e0e0e0; margin: 8px 0; flex-shrink: 0; }
-  .search-bar select { width: 140px; flex-shrink: 0; background: #f9f9f9; border: 0; color: #444; font-size: 13px; outline: 0; padding: 0 10px; }
-  .search-bar button { flex-shrink: 0; background: #2d6a4f; color: #fff; font-weight: 600; padding: 0 20px; border: 0; white-space: nowrap; }
-  .filter-pills { display: flex; gap: 6px; margin-top: 10px; max-width: 100%; overflow-x: auto; padding-bottom: 2px; }
-  .filter-pills a { flex: 0 0 auto; background: #f3f2ee; border: 1px solid #ddd; border-radius: 20px; padding: 4px 11px; font-size: 12px; color: #444; }
-  .filter-pills a.active { background: #e8f4f0; border-color: #2d6a4f; color: #2d6a4f; }
-  .page-grid { display: grid; grid-template-columns: 1fr 240px; gap: 16px; padding: 0 1.5rem; margin: 1rem auto; max-width: 1100px; }
-  .count { margin: 4px 0 8px; color: #666; font-size: 13px; }
-  /* Tighten ad-strip and infeed gaps in main column */
-  main > :global(.smart-ad--strip) { margin: 0 0 1rem; }
-  main > :global(.section-head) { margin-top: 0; }
-  .pagination { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
-  .pagination a { border: 1px solid #e0e0e0; background: #fff; border-radius: 4px; padding: 5px 10px; font-size: 12px; }
-  .pagination .active { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
-  @media (max-width: 820px) { .page-grid { grid-template-columns: 1fr; padding: 0 1rem; } }
-  @media (max-width: 560px) { .search-bar { flex-wrap: wrap; } .search-bar input { flex: 0 0 100%; border-bottom: 1px solid #e0e0e0; } .divider { display: none; } .search-bar select { flex: 1; width: auto; min-width: 0; height: 42px; } .search-bar button { height: 42px; } }
-</style>

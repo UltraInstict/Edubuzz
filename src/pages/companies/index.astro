@@ -1,6 +1,5 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import EmptyState from '../../components/ui/EmptyState.astro';
 import { getEmployers, PROVINCES } from '../../lib/pocketbase';
 import { getJobCountsByEmployer } from '../../services/jobService';
 
@@ -9,64 +8,35 @@ const [employers, jobCounts] = await Promise.all([
   getEmployers({ page: 1, perPage: 100, province, verifiedOnly: true }).catch(() => ({ items: [] })),
   getJobCountsByEmployer(),
 ]);
-
-function provinceUrl(value: string) {
-  return value ? `/companies?province=${encodeURIComponent(value)}` : '/companies';
-}
-
-function jobCount(employer: any) {
-  return jobCounts[employer.id] || jobCounts[employer.company_name] || 0;
-}
+function provinceSlug(value: string) { return value ? `/companies?province=${encodeURIComponent(value)}` : '/companies'; }
+function jobCount(emp: any) { return jobCounts[emp.id] || jobCounts[emp.company_name] || 0; }
 ---
 
 <Layout title="Companies Hiring in South Africa" description="Browse verified employers hiring on Edubuzz." canonicalUrl={Astro.url.href}>
-  <main class="companies">
-    <h1>Companies hiring on Edubuzz</h1>
-    <p class="subtitle">Verified employers with active job listings</p>
-
-    <div class="province-pills">
-      <a class={!province ? 'active' : ''} href="/companies">All</a>
-      {PROVINCES.map((p) => <a class={p === province ? 'active' : ''} href={provinceUrl(p)}>{p}</a>)}
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Companies hiring on Edubuzz</h1>
+    <p class="text-sm text-gray-600 mb-4">Verified employers with active job listings</p>
+    <div class="flex gap-2 mb-6 flex-wrap">
+      {['',...PROVINCES].map(p => <a href={provinceSlug(p)} class={`text-sm px-4 py-1.5 rounded-md transition-colors ${p===province||(!province&&p==='') ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-600 hover:border-green-800 hover:text-green-800'}`}>{p||'All'}</a>)}
     </div>
-
     {employers.items.length ? (
-      <section class="grid">
-        {employers.items.map((employer: any) => (
-          <a href={`/company/${employer.company_slug}`} class="company-card">
-            <div class="cc-top">
-              <strong>{employer.company_name}</strong>
-              {employer.verified && <span class="cc-verified">Verified</span>}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {employers.items.map((emp: any) => (
+          <a href={`/company/${emp.company_slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-base font-semibold text-gray-900">{emp.company_name}</span>
+              {emp.verified && <span class="text-xs bg-green-50 text-green-800 px-2 py-0.5 rounded-md font-medium">Verified</span>}
             </div>
-            <span>{[employer.city, employer.province].filter(Boolean).join(', ') || 'South Africa'}</span>
-            <em>{jobCount(employer)} open position{jobCount(employer) !== 1 ? 's' : ''}</em>
+            <p class="text-sm text-gray-600">{[emp.city, emp.province].filter(Boolean).join(', ') || 'South Africa'}</p>
+            <p class="text-sm text-green-800 font-medium mt-1">{jobCount(emp)} open position{jobCount(emp) !== 1 ? 's' : ''}</p>
           </a>
         ))}
-      </section>
+      </div>
     ) : (
-      <EmptyState
-        icon="job"
-        title="No companies registered yet"
-        description={province ? `No verified employers in ${province} right now.` : 'Be the first to post a job on Edubuzz.'}
-        action={{ label: 'Post a job', href: '/post-job' }}
-      />
+      <div class="bg-white border border-gray-200 rounded-md p-8 text-center">
+        <p class="text-sm text-gray-600 mb-4">{province ? `No verified employers in ${province} right now.` : 'No companies registered yet. Be the first to post a job on Edubuzz.'}</p>
+        <a href="/post-job" class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Post a job</a>
+      </div>
     )}
-  </main>
+  </div>
 </Layout>
-
-<style>
-  .companies { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
-  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; letter-spacing: -0.3px; color: #1a1a1a; }
-  .subtitle { margin: 0 0 12px; color: #666; font-size: 13px; }
-  .province-pills { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
-  .province-pills a { flex: 0 0 auto; background: #f3f2ee; border: 1px solid #ddd; border-radius: 20px; padding: 4px 11px; font-size: 12px; color: #444; white-space: nowrap; }
-  .province-pills a.active { background: #e8f4f0; border-color: #2d6a4f; color: #2d6a4f; }
-  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .company-card { display: grid; gap: 4px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem 1.25rem; text-decoration: none; transition: border-color 0.15s; }
-  .company-card:hover { border-color: #2d6a4f; }
-  .cc-top { display: flex; align-items: center; gap: 6px; }
-  strong { color: #1a1a1a; font-size: 14px; font-weight: 600; }
-  .cc-verified { color: #2d6a4f; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; padding: 2px 6px; border: 1px solid currentColor; border-radius: 3px; }
-  span { color: #666; font-size: 13px; }
-  em { color: #2d6a4f; font-size: 12px; font-style: normal; font-weight: 500; }
-  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
-</style>

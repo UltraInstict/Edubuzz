@@ -16,151 +16,39 @@ const plainDescription = stripHtml(job.description || '', 160);
 const shortDescription = (job.description || '').length > plainDescription.length ? `${plainDescription.replace(/\.+$/, '')}...` : plainDescription;
 ---
 
-<a href={`/job/${job.slug}`} class={`job-card ${compact ? 'compact' : ''}`} data-job-id={job.id}>
+<a href={`/job/${job.slug}`} class="block bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors cursor-pointer mb-2" data-job-id={job.id}>
   <article>
-    <div class="job-top">
+    <div class="flex items-start justify-between gap-3">
       <div>
-        <h2 class="job-title">{job.title}</h2>
-        <p class="job-company">{job.company} · {job.city || job.province}</p>
+        <h2 class="text-base font-semibold text-gray-900">{job.title}</h2>
+        <p class="text-sm text-gray-600 mt-0.5">{job.company} · {job.city || job.province}</p>
       </div>
-      <div class="badges">
-        {job.featured && <span class="badge featured">Featured</span>}
-        {isNew && <span class="badge new">New</span>}
+      <div class="flex gap-1 flex-shrink-0">
+        {job.featured && <span class="text-xs bg-green-50 text-green-800 px-2 py-0.5 rounded-md font-medium">Featured</span>}
+        {isNew && <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-medium">New</span>}
       </div>
     </div>
 
     {!compact && (
       <>
-        <div class="job-meta">
+        <div class="text-xs text-gray-500 flex flex-wrap gap-x-3 gap-y-1 mt-3">
           <span>{job.category}</span>
           <span>{job.job_type}</span>
           <span>{job.city ? `${job.city}, ${job.province}` : job.province}</span>
           <span>{timeAgo(job.created)}</span>
         </div>
-        <p class="job-desc">{shortDescription}</p>
+        <p class="text-sm text-gray-600 leading-relaxed mt-2">{shortDescription}</p>
       </>
     )}
 
-    <div class="job-footer">
-      <span class={`job-salary ${isSalaryDisclosed(job.salary_min, job.salary_max) ? '' : 'muted'}`}>
+    <div class="flex items-center justify-between gap-3 mt-3">
+      <span class="text-sm font-medium text-gray-900">
         {formatSalary(job.salary_min, job.salary_max)}
       </span>
-      {!compact && <span class="apply-btn">View job &rarr;</span>}
+      {!compact && <span class="text-sm text-green-800 hover:underline font-medium">View job</span>}
     </div>
   </article>
 </a>
-
-<style>
-  .job-card {
-    display: block;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-    padding: 1rem;
-    margin-bottom: 0.5rem;
-    color: #111827;
-    transition: border-color 150ms ease, box-shadow 150ms ease;
-  }
-
-  .job-card:hover {
-    border-color: #166534;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  .job-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-
-  .job-title {
-    margin: 0;
-    color: #111827;
-    font-size: 1rem;
-    font-weight: 700;
-    line-height: 1.25;
-  }
-
-  .job-company {
-    margin: 0.25rem 0 0;
-    color: #6b7280;
-    font-size: 0.875rem;
-    line-height: 1.4;
-  }
-
-  .badges {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.25rem;
-    flex-shrink: 0;
-  }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 0.375rem;
-    padding: 0.125rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    line-height: 1.3;
-  }
-
-  .featured {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    color: #166534;
-  }
-
-  .new {
-    background: #f0fdf4;
-    border: 1px solid #166534;
-    color: #14532d;
-  }
-
-  .job-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem 0.75rem;
-    margin-top: 0.5rem;
-    color: #6b7280;
-    font-size: 0.875rem;
-  }
-
-  .job-desc {
-    margin: 0.5rem 0 0;
-    color: #6b7280;
-    font-size: 0.875rem;
-    line-height: 1.625;
-  }
-
-  .job-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-top: 0.625rem;
-  }
-
-  .job-salary {
-    color: #111827;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .job-salary.muted { color: #9ca3af; }
-
-  .apply-btn {
-    color: #166534;
-    font-size: 0.875rem;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .compact { padding: 0.625rem; }
-  .compact .job-footer { margin-top: 0.375rem; }
-</style>
 
 <script>
   document.querySelectorAll('[data-job-id]').forEach((card) => {
@@ -168,12 +56,7 @@ const shortDescription = (job.description || '').length > plainDescription.lengt
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
       const jobId = (card as HTMLElement).dataset.jobId;
       if (jobId) {
-        fetch('/api/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jobId, event: 'click' }),
-          keepalive: true,
-        }).catch(() => {});
+        fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId, event: 'click' }), keepalive: true }).catch(() => {});
       }
     });
   });

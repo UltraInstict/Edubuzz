@@ -3,20 +3,16 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="About Edubuzz" description="Edubuzz is South Africa's dedicated job board, connecting job seekers with employers across all nine provinces." canonicalUrl={Astro.url.href}>
-  <main class="content-page">
-    <h1>About Edubuzz</h1>
-    <p>Edubuzz is South Africa's dedicated job board, built to connect job seekers with employers across all nine provinces. We focus on making job searching simple, accessible, and free for every South African.</p>
-    <p>Whether you are looking for your first job, a learnership, a government position, or a senior role in IT or finance — Edubuzz lists opportunities across every sector and province daily.</p>
-    <p>For employers, Edubuzz offers affordable, targeted job listings that reach thousands of active South African job seekers every day. Our platform is simple to use, with no long-term contracts.</p>
-    <h2>Our mission</h2>
-    <p>To reduce unemployment in South Africa by making job opportunities visible, accessible, and easy to apply for — regardless of where you live or what device you use.</p>
-    <div class="actions">
-      <a href="/jobs" class="primary-btn">Browse Jobs</a>
-      <a href="/post-job" class="secondary-btn">Post a Job</a>
+  <div class="max-w-2xl mx-auto px-4 py-10">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">About Edubuzz</h1>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">Edubuzz is South Africa's dedicated job board, built to connect job seekers with employers across all nine provinces. We focus on making job searching simple, accessible, and free for every South African.</p>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">Whether you are looking for your first job, a learnership, a government position, or a senior role in IT or finance — Edubuzz lists opportunities across every sector and province daily.</p>
+    <p class="text-sm text-gray-600 leading-relaxed mb-8">For employers, Edubuzz offers affordable, targeted job listings that reach thousands of active South African job seekers every day. Our platform is simple to use, with no long-term contracts.</p>
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Our mission</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-6">To reduce unemployment in South Africa by making job opportunities visible, accessible, and easy to apply for — regardless of where you live or what device you use.</p>
+    <div class="flex gap-3 flex-wrap">
+      <a href="/jobs" class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Browse Jobs</a>
+      <a href="/post-job" class="inline-block border border-green-800 text-green-800 text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-50 transition-colors">Post a Job</a>
     </div>
-  </main>
+  </div>
 </Layout>
-
-<style>
-  .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
-</style>

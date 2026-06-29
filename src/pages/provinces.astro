@@ -1,44 +1,19 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { PROVINCES } from '../lib/pocketbase';
-
 const provinceSlug = (p: string) => p.toLowerCase().replace(/\s+/g, '-');
 ---
 
-<Layout title="Browse Jobs by Province | Edubuzz" description="Browse teaching and education jobs across all South African provinces on Edubuzz." canonicalUrl={Astro.url.href}>
-  <main class="container" style="max-width:900px;margin:1.5rem auto;padding:0 1.5rem;">
-    <h1 style="font-size:22px;font-weight:600;margin:0 0 16px;letter-spacing:-0.3px;">Browse by province</h1>
-    <div class="province-grid">
-      {PROVINCES.map((province) => (
-        <a href={`/province/${provinceSlug(province)}`} class="province-card">
-          <h2>{province}</h2>
+<Layout title="Browse Jobs by Province" description="Browse jobs across all nine South African provinces on Edubuzz." canonicalUrl={Astro.url.href}>
+  <div class="max-w-2xl mx-auto px-4 py-10">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Browse by province</h1>
+    <p class="text-sm text-gray-600 mb-6">Find jobs in your province across all sectors.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {PROVINCES.map(p => (
+        <a href={`/province/${provinceSlug(p)}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+          <span class="text-base font-semibold text-gray-900">{p}</span>
         </a>
       ))}
     </div>
-  </main>
+  </div>
 </Layout>
-
-<style>
-  .province-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-  }
-  .province-card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 16px;
-    text-decoration: none;
-    transition: border-color 0.15s;
-  }
-  .province-card:hover {
-    border-color: #2d6a4f;
-  }
-  .province-card h2 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 600;
-    color: #1a1a1a;
-  }
-</style>

@@ -3,27 +3,10 @@ import SmartAdSlot from './SmartAdSlot.astro';
 import { getCategoriesWithCounts, PROVINCES, slugify } from '../lib/pocketbase';
 import { generateToken } from '../lib/csrf';
 
-interface Props {
-  category?: string;
-}
-
+interface Props { category?: string; }
 const { category } = Astro.props;
-
 const categories = await getCategoriesWithCounts();
 const csrfToken = generateToken();
-
-const MOST_SEARCHED = [
-  'General Worker Jobs',
-  'Admin Jobs',
-  'Security Jobs',
-  'Cashier Jobs',
-  'Driver Jobs',
-  'Cleaner Jobs',
-  'Warehouse Jobs',
-  'Receptionist Jobs',
-  'Data Capturer Jobs',
-  'Call Centre Jobs',
-];
 
 const BROWSE_LINKS = [
   { label: 'Remote Jobs', href: '/remote-jobs' },
@@ -32,200 +15,80 @@ const BROWSE_LINKS = [
   { label: 'Learnerships', href: '/learnerships' },
   { label: 'Bursaries', href: '/bursaries' },
 ];
+const MOST_SEARCHED = ['General Worker','Admin','Security','Cashier','Driver','Cleaner','Warehouse','Receptionist','Data Capturer','Call Centre'];
 ---
 
-<div class="sidebar-stack">
-  <section class="side-card">
-    <h2>Browse Jobs</h2>
-    <div class="link-list">
-      {BROWSE_LINKS.map((link) => (<a href={link.href}>{link.label}</a>))}
+<div class="space-y-4">
+  <div class="bg-white border border-gray-200 rounded-md p-5">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Browse Jobs</h3>
+    <div class="space-y-1">
+      {BROWSE_LINKS.map(l => <a href={l.href} class="block text-sm text-gray-600 hover:text-green-800">{l.label}</a>)}
     </div>
-  </section>
+  </div>
 
   <SmartAdSlot zone="sidebar" category={category} />
 
-  <section class="side-card">
-    <h2>Browse by category</h2>
-    <div class="category-list">
-      {categories.map((cat) => (
-        <a href={`/category/${cat.slug}`} class="category-row">
+  <div class="bg-white border border-gray-200 rounded-md p-5">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Browse by category</h3>
+    <div class="space-y-0.5">
+      {categories.map(cat => (
+        <a href={`/category/${cat.slug}`} class="flex justify-between text-sm text-gray-600 hover:text-green-800 py-0.5">
           <span>{cat.name}</span>
-          <span class="count">{cat.count}</span>
+          <span class="text-xs text-gray-400">{cat.count}</span>
         </a>
       ))}
-      <a href="/categories" class="view-all">View all</a>
+      <a href="/categories" class="block text-sm text-green-800 font-medium mt-2 pt-1 border-t border-gray-100">View all categories</a>
     </div>
-  </section>
+  </div>
 
-  <section class="side-card">
-    <h2>Browse by province</h2>
-    <div class="province-grid">
-      {PROVINCES.map((province) => (
-        <a href={`/province/${slugify(province)}`}>{province}</a>
+  <div class="bg-white border border-gray-200 rounded-md p-5">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Browse by province</h3>
+    <div class="grid grid-cols-2 gap-1">
+      {PROVINCES.map(p => (
+        <a href={`/province/${slugify(p)}`} class="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 hover:border-green-800 hover:text-green-800 text-center">{p}</a>
       ))}
     </div>
-  </section>
+  </div>
 
-  <section class="side-card">
-    <h2>Most Searched</h2>
-    <div class="link-list">
-      {MOST_SEARCHED.map((term) => (
-        <a href={`/jobs?q=${encodeURIComponent(term.replace(/ Jobs$/, ''))}`}>{term}</a>
+  <div class="bg-white border border-gray-200 rounded-md p-5">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Most Searched</h3>
+    <div class="space-y-1">
+      {MOST_SEARCHED.map(term => (
+        <a href={`/jobs?q=${encodeURIComponent(term)}`} class="block text-sm text-gray-600 hover:text-green-800">{term} Jobs</a>
       ))}
     </div>
-  </section>
+  </div>
 
-  <section class="side-card">
-    <h2>Job alert signup</h2>
-    <form id="alert-form" action="/api/alerts" method="post" novalidate>
+  <div class="bg-white border border-gray-200 rounded-md p-5">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Job alert signup</h3>
+    <form id="alert-form" action="/api/alerts" method="post" novalidate class="space-y-3">
       <input type="hidden" name="_csrf" value={csrfToken} />
-      <label>
-        Email
-        <input class="form-field" type="email" name="email" required />
-      </label>
-      <label>
-        Keyword
-        <input class="form-field" type="text" name="keyword" />
-      </label>
-      <label>
-        Province
-        <select class="form-field" name="province">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="email" name="email" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Keyword</label>
+        <input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="text" name="keyword" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Province</label>
+        <select class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="province">
           <option value="">Any province</option>
-          {PROVINCES.map((province) => <option value={province}>{province}</option>)}
+          {PROVINCES.map(p => <option value={p}>{p}</option>)}
         </select>
-      </label>
-      <p id="alert-error" class="alert-error" hidden>Email is required.</p>
-      <p id="alert-status" class="alert-status" hidden></p>
-      <button type="submit">Create alert</button>
+      </div>
+      <button type="submit" class="w-full bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Create alert</button>
     </form>
-  </section>
+  </div>
 </div>
 
 <script>
-  document.getElementById('alert-form')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget as HTMLFormElement;
-    const email = form.email.value.trim();
-    const error = document.getElementById('alert-error') as HTMLParagraphElement;
-    const status = document.getElementById('alert-status') as HTMLParagraphElement;
-
-    error.hidden = true;
-    status.hidden = true;
-
-    if (!email) { error.hidden = false; return; }
-
-    const response = await fetch('/api/alerts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.fromEntries(new FormData(form))),
-    });
-    const body = await response.json().catch(() => ({}));
-    const okResponse = response.ok && body.success !== false;
-    status.textContent = okResponse ? 'Alert created.' : (body.error || body.message || 'Could not create alert.');
-    status.hidden = false;
-    if (okResponse) form.reset();
+  document.getElementById('alert-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    const res = await fetch('/api/alerts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
+    const body = await res.json().catch(() => ({}));
+    if (body.success) form.reset();
   });
 </script>
-
-<style>
-  .sidebar-stack { display: grid; gap: 1rem; }
-
-  .side-card {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-    padding: 1rem 1.25rem;
-  }
-
-  .side-card h2 {
-    margin: 0 0 0.625rem;
-    color: #111827;
-    font-size: 0.875rem;
-    font-weight: 700;
-  }
-
-  .category-list { display: grid; gap: 0.125rem; }
-
-  .category-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    color: #6b7280;
-    font-size: 0.875rem;
-    padding: 0.3125rem 0;
-  }
-
-  .category-row:hover,
-  .view-all:hover,
-  .province-grid a:hover { color: #166534; }
-
-  .count {
-    background: #f3f4f6;
-    border-radius: 0.375rem;
-    color: #9ca3af;
-    font-size: 0.75rem;
-    padding: 0.0625rem 0.375rem;
-  }
-
-  .view-all {
-    color: #166534;
-    font-size: 0.75rem;
-    font-weight: 500;
-    margin-top: 0.375rem;
-  }
-
-  .province-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.375rem;
-  }
-
-  .province-grid a {
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-    color: #6b7280;
-    font-size: 0.75rem;
-    line-height: 1.3;
-    padding: 0.375rem 0.4375rem;
-    text-align: center;
-  }
-
-  form { display: grid; gap: 0.5rem; }
-
-  label {
-    display: grid;
-    gap: 0.25rem;
-    color: #6b7280;
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-
-  button {
-    width: 100%;
-    background: #166534;
-    color: #ffffff;
-    border: none;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0.5625rem 0.75rem;
-    transition: background 150ms ease;
-  }
-
-  button:hover { background: #14532d; }
-
-  .alert-error, .alert-status { margin: 0; font-size: 0.75rem; }
-  .alert-error { color: #dc2626; }
-  .alert-status { color: #166534; }
-
-  .link-list { display: grid; gap: 0.1875rem; }
-
-  .link-list a { color: #6b7280; font-size: 0.875rem; padding: 0.3125rem 0; }
-  .link-list a:hover { color: #166534; }
-
-  @media (max-width: 480px) {
-    .side-card { padding: 0.75rem 1rem; }
-    .province-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-</style>

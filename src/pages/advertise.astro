@@ -3,60 +3,31 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Advertise on Edubuzz" description="Reach thousands of active South African job seekers. Banner ads, category sponsorships, and featured employer placements." canonicalUrl={Astro.url.href}>
-  <main class="content-page">
-    <h1>Advertise on Edubuzz</h1>
-    <p class="intro">Reach thousands of active South African job seekers daily. Edubuzz offers targeted advertising options for recruitment agencies, training providers, and employers.</p>
-
-    <div class="tiers">
-      <div class="tier">
-        <h2>Banner Ad</h2>
-        <p class="price">R499<span>/week</span></p>
-        <ul>
-          <li>728x90 leaderboard on homepage</li>
-          <li>Top of page placement</li>
-          <li>50,000+ impressions per week</li>
-        </ul>
-        <a href="mailto:advertise@edubuzz.co.za" class="primary-btn">Book this slot</a>
+  <div class="max-w-2xl mx-auto px-4 py-10">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Advertise on Edubuzz</h1>
+    <p class="text-sm text-gray-600 leading-relaxed mb-8">Reach thousands of active South African job seekers daily. Edubuzz offers targeted advertising options for recruitment agencies, training providers, and employers.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-white border border-gray-200 rounded-md p-5 flex flex-col gap-3">
+        <h2 class="text-base font-semibold text-gray-900">Banner Ad</h2>
+        <p class="text-2xl font-bold text-green-800">R499<span class="text-sm font-normal text-gray-400">/week</span></p>
+        <ul class="text-sm text-gray-600 space-y-1.5 mb-4"><li>728x90 leaderboard on homepage</li><li>Top of page placement</li><li>50,000+ impressions per week</li></ul>
+        <a href="mailto:advertise@edubuzz.co.za" class="mt-auto inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors text-center">Book this slot</a>
       </div>
-      <div class="tier">
-        <h2>Category Sponsor</h2>
-        <p class="price">R299<span>/month</span></p>
-        <ul>
-          <li>Your brand on a category page</li>
-          <li>Target IT, Government, Health, more</li>
-          <li>Sidebar placement</li>
-        </ul>
-        <a href="mailto:advertise@edubuzz.co.za" class="primary-btn">Book this slot</a>
+      <div class="bg-white border border-gray-200 rounded-md p-5 flex flex-col gap-3">
+        <h2 class="text-base font-semibold text-gray-900">Category Sponsor</h2>
+        <p class="text-2xl font-bold text-green-800">R299<span class="text-sm font-normal text-gray-400">/month</span></p>
+        <ul class="text-sm text-gray-600 space-y-1.5 mb-4"><li>Your brand on a category page</li><li>Target IT, Government, Health, more</li><li>Sidebar placement</li></ul>
+        <a href="mailto:advertise@edubuzz.co.za" class="mt-auto inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors text-center">Book this slot</a>
       </div>
-      <div class="tier">
-        <h2>Featured Employer</h2>
-        <p class="price">R199<span>/month</span></p>
-        <ul>
-          <li>Company logo and link in sidebar</li>
-          <li>Featured on all listing pages</li>
-          <li>Direct link to your company page</li>
-        </ul>
-        <a href="mailto:advertise@edubuzz.co.za" class="primary-btn">Book this slot</a>
+      <div class="bg-white border border-gray-200 rounded-md p-5 flex flex-col gap-3">
+        <h2 class="text-base font-semibold text-gray-900">Featured Employer</h2>
+        <p class="text-2xl font-bold text-green-800">R199<span class="text-sm font-normal text-gray-400">/month</span></p>
+        <ul class="text-sm text-gray-600 space-y-1.5 mb-4"><li>Company logo and link in sidebar</li><li>Featured on all listing pages</li><li>Direct link to your company page</li></ul>
+        <a href="mailto:advertise@edubuzz.co.za" class="mt-auto inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors text-center">Book this slot</a>
       </div>
     </div>
-
-    <div class="contact-cta">
-      <p>Email us at <a href="mailto:advertise@edubuzz.co.za">advertise@edubuzz.co.za</a> to book your slot or discuss custom advertising packages.</p>
+    <div class="bg-green-50 border border-green-100 rounded-md p-4 text-center">
+      <p class="text-sm text-green-800 font-medium">Email us at <a href="mailto:advertise@edubuzz.co.za" class="hover:underline">advertise@edubuzz.co.za</a> to book your slot or discuss custom advertising packages.</p>
     </div>
-  </main>
+  </div>
 </Layout>
-
-<style>
-  .intro { color: #6b7280; font-size: var(--text-base); margin: 0 0 1.5rem; }
-  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-  .tier { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
-  .tier h2 { margin: 0; font-size: 1.125rem; font-weight: 700; }
-  .price { font-size: 1.5rem; font-weight: 700; color: #166534; margin: 0; }
-  .price span { font-size: 0.875rem; font-weight: 400; color: #9ca3af; }
-  .tier ul { padding-left: 1.125rem; color: #6b7280; font-size: 0.875rem; display: grid; gap: 0.3125rem; margin: 0; }
-  .tier .primary-btn { margin-top: auto; text-align: center; }
-  .contact-cta { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.375rem; padding: 1rem 1.25rem; text-align: center; }
-  .contact-cta p { color: #166534; font-size: 0.875rem; font-weight: 500; margin: 0; }
-  .contact-cta a { color: #166534; font-weight: 600; }
-  @media (max-width: 760px) { .tiers { grid-template-columns: 1fr; } }
-</style>

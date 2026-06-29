@@ -6,16 +6,16 @@ const serverError = Astro.url.searchParams.get('error') || '';
 ---
 
 <Layout title="Login" description="Log in to your Edubuzz account." canonicalUrl="/login">
-  <div class="auth-wrap">
-    <div class="auth-card">
-      <h1>Login</h1>
-      <div id="error-msg" class="error-msg" aria-live="polite" hidden={!serverError}>{serverError}</div>
-      <form id="login-form" action="/api/auth/login" method="post">
+  <div class="max-w-md mx-auto px-4 py-16">
+    <div class="bg-white border border-gray-200 rounded-md p-8">
+      <h1 class="text-2xl font-bold text-gray-900 mb-6">Login</h1>
+      <div id="error-msg" class="bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-800 mb-4" hidden={!serverError}>{serverError}</div>
+      <form id="login-form" action="/api/auth/login" method="post" class="space-y-4">
         <input type="hidden" name="_csrf" value={csrfToken} />
-        <label>Email<input type="email" name="email" required autocomplete="email" /></label>
-        <label>Password<input type="password" name="password" required autocomplete="current-password" /></label>
-        <button type="submit" id="submit-btn">Login</button>
-        <p>No account yet? <a href="/register">Register</a></p>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">Email</label><input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="email" name="email" required autocomplete="email" /></div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">Password</label><input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="password" name="password" required autocomplete="current-password" /></div>
+        <button type="submit" id="submit-btn" class="w-full bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Login</button>
+        <p class="text-sm text-gray-600 text-center">No account yet? <a href="/register" class="text-green-800 hover:text-green-900 hover:underline font-medium">Register</a></p>
       </form>
     </div>
   </div>
@@ -24,42 +24,18 @@ const serverError = Astro.url.searchParams.get('error') || '';
 <script>
 document.getElementById('login-form').addEventListener('submit', async e => {
   e.preventDefault();
-  const btn = e.target.querySelector('button[type=submit]');
-  const err = document.getElementById('error-msg');
-  btn.disabled = true; btn.textContent = 'Logging in\u2026'; err.hidden = true;
+  const form = e.target as HTMLFormElement;
+  const btn = form.querySelector('button') as HTMLButtonElement;
+  const err = document.getElementById('error-msg') as HTMLDivElement;
+  btn.disabled = true; btn.textContent = 'Logging in...'; err.hidden = true;
   try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { Accept: 'application/json' },
-      credentials: 'same-origin',
-      body: new FormData(e.target),
-    });
+    const res = await fetch('/api/auth/login', { method: 'POST', headers: { Accept: 'application/json' }, credentials: 'same-origin', body: new FormData(form) });
     const d = await res.json().catch(() => ({}));
     if (d.success) {
       const next = new URLSearchParams(location.search).get('next');
       const adminRoles = ['admin', 'superadmin', 'moderator'];
-      const dest = next || (adminRoles.includes(d.role) ? '/admin' : d.role === 'employer' ? '/employer/dashboard' : '/');
-      location.href = dest;
-    } else {
-      err.textContent = d.error || 'Login failed.'; err.hidden = false;
-      btn.disabled = false; btn.textContent = 'Login';
-    }
-  } catch {
-    err.textContent = 'Network error. Try again.'; err.hidden = false;
-    btn.disabled = false; btn.textContent = 'Login';
-  }
+      location.href = next || (adminRoles.includes(d.role) ? '/admin' : d.role === 'employer' ? '/employer/dashboard' : '/');
+    } else { err.textContent = d.error || 'Login failed.'; err.hidden = false; btn.disabled = false; btn.textContent = 'Login'; }
+  } catch { err.textContent = 'Network error. Try again.'; err.hidden = false; btn.disabled = false; btn.textContent = 'Login'; }
 });
 </script>
-
-<style>
-  .auth-wrap { max-width: 480px; margin: 3rem auto; padding: 0 1rem; }
-  .auth-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 2rem; }
-  h1 { font-size: 20px; font-weight: 600; margin: 0 0 1.5rem; letter-spacing: -0.3px; }
-  .error-msg { background: #fcebeb; border: 1px solid #f09595; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #a32d2d; margin-bottom: 1rem; }
-  label { display: block; color: #444; font-size: 13px; margin-bottom: 4px; }
-  input { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px 10px; font-size: 14px; margin: 4px 0 14px; }
-  input:focus { border-color: #2d6a4f; outline: none; }
-  button { width: 100%; background: #2d6a4f; color: #fff; border: 0; border-radius: 4px; padding: 10px; font-size: 14px; font-weight: 500; cursor: pointer; }
-  p { font-size: 13px; color: #666; text-align: center; margin-top: 1rem; }
-  a { color: #2d6a4f; }
-</style>
