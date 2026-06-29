@@ -1,6 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #166534;
+  --color-brand-hover: #14532d;
+  --color-brand-light: #f0fdf4;
+  --color-accent: #166534;
+  --color-accent-dark: #14532d;
+  --color-accent-light: #f0fdf4;
+  --color-navy: #111827;
+  --color-ink: #111827;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+}
 
 * { box-sizing: border-box; }
 
