@@ -9,7 +9,6 @@ if (redirect) return redirect;
 
 const sources = await listXmlSources();
 
-// All outbound feed endpoints — submit these to aggregator partner portals.
 const PROVINCES_FEED = [
   ['Gauteng', 'gauteng'],
   ['Western Cape', 'western-cape'],
@@ -41,106 +40,92 @@ const siteOrigin = Astro.url.origin;
 ---
 
 <Layout title="Imports — Admin" description="Manage inbound and outbound feeds." canonicalUrl={Astro.url.href}>
-  <main class="admin-wrap">
-    <header>
-      <h1>Imports & Feeds</h1>
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="flex justify-between items-center mb-4 flex-wrap gap-3">
+      <h1 class="text-2xl font-bold text-gray-900 m-0">Imports & Feeds</h1>
       <AdminNav current="import" />
     </header>
 
-    <div class="tabs" role="tablist">
-      <button class="tab active" role="tab" aria-selected="true" data-tab="inbound" id="tab-inbound">Inbound Recruiter Feeds</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="outbound" id="tab-outbound">Outbound Feeds</button>
+    <div class="flex gap-1 border-b border-gray-200 mb-4" role="tablist">
+      <button class="tab active bg-transparent border-0 border-b-2 border-green-800 px-3.5 py-2 text-sm font-medium text-green-800 cursor-pointer" role="tab" aria-selected="true" data-tab="inbound" id="tab-inbound">Inbound Recruiter Feeds</button>
+      <button class="tab bg-transparent border-0 border-b-2 border-transparent px-3.5 py-2 text-sm text-gray-500 hover:text-gray-900 cursor-pointer" role="tab" aria-selected="false" data-tab="outbound" id="tab-outbound">Outbound Feeds</button>
     </div>
 
-    <!-- ───────── CSV upload ───────── -->
-    <section class="csv-section">
-      <h2>Import from CSV file</h2>
-      <p class="panel-desc">Upload a CSV with columns: <code>title, company, category, province, city, description, apply_url, apply_email, salary_min, salary_max, job_type, source</code>. Other columns are ignored.</p>
+    <!-- CSV upload -->
+    <section class="bg-white border border-gray-200 rounded-md p-5 mb-4">
+      <h2 class="text-sm font-semibold text-gray-900 mb-1.5">Import from CSV file</h2>
+      <p class="text-xs text-gray-500 mb-3">Upload a CSV with columns: <code class="bg-gray-100 px-1 py-0.5 rounded text-xs">title, company, category, province, city, description, apply_url, apply_email, salary_min, salary_max, job_type, source</code>. Other columns are ignored.</p>
       <form id="csv-form" enctype="multipart/form-data">
-        <div class="csv-row">
-          <label class="csv-file">
-            <input type="file" name="file" accept=".csv,text/csv" required />
-          </label>
-          <label class="csv-toggle">
-            <input type="checkbox" name="active" value="true" />
-            <span>Mark all imported jobs as <strong>active</strong> immediately</span>
-          </label>
-          <label class="csv-toggle">
-            <input type="checkbox" name="featured" value="true" />
-            <span>Mark all imported jobs as <strong>featured</strong></span>
-          </label>
+        <div class="flex flex-col gap-2 mb-3">
+          <label class="csv-file"><input type="file" name="file" accept=".csv,text/csv" required class="text-sm p-1.5 border border-dashed border-gray-300 rounded-md w-full" /></label>
+          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"><input type="checkbox" name="active" value="true" class="w-4 h-4" /><span>Mark all imported jobs as <strong class="text-gray-900">active</strong> immediately</span></label>
+          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"><input type="checkbox" name="featured" value="true" class="w-4 h-4" /><span>Mark all imported jobs as <strong class="text-gray-900">featured</strong></span></label>
         </div>
-        <button type="submit" class="btn-primary" id="csv-submit">Import CSV</button>
+        <button type="submit" class="btn-primary bg-green-800 text-white text-sm font-medium px-5 py-2 rounded-md hover:bg-green-900 transition-colors" id="csv-submit">Import CSV</button>
       </form>
       <div id="csv-result" hidden></div>
     </section>
 
-    <!-- ───────── JSON upload ───────── -->
-    <section class="csv-section">
-      <h2>Import from JSON file</h2>
-      <p class="panel-desc">Upload a JSON file containing an array of job objects, or an object with a <code>jobs</code> array. Same field names as CSV.</p>
+    <!-- JSON upload -->
+    <section class="bg-white border border-gray-200 rounded-md p-5 mb-4">
+      <h2 class="text-sm font-semibold text-gray-900 mb-1.5">Import from JSON file</h2>
+      <p class="text-xs text-gray-500 mb-3">Upload a JSON file containing an array of job objects, or an object with a <code class="bg-gray-100 px-1 py-0.5 rounded text-xs">jobs</code> array. Same field names as CSV.</p>
       <form id="json-form" enctype="multipart/form-data">
-        <div class="csv-row">
-          <label class="csv-file">
-            <input type="file" name="file" accept=".json,application/json" required />
-          </label>
-          <label class="csv-toggle">
-            <input type="checkbox" name="active" value="true" />
-            <span>Mark all imported jobs as <strong>active</strong> immediately</span>
-          </label>
-          <label class="csv-toggle">
-            <input type="checkbox" name="featured" value="true" />
-            <span>Mark all imported jobs as <strong>featured</strong></span>
-          </label>
+        <div class="flex flex-col gap-2 mb-3">
+          <label class="csv-file"><input type="file" name="file" accept=".json,application/json" required class="text-sm p-1.5 border border-dashed border-gray-300 rounded-md w-full" /></label>
+          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"><input type="checkbox" name="active" value="true" class="w-4 h-4" /><span>Mark all imported jobs as <strong class="text-gray-900">active</strong> immediately</span></label>
+          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"><input type="checkbox" name="featured" value="true" class="w-4 h-4" /><span>Mark all imported jobs as <strong class="text-gray-900">featured</strong></span></label>
         </div>
-        <button type="submit" class="btn-primary" id="json-submit">Import JSON</button>
+        <button type="submit" class="btn-primary bg-green-800 text-white text-sm font-medium px-5 py-2 rounded-md hover:bg-green-900 transition-colors" id="json-submit">Import JSON</button>
       </form>
       <div id="json-result" hidden></div>
     </section>
 
-    <!-- ───────── Tab 1: Inbound Recruiter Feeds ───────── -->
+    <!-- Tab 1: Inbound Recruiter Feeds -->
     <section class="tab-panel" id="panel-inbound" role="tabpanel" aria-labelledby="tab-inbound">
-      <div class="panel-head">
-        <p class="panel-desc">Pull jobs <strong>from</strong> recruiters. We crawl each feed every 6 hours.</p>
-        <button class="btn-primary" id="open-add">+ Add Feed</button>
+      <div class="flex justify-between items-center mb-3 gap-3 flex-wrap">
+        <p class="text-sm text-gray-500 m-0">Pull jobs <strong class="text-gray-900">from</strong> recruiters. We crawl each feed every 6 hours.</p>
+        <button class="btn-primary bg-green-800 text-white text-sm font-medium px-5 py-2 rounded-md hover:bg-green-900 transition-colors" id="open-add">+ Add Feed</button>
       </div>
 
-      <div class="table-wrap">
-        <table class="data-table">
+      <div class="overflow-auto bg-white border border-gray-200 rounded-md">
+        <table class="data-table w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th>Feed Name</th>
-              <th>URL</th>
-              <th>Format</th>
-              <th>Status</th>
-              <th>Last Crawled</th>
-              <th>Last Count</th>
-              <th>Actions</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Feed Name</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">URL</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Format</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Status</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Last Crawled</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Last Count</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody>
             {sources.length === 0 && (
-              <tr><td colspan="7" class="empty">No inbound feeds yet. Click <em>Add Feed</em> to create one.</td></tr>
+              <tr><td colspan="7" class="py-12 text-center text-gray-500">No inbound feeds yet. Click <em>Add Feed</em> to create one.</td></tr>
             )}
             {sources.map((s: any) => (
               <>
-                <tr data-row={s.id}>
-                  <td class="name">{s.name}</td>
-                  <td class="url"><a href={s.feed_url} target="_blank" rel="noopener noreferrer">{s.feed_url}</a></td>
-                  <td><span class="zone-badge">{s.format}</span></td>
-                  <td>
-                    <span class={`status ${s.active ? 'on' : 'off'}`}>{s.active ? 'Active' : 'Paused'}</span>
-                  </td>
-                  <td class="dim">{s.last_crawled ? new Date(s.last_crawled).toLocaleString('en-ZA') : 'Never'}</td>
-                  <td>{s.last_job_count ?? 0}</td>
-                  <td class="actions">
-                    <button class="btn-sm" data-edit={s.id} data-name={s.name} data-url={s.feed_url} data-format={s.format} data-active={String(!!s.active)}>Edit</button>
-                    <button class="btn-sm" data-crawl={s.id}>Crawl Now</button>
-                    <button class="btn-sm btn-danger" data-delete={s.id}>Delete</button>
+                <tr class="border-b border-gray-200" data-row={s.id}>
+                  <td class="px-2.5 py-2.5 font-semibold text-gray-900">{s.name}</td>
+                  <td class="px-2.5 py-2.5"><a href={s.feed_url} target="_blank" rel="noopener noreferrer" class="text-green-800 text-xs break-all">{s.feed_url}</a></td>
+                  <td class="px-2.5 py-2.5"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{s.format}</span></td>
+                  <td class="px-2.5 py-2.5"><span class={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${s.active ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-800'}`}>{s.active ? 'Active' : 'Paused'}</span></td>
+                  <td class="px-2.5 py-2.5 text-gray-500 text-xs">{s.last_crawled ? new Date(s.last_crawled).toLocaleString('en-ZA') : 'Never'}</td>
+                  <td class="px-2.5 py-2.5">{s.last_job_count ?? 0}</td>
+                  <td class="px-2.5 py-2.5">
+                    <div class="flex gap-1 flex-wrap">
+                      <button class="px-2 py-0.5 text-xs rounded border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors" data-edit={s.id} data-name={s.name} data-url={s.feed_url} data-format={s.format} data-active={String(!!s.active)}>Edit</button>
+                      <button class="px-2 py-0.5 text-xs rounded border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors" data-crawl={s.id}>Crawl Now</button>
+                      <button class="px-2 py-0.5 text-xs rounded border border-red-200 text-red-600 bg-white hover:bg-red-50 transition-colors" data-delete={s.id}>Delete</button>
+                    </div>
                   </td>
                 </tr>
                 {s.error_log && (
-                  <tr class="error-row"><td colspan="7"><details><summary>Last error</summary><pre>{s.error_log}</pre></details></td></tr>
+                  <tr class="error-row"><td colspan="7" class="bg-red-50 px-2 py-2">
+                    <details class="text-xs"><summary class="text-red-600 cursor-pointer font-medium">Last error</summary><pre class="mt-1.5 whitespace-pre-wrap text-xs text-red-800 bg-white p-2 rounded-md border border-red-200">{s.error_log}</pre></details>
+                  </td></tr>
                 )}
               </>
             ))}
@@ -149,29 +134,29 @@ const siteOrigin = Astro.url.origin;
       </div>
     </section>
 
-    <!-- ───────── Tab 2: Outbound Feeds (Read-Only Directory) ───────── -->
+    <!-- Tab 2: Outbound Feeds -->
     <section class="tab-panel" id="panel-outbound" role="tabpanel" aria-labelledby="tab-outbound" hidden>
-      <p class="panel-desc">Submit these URLs directly to each aggregator's partner portal. Feeds are live and update automatically.</p>
+      <p class="text-sm text-gray-500 mb-3">Submit these URLs directly to each aggregator's partner portal. Feeds are live and update automatically.</p>
 
-      <div class="table-wrap">
-        <table class="data-table">
+      <div class="overflow-auto bg-white border border-gray-200 rounded-md">
+        <table class="data-table w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th>Aggregator</th>
-              <th>Feed URL</th>
-              <th>Format</th>
-              <th>Description</th>
-              <th>Action</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Aggregator</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Feed URL</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Format</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Description</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs whitespace-nowrap">Action</th>
             </tr>
           </thead>
           <tbody>
             {OUTBOUND_FEEDS.map((f) => (
-              <tr>
-                <td class="name">{f.name}</td>
-                <td class="url"><a href={f.path} target="_blank" rel="noopener noreferrer">{siteOrigin}{f.path}</a></td>
-                <td><span class="zone-badge">{f.format}</span></td>
-                <td class="dim">{f.desc}</td>
-                <td><button class="btn-sm" data-copy={`${siteOrigin}${f.path}`}>Copy URL</button></td>
+              <tr class="border-b border-gray-200">
+                <td class="px-2.5 py-2.5 font-semibold text-gray-900">{f.name}</td>
+                <td class="px-2.5 py-2.5"><a href={f.path} target="_blank" rel="noopener noreferrer" class="text-green-800 text-xs break-all">{siteOrigin}{f.path}</a></td>
+                <td class="px-2.5 py-2.5"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{f.format}</span></td>
+                <td class="px-2.5 py-2.5 text-gray-500 text-xs">{f.desc}</td>
+                <td class="px-2.5 py-2.5"><button class="px-2 py-0.5 text-xs rounded border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors" data-copy={`${siteOrigin}${f.path}`}>Copy URL</button></td>
               </tr>
             ))}
           </tbody>
@@ -180,31 +165,31 @@ const siteOrigin = Astro.url.origin;
     </section>
   </main>
 
-  <!-- Add / Edit Feed Modal -->
-  <div id="feed-modal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal">
-      <button type="button" class="modal-close" aria-label="Close">&times;</button>
-      <h3 id="modal-title">Add Feed</h3>
-      <form id="feed-form">
+  <!-- Modal -->
+  <div id="feed-modal" class="fixed inset-0 bg-black/45 flex items-center justify-center z-[9999]" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="bg-white rounded-md p-6 w-[90%] max-w-[460px] relative">
+      <button type="button" class="absolute top-2.5 right-3.5 bg-transparent border-0 text-xl text-gray-500 cursor-pointer" aria-label="Close">&times;</button>
+      <h3 id="modal-title" class="text-base font-semibold text-gray-900 mb-3.5">Add Feed</h3>
+      <form id="feed-form" class="space-y-3">
         <input type="hidden" name="id" value="" />
-        <label>Feed Name<input class="form-field" name="name" required /></label>
-        <label>Feed URL<input class="form-field" name="feed_url" type="url" required placeholder="https://example.com/feed.xml" /></label>
-        <label>Format
-          <select class="form-field" name="format" required>
+        <label class="block text-xs font-medium text-gray-600"><span class="block mb-1">Feed Name</span><input class="form-field w-full border border-gray-200 rounded-md px-2.5 py-2 text-sm focus:outline-none focus:border-green-800" name="name" required /></label>
+        <label class="block text-xs font-medium text-gray-600"><span class="block mb-1">Feed URL</span><input class="form-field w-full border border-gray-200 rounded-md px-2.5 py-2 text-sm focus:outline-none focus:border-green-800" name="feed_url" type="url" required placeholder="https://example.com/feed.xml" /></label>
+        <label class="block text-xs font-medium text-gray-600"><span class="block mb-1">Format</span>
+          <select class="form-field w-full border border-gray-200 rounded-md px-2.5 py-2 text-sm focus:outline-none focus:border-green-800" name="format" required>
             <option value="xml">XML (generic)</option>
             <option value="indeed_xml">Indeed XML</option>
             <option value="json">JSON</option>
             <option value="rss">RSS 2.0</option>
           </select>
         </label>
-        <label class="checkbox-row">
-          <input type="checkbox" name="active" value="true" checked />
+        <label class="flex items-center gap-2 text-xs font-medium text-gray-600 cursor-pointer">
+          <input type="checkbox" name="active" value="true" checked class="w-4 h-4" />
           <span>Active (crawl every 6 hours)</span>
         </label>
-        <p id="modal-error" hidden></p>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary modal-cancel">Cancel</button>
-          <button type="submit" class="btn-primary">Save</button>
+        <p id="modal-error" hidden class="text-red-600 text-xs m-0"></p>
+        <div class="flex justify-end gap-2 mt-1">
+          <button type="button" class="btn-secondary bg-white text-gray-600 text-sm font-medium px-5 py-2 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors modal-cancel">Cancel</button>
+          <button type="submit" class="btn-primary bg-green-800 text-white text-sm font-medium px-5 py-2 rounded-md hover:bg-green-900 transition-colors">Save</button>
         </div>
       </form>
     </div>
@@ -212,24 +197,23 @@ const siteOrigin = Astro.url.origin;
 </Layout>
 
 <script>
-  // ─── CSV Upload ─────────────────────────────────────────────────
   function renderImportResult(target: HTMLDivElement, body: any, ok: boolean) {
     if (ok && body.success !== false) {
       const d = body.data || {};
       const imported = d.imported ?? 0;
       const skipped = d.skipped ?? 0;
       const errors: string[] = Array.isArray(d.errors) ? d.errors : [];
-      let html = `<div class="result-success"><strong>Successfully imported: ${imported} job${imported === 1 ? '' : 's'}</strong></div>`;
+      let html = `<div class="bg-green-50 text-green-800 p-2.5 rounded-md text-sm mb-2"><strong>Successfully imported: ${imported} job${imported === 1 ? '' : 's'}</strong></div>`;
       if (skipped > 0) {
-        html += `<div class="result-warn">Skipped: ${skipped} ${skipped === 1 ? 'row' : 'rows'} (missing title)</div>`;
+        html += `<div class="bg-amber-50 text-amber-800 p-2 rounded-md text-xs mb-2">Skipped: ${skipped} ${skipped === 1 ? 'row' : 'rows'} (missing title)</div>`;
       }
       if (errors.length > 0) {
         const escaped = errors.map(e => e.replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c] as string))).join('\n');
-        html += `<details class="result-errors"><summary>${errors.length} error${errors.length === 1 ? '' : 's'}</summary><pre>${escaped}</pre></details>`;
+        html += `<details class="mt-2"><summary class="cursor-pointer text-xs text-red-600">${errors.length} error${errors.length === 1 ? '' : 's'}</summary><pre class="bg-white p-2 rounded-md border border-red-200 text-xs whitespace-pre-wrap mt-1.5 max-h-[200px] overflow-y-auto">${escaped}</pre></details>`;
       }
       target.innerHTML = html;
     } else {
-      target.innerHTML = `<div class="result-error">${body.error || 'Import failed.'}</div>`;
+      target.innerHTML = `<div class="bg-red-50 text-red-800 p-2.5 rounded-md text-sm">${body.error || 'Import failed.'}</div>`;
     }
     target.hidden = false;
   }
@@ -241,10 +225,10 @@ const siteOrigin = Astro.url.origin;
   csvForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     csvSubmit.disabled = true;
+    csvSubmit.classList.add('opacity-50');
     const original = csvSubmit.textContent;
     csvSubmit.textContent = 'Importing…';
     csvResult.hidden = true;
-
     try {
       const fd = new FormData(csvForm);
       const res = await fetch('/api/admin/import-csv', { method: 'POST', body: fd });
@@ -252,15 +236,15 @@ const siteOrigin = Astro.url.origin;
       renderImportResult(csvResult, body, res.ok);
       if (res.ok && body.success !== false) csvForm.reset();
     } catch {
-      csvResult.innerHTML = `<div class="result-error">Network error during import.</div>`;
+      csvResult.innerHTML = '<div class="bg-red-50 text-red-800 p-2.5 rounded-md text-sm">Network error during import.</div>';
       csvResult.hidden = false;
     } finally {
       csvSubmit.disabled = false;
+      csvSubmit.classList.remove('opacity-50');
       csvSubmit.textContent = original;
     }
   });
 
-  // ─── JSON Upload ────────────────────────────────────────────────
   const jsonForm = document.getElementById('json-form') as HTMLFormElement;
   const jsonSubmit = document.getElementById('json-submit') as HTMLButtonElement;
   const jsonResult = document.getElementById('json-result') as HTMLDivElement;
@@ -268,10 +252,10 @@ const siteOrigin = Astro.url.origin;
   jsonForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     jsonSubmit.disabled = true;
+    jsonSubmit.classList.add('opacity-50');
     const original = jsonSubmit.textContent;
     jsonSubmit.textContent = 'Importing…';
     jsonResult.hidden = true;
-
     try {
       const fd = new FormData(jsonForm);
       const res = await fetch('/api/admin/import-json', { method: 'POST', body: fd });
@@ -279,28 +263,28 @@ const siteOrigin = Astro.url.origin;
       renderImportResult(jsonResult, body, res.ok);
       if (res.ok && body.success !== false) jsonForm.reset();
     } catch {
-      jsonResult.innerHTML = `<div class="result-error">Network error during import.</div>`;
+      jsonResult.innerHTML = '<div class="bg-red-50 text-red-800 p-2.5 rounded-md text-sm">Network error during import.</div>';
       jsonResult.hidden = false;
     } finally {
       jsonSubmit.disabled = false;
+      jsonSubmit.classList.remove('opacity-50');
       jsonSubmit.textContent = original;
     }
   });
 
-  // ─── Tabs ────────────────────────────────────────────────────────
   const tabs = document.querySelectorAll<HTMLButtonElement>('.tab');
   const panels = document.querySelectorAll<HTMLElement>('.tab-panel');
   tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
-      tabs.forEach((t) => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
-      tab.classList.add('active');
+      tabs.forEach((t) => { t.classList.remove('border-green-800','text-green-800'); t.classList.add('border-transparent','text-gray-500'); t.setAttribute('aria-selected', 'false'); });
+      tab.classList.add('border-green-800','text-green-800');
+      tab.classList.remove('border-transparent','text-gray-500');
       tab.setAttribute('aria-selected', 'true');
       const target = tab.dataset.tab;
       panels.forEach((p) => { p.hidden = p.id !== `panel-${target}`; });
     });
   });
 
-  // ─── Copy URL buttons ────────────────────────────────────────────
   document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const url = btn.dataset.copy || '';
@@ -310,7 +294,6 @@ const siteOrigin = Astro.url.origin;
         btn.textContent = 'Copied!';
         setTimeout(() => { btn.textContent = original; }, 1500);
       } catch {
-        // Fallback for older browsers
         const input = document.createElement('input');
         input.value = url;
         document.body.appendChild(input);
@@ -322,7 +305,6 @@ const siteOrigin = Astro.url.origin;
     });
   });
 
-  // ─── Modal handling ──────────────────────────────────────────────
   const modal = document.getElementById('feed-modal') as HTMLElement;
   const modalTitle = document.getElementById('modal-title') as HTMLElement;
   const modalError = document.getElementById('modal-error') as HTMLParagraphElement;
@@ -349,7 +331,6 @@ const siteOrigin = Astro.url.origin;
 
   document.getElementById('open-add')?.addEventListener('click', () => openModal('add'));
   document.querySelector('.modal-close')?.addEventListener('click', closeModal);
-  document.querySelector('.modal-cancel')?.addEventListener('click', closeModal);
   modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
   document.querySelectorAll<HTMLButtonElement>('[data-edit]').forEach((btn) => {
@@ -362,7 +343,6 @@ const siteOrigin = Astro.url.origin;
     }));
   });
 
-  // ─── Submit feed (add/edit) ───────────────────────────────────────
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
@@ -387,7 +367,6 @@ const siteOrigin = Astro.url.origin;
     }
   });
 
-  // ─── Crawl Now buttons ────────────────────────────────────────────
   document.querySelectorAll<HTMLButtonElement>('[data-crawl]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const original = btn.textContent;
@@ -409,7 +388,6 @@ const siteOrigin = Astro.url.origin;
     });
   });
 
-  // ─── Delete buttons ────────────────────────────────────────────────
   document.querySelectorAll<HTMLButtonElement>('[data-delete]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       if (!confirm('Delete this feed source? This will not remove already-imported jobs.')) return;
@@ -424,86 +402,7 @@ const siteOrigin = Astro.url.origin;
 </script>
 
 <style>
-  /* ─── CSV upload section ─── */
-  .csv-section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 16px; }
-  .csv-section h2 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--text); }
-  .csv-section .panel-desc { margin: 0 0 12px; font-size: 12px; color: var(--text-muted); }
-  .csv-section code { background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
-  .csv-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-  .csv-file input[type="file"] { font-size: 13px; padding: 6px; border: 1px dashed #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
-  .csv-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
-  .csv-toggle input { width: 16px; height: 16px; }
-  .result-success { background: #e8f4f0; color: #2d6a4f; padding: 10px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 8px; }
-  .result-warn { background: #fef3c7; color: #92400e; padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 8px; }
-  .result-error { background: #fef2f2; color: #991b1b; padding: 10px 12px; border-radius: 4px; font-size: 13px; }
-  .result-errors { margin-top: 8px; }
-  .result-errors summary { cursor: pointer; font-size: 12px; color: #dc2626; }
-  .result-errors pre { background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #fecaca; font-size: 11px; white-space: pre-wrap; margin-top: 6px; max-height: 200px; overflow-y: auto; }
-
-  .admin-wrap { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
-  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-  h1 { font-size: 22px; margin: 0; font-weight: 600; letter-spacing: -0.3px; color: var(--text); }
-
-  /* ─── Tabs ─── */
-  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
-  .tab { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 8px 14px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; }
-  .tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-  .tab:hover:not(.active) { color: var(--text); }
-
-  .tab-panel { display: block; }
-  .tab-panel[hidden] { display: none; }
-
-  .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
-  .panel-desc { margin: 0; font-size: 13px; color: var(--text-muted); }
-
-  /* ─── Table ─── */
-  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
-  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .data-table th { text-align: left; padding: 10px 8px; font-weight: 600; color: var(--text-secondary); background: #fafafa; border-bottom: 2px solid var(--border); font-size: 12px; white-space: nowrap; }
-  .data-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
-  .data-table tr:last-child td { border-bottom: 0; }
-  .data-table .empty { padding: 2rem; text-align: center; color: var(--text-muted); }
-  .data-table .name { font-weight: 600; color: var(--text); }
-  .data-table .url a { color: var(--brand); font-size: 12px; word-break: break-all; }
-  .data-table .dim { color: var(--text-muted); font-size: 12px; }
-  .zone-badge { display: inline-block; padding: 2px 8px; background: #f0f0f0; border-radius: 999px; font-size: 11px; font-weight: 500; }
-  .status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
-  .status.on { background: var(--brand-light); color: var(--brand); }
-  .status.off { background: var(--warning-light); color: #92400e; }
-  .actions { display: flex; gap: 4px; flex-wrap: wrap; }
-
-  /* ─── Buttons ─── */
-  .btn-primary { background: var(--brand); color: #fff; border: 1px solid var(--brand); padding: 7px 14px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; }
-  .btn-primary:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
-  .btn-secondary { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); padding: 7px 14px; border-radius: 4px; font-size: 13px; cursor: pointer; }
-  .btn-sm { background: #fff; color: var(--text-secondary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; white-space: nowrap; }
-  .btn-sm:hover { background: #f5f5f5; }
-  .btn-danger { color: #dc2626; border-color: #fca5a5; }
-  .btn-danger:hover { background: #fef2f2; }
-
-  .error-row td { background: #fef2f2; padding: 6px 8px; }
-  .error-row details { font-size: 12px; }
-  .error-row summary { color: #dc2626; cursor: pointer; font-weight: 500; }
-  .error-row pre { margin: 6px 0 0; white-space: pre-wrap; font-size: 11px; color: #991b1b; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #fecaca; }
-
-  /* ─── Modal ─── */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-  .modal-overlay[hidden] { display: none; }
-  .modal { background: #fff; border-radius: 8px; padding: 24px; width: 90%; max-width: 460px; position: relative; }
-  .modal-close { position: absolute; top: 10px; right: 14px; background: none; border: 0; font-size: 22px; color: #888; cursor: pointer; }
-  .modal h3 { margin: 0 0 14px; font-size: 16px; font-weight: 600; }
-  .modal form { display: grid; gap: 12px; }
-  .modal label { display: grid; gap: 4px; font-size: 12px; font-weight: 500; color: var(--text-secondary); }
-  .checkbox-row { display: flex !important; align-items: center; gap: 8px; }
-  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
-  .form-field { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
-  #modal-error { color: #dc2626; font-size: 12px; margin: 0; }
-
-  /* ─── Mobile ─── */
   @media (max-width: 640px) {
-    .panel-head { flex-direction: column; align-items: stretch; }
-    .actions { flex-direction: column; }
-    .btn-sm { width: 100%; text-align: center; }
     .data-table { font-size: 12px; }
     .data-table th, .data-table td { padding: 8px 6px; }
   }

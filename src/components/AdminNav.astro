@@ -17,44 +17,15 @@ const links = [
 ];
 ---
 
-<nav class="admin-nav">
+<nav class="flex flex-wrap gap-1 sticky top-0 z-10 bg-white py-2 border-b border-gray-200 mb-1">
   {links.map((link) => (
-    <a href={link.href} class={link.key === current ? 'active' : ''}>{link.label}</a>
+    <a
+      href={link.href}
+      class={`text-xs font-medium px-2.5 py-1 border-b-2 transition-colors ${
+        link.key === current
+          ? 'text-green-800 font-semibold border-green-800'
+          : 'text-gray-500 border-transparent hover:text-gray-900'
+      }`}
+    >{link.label}</a>
   ))}
 </nav>
-
-<style>
-  .admin-nav {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: #ffffff;
-    padding: 8px 0;
-    border-bottom: 1px solid #f0f0f0;
-    margin-bottom: 4px;
-  }
-
-  .admin-nav a {
-    color: #888888;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 4px 10px;
-    transition: color 0.15s ease, background 0.15s ease;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-  }
-
-  .admin-nav a:hover {
-    color: #1a1a1a;
-    background: transparent;
-  }
-
-  .admin-nav a.active {
-    color: #2d6a4f;
-    font-weight: 600;
-    border-bottom-color: #2d6a4f;
-  }
-</style>

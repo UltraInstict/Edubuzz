@@ -27,24 +27,24 @@ const faq = [
   description={`Complete career guide for breaking into the ${category.name.toLowerCase()} industry in South Africa. Qualifications, skills, salary ranges, and top employers. Updated for 2026.`}
   canonicalUrl={Astro.url.href}
 >
-  <div class="bg-white border-b border-border py-10 px-6">
+  <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">
-      <nav class="text-xs text-muted mb-4" aria-label="Breadcrumb">
+      <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
         <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href="/resources" class="hover:text-navy">Resources</a> &rsaquo; <span class="text-navy font-medium">Careers in {category.name}</span>
       </nav>
       <h1 class="text-2xl font-semibold text-navy">How to Get Into {category.name} in South Africa</h1>
-      <p class="text-muted text-sm mt-2">Your complete guide to starting and advancing a career in {category.name.toLowerCase()} in South Africa</p>
+      <p class="text-gray-500 text-sm mt-2">Your complete guide to starting and advancing a career in {category.name.toLowerCase()} in South Africa</p>
     </div>
   </div>
 
   <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
     <div>
       <article class="prose max-w-none mb-8">
-        <p class="text-muted">The {category.name.toLowerCase()} sector in South Africa offers diverse career opportunities across both public and private sectors. Whether you're a school leaver, graduate, or career changer, this guide will help you navigate your path into the {category.name.toLowerCase()} industry.</p>
+        <p class="text-gray-500">The {category.name.toLowerCase()} sector in South Africa offers diverse career opportunities across both public and private sectors. Whether you're a school leaver, graduate, or career changer, this guide will help you navigate your path into the {category.name.toLowerCase()} industry.</p>
 
         <h2 class="text-lg font-semibold text-navy mt-6">Educational Requirements</h2>
-        <p class="text-muted">Most {category.name.toLowerCase()} positions require a minimum of a Grade 12/Matric certificate. For professional roles, a relevant degree or diploma from a South African university or TVET college is typically required. Key qualifications include:</p>
-        <ul class="list-disc pl-5 text-muted space-y-1 mt-2">
+        <p class="text-gray-500">Most {category.name.toLowerCase()} positions require a minimum of a Grade 12/Matric certificate. For professional roles, a relevant degree or diploma from a South African university or TVET college is typically required. Key qualifications include:</p>
+        <ul class="list-disc pl-5 text-gray-500 space-y-1 mt-2">
           <li>National Senior Certificate (Grade 12) with relevant subject passes</li>
           <li>Degree or diploma in {category.name.toLowerCase()}-related field</li>
           <li>Industry-specific certifications</li>
@@ -52,7 +52,7 @@ const faq = [
         </ul>
 
         <h2 class="text-lg font-semibold text-navy mt-6">Key Skills for Success</h2>
-        <ul class="list-disc pl-5 text-muted space-y-1">
+        <ul class="list-disc pl-5 text-gray-500 space-y-1">
           <li>Strong communication in English and at least one African language</li>
           <li>Relevant technical skills for the {category.name.toLowerCase()} field</li>
           <li>Problem-solving and critical thinking abilities</li>
@@ -61,7 +61,7 @@ const faq = [
         </ul>
 
         <h2 class="text-lg font-semibold text-navy mt-6">Career Progression Path</h2>
-        <ol class="list-decimal pl-5 text-muted space-y-1 mt-2">
+        <ol class="list-decimal pl-5 text-gray-500 space-y-1 mt-2">
           <li><strong>Entry Level (0-2 years):</strong> Junior roles, internships, learnerships, or graduate programmes</li>
           <li><strong>Mid Level (3-5 years):</strong> Specialist roles with increased responsibility</li>
           <li><strong>Senior Level (5+ years):</strong> Management, senior specialist, or consulting positions</li>
@@ -73,7 +73,7 @@ const faq = [
         <h2 class="text-lg font-semibold text-navy mb-4">Explore Other Career Paths</h2>
         <div class="flex flex-wrap gap-2">
           {categoriesWithJobs.map(cat => (
-            <a href={`/how-to-get-into-${cat.slug}-in-south-africa`} class="inline-flex items-center px-3 py-1.5 bg-[#e8f4f0] text-[#2d6a4f] text-xs font-medium rounded-full hover:bg-[#d0ebe0] transition-colors">
+            <a href={`/how-to-get-into-${cat.slug}-in-south-africa`} class="inline-flex items-center px-3 py-1.5 bg-green-50 text-green-800 text-xs font-medium rounded-full hover:bg-green-100 transition-colors">
               {cat.name} Career Guide
             </a>
           ))}
@@ -87,7 +87,7 @@ const faq = [
             <div class="card p-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
               <h3 class="font-medium text-navy text-sm mb-1" itemprop="name">{item.q}</h3>
               <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                <p class="text-muted text-xs" itemprop="text">{item.a}</p>
+                <p class="text-gray-500 text-xs" itemprop="text">{item.a}</p>
               </div>
             </div>
           ))}

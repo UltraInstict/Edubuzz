@@ -8,24 +8,22 @@ export interface Props {
 
 const { width = '100%', height = '1rem', count = 1, variant = 'text' } = Astro.props;
 
-const style = variant === 'card'
-  ? 'width: 100%; height: 96px; border-radius: var(--radius-md);'
+const cls = variant === 'card'
+  ? 'w-full h-24 rounded-md'
   : variant === 'circle'
-    ? `width: ${height}; height: ${height}; border-radius: 50%;`
-    : `width: ${width}; height: ${height}; border-radius: var(--radius-sm);`;
+    ? `w-[${height}] h-[${height}] rounded-full`
+    : `w-[${width}] h-[${height}] rounded`;
 ---
 
 {Array.from({ length: count }).map(() => (
-  <div class="skeleton" style={style} aria-hidden="true" />
+  <div
+    class={`skeleton bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] ${cls}`}
+    aria-hidden="true"
+  />
 ))}
 
 <style>
-  .skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s ease-in-out infinite;
-  }
-
+  .skeleton { animation: shimmer 1.5s ease-in-out infinite; }
   @keyframes shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }

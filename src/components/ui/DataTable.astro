@@ -23,12 +23,15 @@ function renderCell(value: unknown, render?: string): string {
 }
 ---
 
-<div class="dt-wrap">
-  <table class="dt">
+<div class="overflow-x-auto bg-white border border-gray-200 rounded-md">
+  <table class="w-full border-collapse text-sm">
     <thead>
       <tr>
         {columns.map((col) => (
-          <th style={col.width ? `width:${col.width}` : ''} class={col.align ? `dt-${col.align}` : ''}>
+          <th
+            style={col.width ? `width:${col.width}` : ''}
+            class={`px-3 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap text-xs ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : ''}`}
+          >
             {col.label}
           </th>
         ))}
@@ -37,13 +40,13 @@ function renderCell(value: unknown, render?: string): string {
     <tbody>
       {rows.length === 0 ? (
         <tr>
-          <td colspan={columns.length} class="dt-empty">{emptyMessage}</td>
+          <td colspan={columns.length} class="py-12 px-4 text-center text-gray-500">{emptyMessage}</td>
         </tr>
       ) : (
         rows.map((row) => (
-          <tr>
+          <tr class="border-b border-gray-200 last:border-b-0 hover:bg-green-50/50">
             {columns.map((col) => (
-              <td class={col.align ? `dt-${col.align}` : ''}>
+              <td class={`px-3 py-2.5 text-gray-600 whitespace-nowrap ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : ''}`}>
                 <slot name={`cell-${col.key}`} row={row}>
                   <slot name="cell" row={row} column={col.key}>
                     {renderCell(row[col.key], col.render)}
@@ -57,53 +60,3 @@ function renderCell(value: unknown, render?: string): string {
     </tbody>
   </table>
 </div>
-
-<style>
-  .dt-wrap {
-    overflow-x: auto;
-    background: var(--color-white, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
-    border-radius: var(--radius-md, 6px);
-  }
-
-  .dt {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--text-sm, 0.8125rem);
-  }
-
-  .dt th {
-    padding: 0.625rem 0.75rem;
-    text-align: left;
-    font-weight: var(--font-semibold, 600);
-    color: var(--color-navy, #1a1a1a);
-    background: #fafafa;
-    border-bottom: 2px solid var(--color-border, #e0e0e0);
-    white-space: nowrap;
-    font-size: 0.75rem;
-  }
-
-  .dt td {
-    padding: 0.625rem 0.75rem;
-    border-bottom: 1px solid #f5f5f5;
-    color: var(--color-muted, #666);
-    white-space: nowrap;
-  }
-
-  .dt tr:last-child td {
-    border-bottom: none;
-  }
-
-  .dt tr:hover td {
-    background: #fafdfb;
-  }
-
-  .dt-empty {
-    padding: 3rem 1rem !important;
-    text-align: center !important;
-    color: #aaa !important;
-  }
-
-  .dt-center { text-align: center; }
-  .dt-right { text-align: right; }
-</style>

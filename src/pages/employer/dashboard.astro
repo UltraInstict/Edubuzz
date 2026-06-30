@@ -16,33 +16,63 @@ const jobs = { items: jobsList };
 ---
 
 <Layout title="Employer Dashboard" description="Manage your Edubuzz listings." canonicalUrl={Astro.url.href}>
-  <main class="portal-grid">
+  <main class="max-w-6xl mx-auto px-6 py-6 grid grid-cols-[1fr_240px] gap-4">
     <section>
-      <h1>Employer dashboard</h1>
-      <div class="summary">
-        <div><b>{metrics.activeJobs}</b><span>Active listings</span></div>
-        <div><b>{metrics.viewsThisMonth}</b><span>Views this month</span></div>
-        <div><b>{metrics.totalApplications}</b><span>Applications</span></div>
-        <div><b>{metrics.ctr}%</b><span>Click-through rate</span></div>
-        <div><b>{employer.plan || 'free'}</b><span>Plan status</span></div>
-        <div><b>{employer.verified ? 'Yes' : 'Pending'}</b><span>Verified</span></div>
+      <h1 class="text-2xl font-bold text-gray-900 mb-3">Employer dashboard</h1>
+      <div class="grid grid-cols-3 gap-2.5 mb-4">
+        <div class="bg-white border border-gray-200 rounded-md p-5">
+          <b class="block text-xl font-semibold text-gray-900">{metrics.activeJobs}</b>
+          <span class="text-xs text-gray-500">Active listings</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-md p-5">
+          <b class="block text-xl font-semibold text-gray-900">{metrics.viewsThisMonth}</b>
+          <span class="text-xs text-gray-500">Views this month</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-md p-5">
+          <b class="block text-xl font-semibold text-gray-900">{metrics.totalApplications}</b>
+          <span class="text-xs text-gray-500">Applications</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-md p-5">
+          <b class="block text-xl font-semibold text-gray-900">{metrics.ctr}%</b>
+          <span class="text-xs text-gray-500">Click-through rate</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-md p-5">
+          <b class="block text-xl font-semibold text-gray-900">{employer.plan || 'free'}</b>
+          <span class="text-xs text-gray-500">Plan status</span>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-md p-5">
+          <b class="block text-xl font-semibold text-gray-900">{employer.verified ? 'Yes' : 'Pending'}</b>
+          <span class="text-xs text-gray-500">Verified</span>
+        </div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Job title</th><th>Status</th><th>Views</th><th>Applications</th><th>Salary</th><th>Expires</th><th>Actions</th></tr></thead>
+      <div class="overflow-auto bg-white border border-gray-200 rounded-md">
+        <table class="w-full border-collapse text-xs">
+          <thead>
+            <tr>
+              <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Job title</th>
+              <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Status</th>
+              <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Views</th>
+              <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Applications</th>
+              <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Salary</th>
+              <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Expires</th>
+              <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Actions</th>
+            </tr>
+          </thead>
           <tbody>
             {jobs.items.map((job: any) => (
-              <tr>
-                <td>{job.title}</td>
-                <td>{job.active ? 'Active' : 'Review'}</td>
-                <td>{job.views || 0}</td>
-                <td><a href={`/employer/applications/${job.id}`}>View</a></td>
-                <td>{formatSalary(job.salary_min, job.salary_max)}</td>
-                <td>{job.expires?.slice(0, 10) || '-'}</td>
-                <td>
-                  <a href={`/employer/edit-job/${job.id}`}>Edit</a> ·
-                  <a href={`/employer/analytics/${job.id}`}>Analytics</a> ·
-                  <a href={`/employer/upgrade?job=${job.id}`}>Boost</a>
+              <tr class="border-b border-gray-200">
+                <td class="px-2 py-2 text-gray-600">{job.title}</td>
+                <td class="px-2 py-2 text-gray-600">{job.active ? 'Active' : 'Review'}</td>
+                <td class="px-2 py-2 text-gray-600">{job.views || 0}</td>
+                <td class="px-2 py-2"><a href={`/employer/applications/${job.id}`} class="text-green-800 text-xs">View</a></td>
+                <td class="px-2 py-2 text-gray-600">{formatSalary(job.salary_min, job.salary_max)}</td>
+                <td class="px-2 py-2 text-gray-600">{job.expires?.slice(0, 10) || '-'}</td>
+                <td class="px-2 py-2">
+                  <span class="flex gap-1.5 text-xs">
+                    <a href={`/employer/edit-job/${job.id}`} class="text-green-800">Edit</a>
+                    <a href={`/employer/analytics/${job.id}`} class="text-green-800">Analytics</a>
+                    <a href={`/employer/upgrade?job=${job.id}`} class="text-green-800">Boost</a>
+                  </span>
                 </td>
               </tr>
             ))}
@@ -50,26 +80,17 @@ const jobs = { items: jobsList };
         </table>
       </div>
     </section>
-    <aside class="panel">
-      <h2>{employer.company_name}</h2>
-      <a href="/employer/post-job">Post a job</a>
-      <a href="/employer/company-profile">Company profile</a>
-      <a href="/logout">Logout</a>
+    <aside class="space-y-2">
+      <h2 class="text-base font-semibold text-gray-900">{employer.company_name}</h2>
+      <a href="/employer/post-job" class="block text-sm text-green-800 hover:underline">Post a job</a>
+      <a href="/employer/company-profile" class="block text-sm text-green-800 hover:underline">Company profile</a>
+      <a href="/logout" class="block text-sm text-green-800 hover:underline">Logout</a>
     </aside>
   </main>
 </Layout>
 
 <style>
-  .portal-grid { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 240px; gap: 16px; }
-  h1 { font-size: 22px; margin: 0 0 12px; font-weight: 600; letter-spacing: -0.3px; }
-  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-  .summary div { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px; }
-  b { display: block; font-size: 20px; font-weight: 600; }
-  span, td, th { font-size: 12px; color: #666; }
-  .table-wrap { overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: left; white-space: nowrap; }
-  td a, aside.panel a { color: #2d6a4f; }
-  aside.panel a { display: block; margin-top: 7px; font-size: 13px; }
-  @media (max-width: 820px) { .portal-grid { grid-template-columns: 1fr; } .summary { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 820px) {
+    main { grid-template-columns: 1fr; }
+  }
 </style>

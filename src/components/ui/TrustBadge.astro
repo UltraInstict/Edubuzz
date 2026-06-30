@@ -11,61 +11,16 @@ const labels: Record<string, string> = {
   new: 'New',
   urgent: 'Urgent',
 };
+
+const variants: Record<string, string> = {
+  verified: 'bg-blue-50 text-blue-800',
+  featured: 'bg-green-50 text-green-800',
+  new: 'bg-amber-50 text-amber-800',
+  urgent: 'bg-red-50 text-red-800',
+};
 ---
 
-<span class={`trust-badge trust-badge--${variant}`} role="status">
-  <span class="tb-dot" aria-hidden="true"></span>
+<span class={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wide ${variants[variant]}`} role="status">
+  <span class={`w-1.5 h-1.5 rounded-full inline-block ${variant === 'verified' ? 'bg-blue-600' : variant === 'featured' ? 'bg-green-800' : variant === 'new' ? 'bg-amber-600' : 'bg-red-600'}`} aria-hidden="true"></span>
   {labels[variant]}
 </span>
-
-<style>
-  .trust-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.125rem 0.5rem;
-    border-radius: var(--radius-full, 9999px);
-    font-size: 0.6875rem;
-    font-weight: var(--font-semibold, 600);
-    letter-spacing: 0.01em;
-    text-transform: uppercase;
-  }
-
-  .tb-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-  }
-
-  .trust-badge--verified {
-    background: #eff6ff;
-    color: #1e40af;
-  }
-  .trust-badge--verified .tb-dot {
-    background: #3b82f6;
-  }
-
-  .trust-badge--featured {
-    background: var(--color-brand-50, #e8f4f0);
-    color: var(--color-brand, #2d6a4f);
-  }
-  .trust-badge--featured .tb-dot {
-    background: var(--color-brand, #2d6a4f);
-  }
-
-  .trust-badge--new {
-    background: #fef3c7;
-    color: #92400e;
-  }
-  .trust-badge--new .tb-dot {
-    background: #f59e0b;
-  }
-
-  .trust-badge--urgent {
-    background: #fef2f2;
-    color: #991b1b;
-  }
-  .trust-badge--urgent .tb-dot {
-    background: #ef4444;
-  }
-</style>

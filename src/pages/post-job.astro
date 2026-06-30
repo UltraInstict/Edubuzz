@@ -6,12 +6,15 @@ const categories = await getCategories();
 const csrfToken = generateToken();
 ---
 
-<Layout title="Post a Job" description="Reach thousands of South African job seekers. Basic listings are free. Featured listings from R299." canonicalUrl={Astro.url.href}>
+<Layout title="Post a Job" description="Reach thousands of South African job seekers. Basic listings are free. Featured listings from R299." canonicalUrl={Astro.url.href} noLeaderboard>
   <div class="bg-white border-b border-gray-200 py-8">
     <div class="max-w-3xl mx-auto px-4">
       <h1 class="text-2xl font-bold text-gray-900 mb-2">Post a job on Edubuzz</h1>
       <p class="text-sm text-gray-600 leading-relaxed">Reach thousands of South African job seekers. Basic listings are free. Featured listings from R299.</p>
     </div>
+  </div>
+  <div class="ad-slot my-6 flex items-center justify-center border border-gray-100 bg-gray-50 rounded-md max-w-3xl mx-auto" style="min-height:90px">
+    <span class="text-xs text-gray-400">Advertisement</span>
   </div>
   <div class="max-w-3xl mx-auto px-4 py-8">
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-6">

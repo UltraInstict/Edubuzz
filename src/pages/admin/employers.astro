@@ -11,62 +11,64 @@ const employers = await listAdminEmployers();
 ---
 
 <Layout title="Admin Employers" description="Manage employers." canonicalUrl={Astro.url.href}>
-  <main class="admin-wrap">
-    <header>
-      <h1>Employers</h1>
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="flex justify-between items-center mb-3">
+      <h1 class="text-2xl font-bold text-gray-900 m-0">Employers</h1>
       <AdminNav current="employers" />
     </header>
 
     <p class="text-sm text-gray-500 mb-4">{employers.length} employer{employers.length !== 1 ? 's' : ''} registered</p>
 
-    <div class="table-wrap">
-      <table>
+    <div class="overflow-auto bg-white border border-gray-200 rounded-md">
+      <table class="w-full border-collapse text-xs">
         <thead>
           <tr>
-            <th>Company</th><th>Email</th><th>Plan</th><th>Verified</th>
-            <th>Registered</th><th>Actions</th>
+            <th class="px-2 py-2 font-semibold text-gray-900 text-left">Company</th>
+            <th class="px-2 py-2 font-semibold text-gray-900 text-left">Email</th>
+            <th class="px-2 py-2 font-semibold text-gray-900 text-left">Plan</th>
+            <th class="px-2 py-2 font-semibold text-gray-900 text-left">Verified</th>
+            <th class="px-2 py-2 font-semibold text-gray-900 text-left">Registered</th>
+            <th class="px-2 py-2 font-semibold text-gray-900 text-left">Actions</th>
           </tr>
         </thead>
         <tbody>
           {employers.length === 0 && (
-            <tr>
-              <td colspan="6" class="py-12 text-center text-gray-500 text-sm">
-                No employers registered yet.
-              </td>
-            </tr>
+            <tr><td colspan="6" class="py-12 text-center text-gray-500 text-sm">No employers registered yet.</td></tr>
           )}
           {employers.map((employer: any) => (
-            <tr>
-              <td>{employer.company_name || employer.name}</td>
-              <td>{employer.contact_email || employer.email}</td>
-              <td>
+            <tr class="border-b border-gray-200">
+              <td class="px-2 py-2">{employer.company_name || employer.name}</td>
+              <td class="px-2 py-2">{employer.contact_email || employer.email}</td>
+              <td class="px-2 py-2">
                 <span class={employer.plan === 'featured'
-                  ? 'px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800'
+                  ? 'px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-800'
                   : 'px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600'}>
                   {employer.plan || 'free'}
                 </span>
               </td>
-              <td>
+              <td class="px-2 py-2">
                 {employer.verified
-                  ? <span class="text-green-600 text-sm font-medium">&#10003; Verified</span>
+                  ? <span class="text-green-800 text-sm font-medium">&#10003; Verified</span>
                   : <span class="text-gray-500 text-sm">&mdash;</span>}
               </td>
-              <td class="text-sm text-gray-500">
+              <td class="px-2 py-2 text-sm text-gray-500">
                 {new Date(employer.created).toLocaleDateString('en-ZA')}
               </td>
-              <td class="actions">
-                <button data-id={employer.id} data-verified={String(!employer.verified)}
-                  class={employer.verified
-                    ? 'px-3 py-1 text-xs rounded border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors'
-                    : 'px-3 py-1 text-xs rounded bg-[#2d6a4f] text-white hover:bg-[#245a42] transition-colors'}>
-                  {employer.verified ? 'Unverify' : 'Verify'}
-                </button>
-                <button data-id={employer.id} data-blocked={String(!employer.blocked)}
-                  class={employer.blocked
-                    ? 'px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700 transition-colors'
-                    : 'px-3 py-1 text-xs rounded border border-red-300 text-red-600 hover:bg-red-50 transition-colors'}>
-                  {employer.blocked ? 'Unblock' : 'Block'}
-                </button>
+              <td class="px-2 py-2">
+                <div class="flex gap-1">
+                  <button data-id={employer.id} data-verified={String(!employer.verified)}
+                    class={employer.verified
+                      ? 'px-3 py-1 text-xs rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors'
+                      : 'px-3 py-1 text-xs rounded bg-green-800 text-white hover:bg-green-900 transition-colors'}>
+                    {employer.verified ? 'Unverify' : 'Verify'}
+                  </button>
+                  <button data-id={employer.id} data-blocked={String(!employer.blocked)}
+                    class={employer.blocked
+                      ? 'px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700 transition-colors'
+                      : 'px-3 py-1 text-xs rounded border border-red-300 text-red-600 hover:bg-red-50 transition-colors'}>
+                    {employer.blocked ? 'Unblock' : 'Block'}
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -88,62 +90,3 @@ const employers = await listAdminEmployers();
     location.reload();
   }));
 </script>
-
-<style>
-  .admin-wrap {
-    max-width: 1100px;
-    margin: 1.5rem auto;
-    padding: 0 1.5rem;
-  }
-
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-
-  h1 {
-    font-size: 22px;
-    font-weight: 600;
-    margin: 0;
-    letter-spacing: -0.3px;
-  }
-
-  .table-wrap {
-    overflow: auto;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-
-  th,
-  td {
-    padding: 8px;
-    border-bottom: 1px solid #f0f0f0;
-    text-align: left;
-  }
-
-  th {
-    font-weight: 600;
-    color: #444444;
-  }
-
-  .actions {
-    display: flex;
-    gap: 5px;
-  }
-
-  @media (max-width: 860px) {
-    header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
-</style>

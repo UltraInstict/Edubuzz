@@ -60,7 +60,7 @@ const chartPoints = viewSeries.map((v, i) => `${(i / 29) * 600},${160 - (v / max
     <section class="panel">
       <h2>Views over time</h2>
       <svg viewBox="0 0 620 180" role="img" aria-label="Line chart of daily views over 30 days">
-        <polyline points={chartPoints} fill="none" stroke="#2d6a4f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        <polyline points={chartPoints} fill="none" stroke="#166534" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </section>
 
@@ -103,22 +103,22 @@ const chartPoints = viewSeries.map((v, i) => `${(i / 29) * 600},${160 - (v / max
 
 <style>
   .wrap { max-width: 900px; margin: 1.5rem auto; padding: 0 1.5rem; display: grid; gap: 16px; }
-  .back-link { color: #2d6a4f; font-size: 13px; margin-bottom: -8px; }
-  h1 { font-size: 22px; margin: 0; font-weight: 600; letter-spacing: -0.3px; color: #1a1a1a; }
-  h2 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .back-link { color: #166534; font-size: 13px; margin-bottom: -8px; }
+  h1 { font-size: 22px; margin: 0; font-weight: 600; letter-spacing: -0.3px; color: #111827; }
+  h2 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #111827; }
   .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .metric { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px 14px; }
-  .metric b { display: block; font-size: 22px; font-weight: 600; color: #1a1a1a; }
-  .metric span { color: #666; font-size: 12px; margin-top: 2px; display: block; }
-  .panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; }
+  .metric { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px 14px; }
+  .metric b { display: block; font-size: 22px; font-weight: 600; color: #111827; }
+  .metric span { color: #6b7280; font-size: 12px; margin-top: 2px; display: block; }
+  .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; }
   svg { width: 100%; height: auto; background: #fafdfb; border-radius: 4px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .dim { color: #999; font-size: 13px; margin: 0; }
   .bar-list { display: flex; flex-direction: column; gap: 6px; }
   .bar-row { position: relative; display: flex; align-items: center; padding: 4px 0; }
-  .bar-label { font-size: 13px; color: #444; min-width: 80px; z-index: 1; }
-  .bar-value { font-size: 12px; color: #888; margin-left: auto; margin-right: 8px; z-index: 1; font-weight: 500; }
-  .bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: #e8f4f0; border-radius: 3px; min-width: 4px; }
+  .bar-label { font-size: 13px; color: #374151; min-width: 80px; z-index: 1; }
+  .bar-value { font-size: 12px; color: #9ca3af; margin-left: auto; margin-right: 8px; z-index: 1; font-weight: 500; }
+  .bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: #f0fdf4; border-radius: 3px; min-width: 4px; }
   .bar-device { background: #eff6ff; }
   @media (max-width: 640px) {
     .summary { grid-template-columns: repeat(2, 1fr); }

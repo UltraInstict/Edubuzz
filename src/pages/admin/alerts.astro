@@ -10,14 +10,43 @@ if (redirect) return redirect;
 const alerts = await listAdminAlerts(1, 100);
 ---
 <Layout title="Admin Alerts" description="Manage job alerts." canonicalUrl={Astro.url.href}>
-<main class="admin-wrap">
-  <header>
-    <h1>Alerts</h1>
-    <AdminNav current="alerts" />
-  </header>
-  <div class="actions-bar"><button id="send">Send alerts now</button></div>
-  <div class="table-wrap"><table><thead><tr><th>Email</th><th>Keyword</th><th>Province</th><th>Category</th><th>Created</th></tr></thead><tbody>{alerts.items.map((alert:any)=><tr><td>{alert.email}</td><td>{alert.keyword || '—'}</td><td>{alert.province || '—'}</td><td>{alert.category || '—'}</td><td>{alert.created?.slice(0,10)}</td></tr>)}</tbody></table></div>
-</main>
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="flex justify-between items-center mb-3 flex-wrap gap-3">
+      <h1 class="text-2xl font-bold text-gray-900 m-0">Alerts</h1>
+      <AdminNav current="alerts" />
+    </header>
+    <div class="mb-3">
+      <button id="send" class="bg-green-800 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-900 transition-colors">Send alerts now</button>
+    </div>
+    <div class="overflow-auto bg-white border border-gray-200 rounded-md">
+      <table class="w-full border-collapse text-xs">
+        <thead>
+          <tr>
+            <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Email</th>
+            <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Keyword</th>
+            <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Province</th>
+            <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Category</th>
+            <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {alerts.items.map((alert: any) => (
+            <tr class="border-b border-gray-200">
+              <td class="px-2 py-2">{alert.email}</td>
+              <td class="px-2 py-2 text-gray-500">{alert.keyword || '\u2014'}</td>
+              <td class="px-2 py-2 text-gray-500">{alert.province || '\u2014'}</td>
+              <td class="px-2 py-2 text-gray-500">{alert.category || '\u2014'}</td>
+              <td class="px-2 py-2 text-gray-500">{alert.created?.slice(0, 10)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </main>
 </Layout>
-<script>document.getElementById('send')?.addEventListener('click',async()=>{await fetch('/api/admin/send-alerts',{method:'POST'});alert('Alert send triggered.');});</script>
-<style>.admin-wrap{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:12px}h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.3px}.actions-bar{margin-bottom:12px}button{border:1px solid #2d6a4f;background:#2d6a4f;color:#fff;border-radius:4px;padding:8px 10px;font-size:13px;cursor:pointer}.table-wrap{overflow:auto;background:#fff;border:1px solid #e0e0e0;border-radius:6px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid #f0f0f0;text-align:left}</style>
+<script>
+  document.getElementById('send')?.addEventListener('click', async () => {
+    await fetch('/api/admin/send-alerts', { method: 'POST' });
+    alert('Alert send triggered.');
+  });
+</script>

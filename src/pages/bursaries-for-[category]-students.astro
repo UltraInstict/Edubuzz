@@ -31,23 +31,23 @@ const faq = [
   description={`Find bursaries and scholarships for ${category.name.toLowerCase()} students in South Africa for 2026. Apply for funding from government, corporate, and SETA-sponsored programmes.`}
   canonicalUrl={Astro.url.href}
 >
-  <div class="bg-white border-b border-border py-10 px-6">
+  <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">
-      <nav class="text-xs text-muted mb-4" aria-label="Breadcrumb">
+      <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
         <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href="/bursaries" class="hover:text-navy">Bursaries</a> &rsaquo; <span class="text-navy font-medium">Bursaries for {category.name} Students</span>
       </nav>
       <h1 class="text-2xl font-semibold text-navy">Bursaries for {category.name} Students</h1>
-      <p class="text-muted text-sm mt-2">Funding opportunities for {category.name.toLowerCase()} students in South Africa</p>
+      <p class="text-gray-500 text-sm mt-2">Funding opportunities for {category.name.toLowerCase()} students in South Africa</p>
     </div>
   </div>
 
   <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
     <div>
       <article class="prose max-w-none mb-8">
-        <p class="text-muted">Securing funding for your {category.name.toLowerCase()} studies is crucial. South Africa offers a wide range of bursaries and scholarships for students pursuing qualifications in the {category.name.toLowerCase()} field, from government-funded programmes to corporate sponsorships.</p>
+        <p class="text-gray-500">Securing funding for your {category.name.toLowerCase()} studies is crucial. South Africa offers a wide range of bursaries and scholarships for students pursuing qualifications in the {category.name.toLowerCase()} field, from government-funded programmes to corporate sponsorships.</p>
 
         <h2 class="text-lg font-semibold text-navy mt-6">Types of Bursaries Available</h2>
-        <ul class="list-disc pl-5 text-muted space-y-1">
+        <ul class="list-disc pl-5 text-gray-500 space-y-1">
           <li><strong>Government Bursaries:</strong> NSFAS and sector-specific government department bursaries</li>
           <li><strong>Corporate Bursaries:</strong> Companies sponsoring students in exchange for work-back agreements</li>
           <li><strong>SETA Bursaries:</strong> Sector Education and Training Authority funding for scarce skills</li>
@@ -56,7 +56,7 @@ const faq = [
         </ul>
 
         <h2 class="text-lg font-semibold text-navy mt-6">Application Tips</h2>
-        <ul class="list-disc pl-5 text-muted space-y-1">
+        <ul class="list-disc pl-5 text-gray-500 space-y-1">
           <li>Start your research early — many bursaries close 6-12 months before the academic year.</li>
           <li>Prepare a strong motivation letter explaining why you deserve the bursary.</li>
           <li>Gather all required documents in advance (ID, academic records, proof of registration).</li>
@@ -69,7 +69,7 @@ const faq = [
         <h2 class="text-lg font-semibold text-navy mb-4">Bursaries by Field of Study</h2>
         <div class="flex flex-wrap gap-2">
           {categoriesWithJobs.map(cat => (
-            <a href={`/bursaries-for-${cat.slug}-students`} class="inline-flex items-center px-3 py-1.5 bg-[#e8f4f0] text-[#2d6a4f] text-xs font-medium rounded-full hover:bg-[#d0ebe0] transition-colors">
+            <a href={`/bursaries-for-${cat.slug}-students`} class="inline-flex items-center px-3 py-1.5 bg-green-50 text-green-800 text-xs font-medium rounded-full hover:bg-green-100 transition-colors">
               {cat.name} Bursaries
             </a>
           ))}
@@ -83,7 +83,7 @@ const faq = [
             <div class="card p-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
               <h3 class="font-medium text-navy text-sm mb-1" itemprop="name">{item.q}</h3>
               <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                <p class="text-muted text-xs" itemprop="text">{item.a}</p>
+                <p class="text-gray-500 text-xs" itemprop="text">{item.a}</p>
               </div>
             </div>
           ))}

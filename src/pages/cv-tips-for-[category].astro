@@ -28,23 +28,23 @@ const faq = [
   description={`Learn how to write a standout CV for ${category.name.toLowerCase()} jobs in South Africa. Expert tips on formatting, key skills, and what employers look for in ${category.name.toLowerCase()} candidates.`}
   canonicalUrl={Astro.url.href}
 >
-  <div class="bg-white border-b border-border py-10 px-6">
+  <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">
-      <nav class="text-xs text-muted mb-4" aria-label="Breadcrumb">
+      <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
         <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href="/resources" class="hover:text-navy">Resources</a> &rsaquo; <span class="text-navy font-medium">CV Tips for {category.name}</span>
       </nav>
       <h1 class="text-2xl font-semibold text-navy">CV Tips for {category.name} Jobs</h1>
-      <p class="text-muted text-sm mt-2">Expert advice on crafting a compelling CV for {category.name.toLowerCase()} positions in South Africa</p>
+      <p class="text-gray-500 text-sm mt-2">Expert advice on crafting a compelling CV for {category.name.toLowerCase()} positions in South Africa</p>
     </div>
   </div>
 
   <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
     <div>
       <article class="prose max-w-none mb-8">
-        <p class="text-muted">Creating a strong CV is essential for landing your next {category.name.toLowerCase()} role in South Africa. Employers in the {category.name.toLowerCase()} sector look for specific qualifications, relevant experience, and demonstrated skills. Here's how to make your application stand out.</p>
+        <p class="text-gray-500">Creating a strong CV is essential for landing your next {category.name.toLowerCase()} role in South Africa. Employers in the {category.name.toLowerCase()} sector look for specific qualifications, relevant experience, and demonstrated skills. Here's how to make your application stand out.</p>
 
         <h2 class="text-lg font-semibold text-navy mt-6">Key Sections for Your {category.name} CV</h2>
-        <ul class="list-disc pl-5 text-muted space-y-1">
+        <ul class="list-disc pl-5 text-gray-500 space-y-1">
           <li><strong>Professional Summary:</strong> A 2-3 sentence overview of your experience and career goals in the {category.name.toLowerCase()} field.</li>
           <li><strong>Work Experience:</strong> List positions relevant to {category.name.toLowerCase()}, with measurable achievements.</li>
           <li><strong>Education & Certifications:</strong> Include degrees, diplomas, and industry-specific certifications required in {category.name.toLowerCase()}.</li>
@@ -53,7 +53,7 @@ const faq = [
         </ul>
 
         <h2 class="text-lg font-semibold text-navy mt-6">South Africa-Specific CV Tips</h2>
-        <ul class="list-disc pl-5 text-muted space-y-1">
+        <ul class="list-disc pl-5 text-gray-500 space-y-1">
           <li>Include your South African ID number and driver's license details.</li>
           <li>List your language proficiency (English plus any African languages).</li>
           <li>Mention your work authorization status clearly.</li>
@@ -61,14 +61,14 @@ const faq = [
           <li>Keep formatting clean and avoid graphics that ATS software can't parse.</li>
         </ul>
 
-        <p class="text-muted mt-4">Ready to apply? Browse our latest <a href={`/category/${category.slug}`} class="text-accent hover:underline">{category.name.toLowerCase()} job listings</a> below.</p>
+        <p class="text-gray-500 mt-4">Ready to apply? Browse our latest <a href={`/category/${category.slug}`} class="text-green-800 hover:underline">{category.name.toLowerCase()} job listings</a> below.</p>
       </article>
 
       <section class="mb-8">
         <h2 class="text-lg font-semibold text-navy mb-4">Related Career Fields</h2>
         <div class="flex flex-wrap gap-2">
           {categoriesWithJobs.map(cat => (
-            <a href={`/cv-tips-for-${cat.slug}`} class="inline-flex items-center px-3 py-1.5 bg-[#e8f4f0] text-[#2d6a4f] text-xs font-medium rounded-full hover:bg-[#d0ebe0] transition-colors">
+            <a href={`/cv-tips-for-${cat.slug}`} class="inline-flex items-center px-3 py-1.5 bg-green-50 text-green-800 text-xs font-medium rounded-full hover:bg-green-100 transition-colors">
               CV Tips: {cat.name}
             </a>
           ))}
@@ -82,7 +82,7 @@ const faq = [
             <div class="card p-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
               <h3 class="font-medium text-navy text-sm mb-1" itemprop="name">{item.q}</h3>
               <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                <p class="text-muted text-xs" itemprop="text">{item.a}</p>
+                <p class="text-gray-500 text-xs" itemprop="text">{item.a}</p>
               </div>
             </div>
           ))}

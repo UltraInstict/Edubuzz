@@ -23,23 +23,29 @@ const outboundFeeds = [
 ---
 
 <Layout title="Outbound Feeds | Admin" canonicalUrl={Astro.url.href}>
-  <main class="admin-wrap">
-    <header>
-      <h1>Outbound Feeds</h1>
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold text-gray-900 m-0">Outbound Feeds</h1>
       <AdminNav current="feeds" />
     </header>
 
-    <section class="panel">
-      <h2>Aggregator Feed Endpoints</h2>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Feed</th><th>URL</th><th>Status</th></tr></thead>
+    <section class="bg-white border border-gray-200 rounded-md p-5 mb-4">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Aggregator Feed Endpoints</h2>
+      <div class="overflow-auto">
+        <table class="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 text-xs bg-gray-50 border-b-2 border-gray-200">Feed</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 text-xs bg-gray-50 border-b-2 border-gray-200">URL</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 text-xs bg-gray-50 border-b-2 border-gray-200">Status</th>
+            </tr>
+          </thead>
           <tbody>
             {outboundFeeds.map((feed) => (
-              <tr>
-                <td class="name-cell">{feed.name}</td>
-                <td><a href={feed.url} target="_blank" class="feed-link">{feed.url}</a></td>
-                <td><span class="status active">Active</span></td>
+              <tr class="border-b border-gray-200">
+                <td class="px-2.5 py-2.5 font-medium">{feed.name}</td>
+                <td class="px-2.5 py-2.5"><a href={feed.url} target="_blank" class="text-green-800 text-xs break-all">{feed.url}</a></td>
+                <td class="px-2.5 py-2.5"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-800">Active</span></td>
               </tr>
             ))}
           </tbody>
@@ -47,21 +53,30 @@ const outboundFeeds = [
       </div>
     </section>
 
-    <section class="panel">
-      <h2>Inbound Feed Sources ({xmlSources.length})</h2>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Name</th><th>Format</th><th>Last Crawled</th><th>Jobs Found</th><th>Status</th><th>Error</th></tr></thead>
+    <section class="bg-white border border-gray-200 rounded-md p-5">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Inbound Feed Sources ({xmlSources.length})</h2>
+      <div class="overflow-auto">
+        <table class="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 text-xs bg-gray-50 border-b-2 border-gray-200">Name</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 text-xs bg-gray-50 border-b-2 border-gray-200">Format</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 text-xs bg-gray-50 border-b-2 border-gray-200">Last Crawled</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 text-xs bg-gray-50 border-b-2 border-gray-200">Jobs Found</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 text-xs bg-gray-50 border-b-2 border-gray-200">Status</th>
+              <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 text-xs bg-gray-50 border-b-2 border-gray-200">Error</th>
+            </tr>
+          </thead>
           <tbody>
-            {(xmlSources as any[]).length === 0 && <tr><td colspan="6" class="empty">No feed sources configured.</td></tr>}
+            {(xmlSources as any[]).length === 0 && <tr><td colspan="6" class="py-12 text-center text-gray-500">No feed sources configured.</td></tr>}
             {(xmlSources as any[]).map((source: any) => (
-              <tr>
-                <td class="name-cell">{source.name}</td>
-                <td><span class="zone-badge">{source.format}</span></td>
-                <td>{source.last_crawled ? new Date(source.last_crawled).toLocaleString('en-ZA') : 'Never'}</td>
-                <td><b>{source.last_job_count || 0}</b></td>
-                <td><span class={`status ${source.active ? 'active' : 'inactive'}`}>{source.active ? 'Active' : 'Paused'}</span></td>
-                <td class="error-cell">{source.error_log || '—'}</td>
+              <tr class="border-b border-gray-200">
+                <td class="px-2.5 py-2.5 font-medium max-w-[200px] truncate">{source.name}</td>
+                <td class="px-2.5 py-2.5"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{source.format}</span></td>
+                <td class="px-2.5 py-2.5 text-gray-500 text-xs">{source.last_crawled ? new Date(source.last_crawled).toLocaleString('en-ZA') : 'Never'}</td>
+                <td class="px-2.5 py-2.5"><b class="text-gray-900">{source.last_job_count || 0}</b></td>
+                <td class="px-2.5 py-2.5"><span class={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${source.active ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-800'}`}>{source.active ? 'Active' : 'Paused'}</span></td>
+                <td class="px-2.5 py-2.5 text-red-600 text-xs max-w-[250px] truncate">{source.error_log || '\u2014'}</td>
               </tr>
             ))}
           </tbody>
@@ -70,24 +85,3 @@ const outboundFeeds = [
     </section>
   </main>
 </Layout>
-
-<style>
-  .admin-wrap { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
-  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  h1 { font-size: 22px; margin: 0; font-weight: 600; color: #1a1a1a; }
-  h2 { font-size: 14px; font-weight: 600; color: #1a1a1a; margin: 0 0 10px; }
-  .panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { padding: 10px 8px; border-bottom: 1px solid #f5f5f5; text-align: left; }
-  th { font-weight: 600; color: #444; background: #fafafa; font-size: 12px; }
-  .name-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-  .feed-link { color: #2d6a4f; font-size: 12px; word-break: break-all; }
-  .zone-badge { display: inline-block; padding: 2px 8px; background: #f0f0f0; border-radius: 999px; font-size: 11px; font-weight: 500; }
-  .status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
-  .status.active { background: #e8f4f0; color: #2d6a4f; }
-  .status.inactive { background: #fef3c7; color: #92400e; }
-  .error-cell { max-width: 250px; overflow: hidden; text-overflow: ellipsis; color: #dc2626; font-size: 11px; }
-  .empty { text-align: center; color: #aaa; padding: 2rem; }
-  @media (max-width: 760px) { header { flex-direction: column; align-items: flex-start; } }
-</style>

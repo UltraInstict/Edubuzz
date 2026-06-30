@@ -24,105 +24,114 @@ function isJobExpired(active: boolean, expires?: string): boolean {
 
 function statusBadge(active: boolean, expires?: string) {
   if (isJobExpired(active, expires)) return { cls: 'bg-gray-100 text-gray-500', label: 'expired' };
-  if (active) return { cls: 'bg-green-100 text-green-800', label: 'active' };
-  return { cls: 'bg-yellow-100 text-yellow-800', label: 'pending' };
+  if (active) return { cls: 'bg-green-50 text-green-800', label: 'active' };
+  return { cls: 'bg-amber-50 text-amber-800', label: 'pending' };
 }
 
 function rowBg(active: boolean, expires?: string) {
-  if (isJobExpired(active, expires)) return 'row-expired';
-  if (!active) return 'row-pending';
+  if (isJobExpired(active, expires)) return 'bg-gray-50 text-gray-500';
+  if (!active) return 'bg-amber-50';
   return '';
 }
 
-/** Format ISO date as DD/MM/YYYY */
 function formatDate(iso?: string): string {
-  if (!iso) return '—';
+  if (!iso) return '\u2014';
   const d = new Date(iso);
-  if (isNaN(d.getTime())) return '—';
+  if (isNaN(d.getTime())) return '\u2014';
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 }
 
-/** Colour-code expiry: green > 7d, orange ≤ 7d, red expired */
 function expiresClass(expires?: string): string {
-  if (!expires) return 'expires-none';
+  if (!expires) return 'text-gray-500';
   const t = new Date(expires).getTime();
-  if (isNaN(t)) return 'expires-none';
-  if (t < now) return 'expires-red';
-  if (t - now < SEVEN_DAYS) return 'expires-orange';
-  return 'expires-green';
+  if (isNaN(t)) return 'text-gray-500';
+  if (t < now) return 'text-red-700 font-medium';
+  if (t - now < SEVEN_DAYS) return 'text-orange-700 font-medium';
+  return 'text-green-700 font-medium';
 }
 ---
 
 <Layout title="Admin Jobs" description="Manage Edubuzz jobs." canonicalUrl={Astro.url.href}>
-  <main class="admin-wrap">
-    <header>
-      <h1>Jobs</h1>
+  <main class="max-w-7xl mx-auto px-6 py-6">
+    <header class="flex justify-between items-center mb-3">
+      <h1 class="text-2xl font-bold text-gray-900 m-0">Jobs</h1>
       <AdminNav current="jobs" />
     </header>
 
-    <form class="filters">
-      <select name="status" class="form-select">
+    <form class="flex gap-2 flex-wrap mb-2">
+      <select name="status" class="border border-gray-200 rounded-md bg-white px-2.5 py-1.5 text-sm">
         <option value="">All statuses</option>
         {['pending','active','expired'].map((s) => <option value={s} selected={s === status}>{s}</option>)}
       </select>
-      <select name="province" class="form-select">
+      <select name="province" class="border border-gray-200 rounded-md bg-white px-2.5 py-1.5 text-sm">
         <option value="">All provinces</option>
         {PROVINCES.map((p) => <option value={p} selected={p === province}>{p}</option>)}
       </select>
-      <select name="source" class="form-select">
+      <select name="source" class="border border-gray-200 rounded-md bg-white px-2.5 py-1.5 text-sm">
         <option value="">All sources</option>
         {['manual','import','xml_feed','csv_import','json_import'].map((s) => <option value={s} selected={s === source}>{s}</option>)}
       </select>
-      <button class="form-btn">Filter</button>
+      <button class="bg-green-800 text-white text-sm font-medium px-4 py-1.5 rounded-md hover:bg-green-900 transition-colors">Filter</button>
     </form>
 
-    <p class="count-line">{jobs.totalItems} job{jobs.totalItems !== 1 ? 's' : ''} found</p>
+    <p class="text-sm text-gray-500 mb-2">{jobs.totalItems} job{jobs.totalItems !== 1 ? 's' : ''} found</p>
 
-    <div class="table-wrap">
-      <table>
+    <div class="overflow-auto bg-white border border-gray-200 rounded-md">
+      <table class="w-full border-collapse text-xs">
         <thead>
           <tr>
-            <th>Title</th><th>Company</th><th>Province</th><th>Status</th>
-            <th>Source</th><th>Featured</th><th>Views</th><th>Created</th>
-            <th>Expires</th><th>Actions</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Title</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Company</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Province</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Status</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Source</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Featured</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Views</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Created</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Expires</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody>
           {jobs.items.length === 0 && (
             <tr>
-              <td colspan="10" class="empty-cell">No jobs found.</td>
+              <td colspan="10" class="py-12 px-4 text-center text-gray-500 text-sm">No jobs found.</td>
             </tr>
           )}
           {jobs.items.map((job: any) => {
             const badge = statusBadge(job.active, job.expires);
             const expired = isJobExpired(job.active, job.expires);
             return (
-              <tr class={rowBg(job.active, job.expires)}>
-                <td class="title-cell">{job.title}</td>
-                <td>{job.company}</td>
-                <td>{job.province}</td>
-                <td><span class={`badge ${badge.cls}`}>{badge.label}</span></td>
-                <td>{job.source}</td>
-                <td>{job.featured ? 'yes' : 'no'}</td>
-                <td>{job.views || 0}</td>
-                <td class="date-cell">{formatDate(job.created)}</td>
-                <td class={`date-cell ${expiresClass(job.expires)}`}>{formatDate(job.expires)}</td>
-                <td class="actions">
-                  <a href={`/job/${job.slug}`} target="_blank" class="btn-view">View</a>
-                  {!expired && job.active === false && (
-                    <button data-id={job.id} data-action="approve" class="btn-approve">Approve</button>
-                  )}
-                  {job.active && (
-                    <button data-id={job.id} data-action="reject" class="btn-reject">Reject</button>
-                  )}
-                  <button data-id={job.id} data-action="toggle_featured"
-                    class={job.featured ? 'btn-unfeature' : 'btn-feature'}>
-                    {job.featured ? 'Unfeature' : 'Feature'}
-                  </button>
-                  {expired && (
-                    <button data-id={job.id} data-action="repost" class="btn-repost">Repost</button>
-                  )}
-                  <button data-id={job.id} data-action="delete" class="btn-delete" data-title={job.title}>Delete</button>
+              <tr class={`border-b border-gray-200 ${rowBg(job.active, job.expires)}`}>
+                <td class="px-2.5 py-2.5 max-w-[200px] truncate">{job.title}</td>
+                <td class="px-2.5 py-2.5">{job.company}</td>
+                <td class="px-2.5 py-2.5">{job.province}</td>
+                <td class="px-2.5 py-2.5"><span class={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${badge.cls}`}>{badge.label}</span></td>
+                <td class="px-2.5 py-2.5">{job.source}</td>
+                <td class="px-2.5 py-2.5">{job.featured ? 'yes' : 'no'}</td>
+                <td class="px-2.5 py-2.5 text-gray-500 text-xs">{job.views || 0}</td>
+                <td class="px-2.5 py-2.5 text-gray-500 text-xs">{formatDate(job.created)}</td>
+                <td class={`px-2.5 py-2.5 text-xs ${expiresClass(job.expires)}`}>{formatDate(job.expires)}</td>
+                <td class="px-2.5 py-2.5">
+                  <div class="flex gap-1 flex-wrap">
+                    <a href={`/job/${job.slug}`} target="_blank" class="px-2 py-0.5 text-xs rounded border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors">View</a>
+                    {!expired && job.active === false && (
+                      <button data-id={job.id} data-action="approve" class="px-2 py-0.5 text-xs font-medium rounded bg-green-800 text-white hover:bg-green-900 transition-colors">Approve</button>
+                    )}
+                    {job.active && (
+                      <button data-id={job.id} data-action="reject" class="px-2 py-0.5 text-xs rounded bg-white text-orange-700 border border-orange-300 hover:bg-orange-50 transition-colors">Reject</button>
+                    )}
+                    <button data-id={job.id} data-action="toggle_featured"
+                      class={job.featured
+                        ? 'px-2 py-0.5 text-xs font-medium rounded bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors'
+                        : 'px-2 py-0.5 text-xs rounded bg-white text-green-800 border border-green-800 hover:bg-green-50 transition-colors'}>
+                      {job.featured ? 'Unfeature' : 'Feature'}
+                    </button>
+                    {expired && (
+                      <button data-id={job.id} data-action="repost" class="px-2 py-0.5 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors">Repost</button>
+                    )}
+                    <button data-id={job.id} data-action="delete" data-title={job.title} class="px-2 py-0.5 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 transition-colors">Delete</button>
+                  </div>
                 </td>
               </tr>
             );
@@ -140,7 +149,6 @@ function expiresClass(expires?: string): string {
       const id = button.dataset.id;
       if (!action || !id) return;
 
-      // Confirm destructive actions
       if (action === 'delete') {
         const title = button.dataset.title || 'this job';
         const ok = confirm(`Are you sure you want to permanently delete "${title}"? This cannot be undone.`);
@@ -161,7 +169,6 @@ function expiresClass(expires?: string): string {
 
         if (res.ok && body.success !== false) {
           if (action === 'delete') {
-            // Remove the row in-place without a full reload
             const row = button.closest('tr');
             if (row) row.remove();
           } else {
@@ -182,68 +189,7 @@ function expiresClass(expires?: string): string {
 </script>
 
 <style>
-  .admin-wrap { max-width: 1200px; margin: 1.5rem auto; padding: 0 1.5rem; }
-  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.3px; }
-
-  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-  .form-select, .form-btn { border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; padding: 7px 9px; font-size: 13px; }
-  .form-btn { background: #2d6a4f; color: #fff; border-color: #2d6a4f; padding: 7px 14px; cursor: pointer; }
-
-  .count-line { color: #666; font-size: 13px; margin: 0 0 8px; }
-
-  .table-wrap { overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th, td { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; text-align: left; white-space: nowrap; }
-  th { font-weight: 600; color: #444; background: #fafafa; }
-  .title-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
-  .date-cell { color: #888; font-size: 12px; }
-  .empty-cell { padding: 3rem 1rem; text-align: center; color: #aaa; font-size: 13px; }
-
-  .row-pending td { background: #fffbeb; }
-  .row-expired td { background: #fafafa; color: #888; }
-
-  .expires-green { color: #15803d; font-weight: 500; }
-  .expires-orange { color: #c2410c; font-weight: 500; }
-  .expires-red { color: #b91c1c; font-weight: 500; }
-  .expires-none { color: #aaa; }
-
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
-  .bg-green-100 { background: #dcfce7; }
-  .text-green-800 { color: #166534; }
-  .bg-yellow-100 { background: #fef9c3; }
-  .text-yellow-800 { color: #854d0e; }
-  .bg-gray-100 { background: #f3f4f6; }
-  .text-gray-500 { color: #6b7280; }
-
-  .actions { display: flex; gap: 5px; flex-wrap: wrap; white-space: nowrap; }
-  .btn-view, .btn-approve, .btn-reject, .btn-feature, .btn-unfeature, .btn-repost, .btn-delete {
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: 500;
-    border-radius: 4px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.15s ease;
-  }
-  .btn-view { border-color: #ddd; color: #666; background: #fff; }
-  .btn-view:hover { background: #f5f5f5; }
-  .btn-approve { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
-  .btn-approve:hover { background: #245a42; }
-  .btn-reject { background: #fff; color: #c2410c; border-color: #fdba74; }
-  .btn-reject:hover { background: #fff7ed; }
-  .btn-feature { border-color: #2d6a4f; color: #2d6a4f; background: #fff; }
-  .btn-feature:hover { background: #f0faf5; }
-  .btn-unfeature { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-  .btn-unfeature:hover { background: #fde68a; }
-  .btn-repost { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
-  .btn-repost:hover { background: #1e40af; }
-  .btn-delete { background: #dc2626; color: #fff; border-color: #dc2626; }
-  .btn-delete:hover { background: #b91c1c; }
-  .btn-approve:disabled, .btn-reject:disabled, .btn-feature:disabled,
-  .btn-unfeature:disabled, .btn-repost:disabled, .btn-delete:disabled { opacity: 0.5; cursor: wait; }
-
+  button:disabled { opacity: 0.5; cursor: wait; }
   @media (max-width: 860px) {
     header { flex-direction: column; align-items: flex-start; }
   }

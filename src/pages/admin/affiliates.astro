@@ -23,154 +23,129 @@ const zones = [
 ---
 
 <Layout title="Affiliate Links | Admin" canonicalUrl={Astro.url.href}>
-  <main class="admin-wrap">
-    <header>
-      <h1>Affiliate Links</h1>
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="flex justify-between items-center mb-4 flex-wrap gap-3">
+      <h1 class="text-2xl font-bold text-gray-900 m-0">Affiliate Links</h1>
       <AdminNav current="affiliates" />
     </header>
 
-    <section class="metrics">
-      <div class="metric"><b>{stats.totalClicks.toLocaleString('en-ZA')}</b><span>Total clicks</span></div>
-      <div class="metric"><b>{stats.todayClicks.toLocaleString('en-ZA')}</b><span>Clicks today</span></div>
-      <div class="metric"><b>{links.length}</b><span>Active links</span></div>
+    <section class="grid grid-cols-3 gap-2.5 mb-4">
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">{stats.totalClicks.toLocaleString('en-ZA')}</b>
+        <span class="text-xs text-gray-500">Total clicks</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">{stats.todayClicks.toLocaleString('en-ZA')}</b>
+        <span class="text-xs text-gray-500">Clicks today</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">{links.length}</b>
+        <span class="text-xs text-gray-500">Active links</span>
+      </div>
     </section>
 
-    <section class="panel">
-      <h2 id="form-heading">Add New Affiliate Link</h2>
-      <form id="affiliate-form" class="add-form" enctype="multipart/form-data">
+    <section class="bg-white border border-gray-200 rounded-md p-5 mb-4">
+      <h2 id="form-heading" class="text-sm font-semibold text-gray-900 mb-3">Add New Affiliate Link</h2>
+      <form id="affiliate-form" class="space-y-3" enctype="multipart/form-data">
         <input type="hidden" name="action" value="add" />
         <input type="hidden" name="id" value="" />
 
-        <div class="form-row">
-          <label class="full-width">
-            <span class="field-label">Display type</span>
-            <select name="display_type" id="display_type" class="field">
-              <option value="text">Text Ad — clean headline link</option>
-              <option value="image">Banner Image — uploaded file or URL</option>
-              <option value="html">HTML Creative — paste MaxBounty embed code</option>
-            </select>
-          </label>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Display type</label>
+          <select name="display_type" id="display_type" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800">
+            <option value="text">Text Ad — clean headline link</option>
+            <option value="image">Banner Image — uploaded file or URL</option>
+            <option value="html">HTML Creative — paste MaxBounty embed code</option>
+          </select>
         </div>
 
-        <div class="form-row">
-          <label class="full-width">
-            <span class="field-label">Ad Title</span>
-            <input type="text" name="name" placeholder="e.g. Take surveys and earn money working from home" required class="field" />
-          </label>
-        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">Ad Title</label><input type="text" name="name" placeholder="e.g. Take surveys and earn money working from home" required class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">Short description (optional — shows under ad title)</label><input type="text" name="description" maxlength="120" placeholder="e.g. Earn extra income completing surveys from home" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">Affiliate URL</label><input type="url" name="url" placeholder="https://maxbounty.com/..." required class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
 
-        <div class="form-row">
-          <label class="full-width">
-            <span class="field-label">Short description (optional — shows under ad title)</span>
-            <input type="text" name="description" maxlength="120" placeholder="e.g. Earn extra income completing surveys from home" class="field" />
-          </label>
-        </div>
-
-        <div class="form-row">
-          <label class="full-width">
-            <span class="field-label">Affiliate URL</span>
-            <input type="url" name="url" placeholder="https://maxbounty.com/..." required class="field" />
-          </label>
-        </div>
-
-        <div class="form-row">
-          <label>
-            <span class="field-label">Category</span>
-            <select name="category" class="field">
+        <div class="flex gap-3 flex-wrap">
+          <label class="flex-1 min-w-[200px]"><span class="block text-sm font-medium text-gray-700 mb-1">Category</span>
+            <select name="category" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800">
               <option value="general">general (shows everywhere)</option>
               {categories.filter(c => c !== 'general').map(c => <option value={c}>{c}</option>)}
             </select>
           </label>
-          <label>
-            <span class="field-label">Zone</span>
-            <select name="zone" class="field">
+          <label class="flex-1 min-w-[200px]"><span class="block text-sm font-medium text-gray-700 mb-1">Zone</span>
+            <select name="zone" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800">
               {zones.map(z => <option value={z.value}>{z.label}</option>)}
             </select>
           </label>
         </div>
 
-        <!-- Image-only fields -->
-        <div class="form-row image-only" data-show-when="image">
-          <label>
-            <span class="field-label">Banner Width (px)</span>
-            <input type="number" name="banner_width" min="0" placeholder="e.g. 728" class="field" />
-          </label>
-          <label>
-            <span class="field-label">Banner Height (px)</span>
-            <input type="number" name="banner_height" min="0" placeholder="e.g. 90" class="field" />
-          </label>
+        <div class="flex gap-3 flex-wrap" data-show-when="image">
+          <label class="flex-1 min-w-[200px]"><span class="block text-sm font-medium text-gray-700 mb-1">Banner Width (px)</span><input type="number" name="banner_width" min="0" placeholder="e.g. 728" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></label>
+          <label class="flex-1 min-w-[200px]"><span class="block text-sm font-medium text-gray-700 mb-1">Banner Height (px)</span><input type="number" name="banner_height" min="0" placeholder="e.g. 90" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></label>
         </div>
+        <div data-show-when="image"><label class="block text-sm font-medium text-gray-700 mb-1">Upload Banner Image (preferred over external URL)</label><input type="file" name="banner_file" accept="image/jpeg,image/png,image/gif,image/webp" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm" /></div>
+        <div data-show-when="image"><label class="block text-sm font-medium text-gray-700 mb-1">Banner Image URL (external)</label><input type="text" name="image_url" placeholder="https://example.com/banner.png" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
+        <div data-show-when="html"><label class="block text-sm font-medium text-gray-700 mb-1">Banner HTML / JS code (paste MaxBounty creative)</label><textarea name="banner_html" placeholder='<script src="..."></script> or <iframe>...' class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800 font-mono" rows="4"></textarea></div>
 
-        <div class="form-row image-only" data-show-when="image">
-          <label class="full-width">
-            <span class="field-label">Upload Banner Image (preferred over external URL)</span>
-            <input type="file" name="banner_file" accept="image/jpeg,image/png,image/gif,image/webp" class="field" />
-          </label>
-        </div>
+        <p id="form-error" hidden class="text-red-600 text-xs p-2 bg-red-50 border border-red-200 rounded-md m-0"></p>
 
-        <div class="form-row image-only" data-show-when="image">
-          <label class="full-width">
-            <span class="field-label">Banner Image URL (external)</span>
-            <input type="text" name="image_url" placeholder="https://example.com/banner.png" class="field" />
-          </label>
-        </div>
-
-        <!-- HTML-only field -->
-        <div class="form-row html-only" data-show-when="html">
-          <label class="full-width">
-            <span class="field-label">Banner HTML / JS code (paste MaxBounty creative)</span>
-            <textarea name="banner_html" placeholder="<script src=&quot;...&quot;></script> or <iframe>..." class="field field-textarea" rows="4"></textarea>
-          </label>
-        </div>
-
-        <p id="form-error" class="form-error" hidden></p>
-
-        <div class="form-actions">
-          <button type="submit" class="btn-save" id="submit-btn">Add Link</button>
-          <button type="button" class="btn-cancel" id="cancel-btn" hidden>Cancel</button>
+        <div class="flex gap-2">
+          <button type="submit" class="btn-save bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors" id="submit-btn">Add Link</button>
+          <button type="button" class="btn-cancel bg-white text-gray-600 text-sm font-medium px-5 py-2.5 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors" id="cancel-btn" hidden>Cancel</button>
         </div>
       </form>
     </section>
 
-    <section class="panel">
-      <h2>Active Links ({links.length})</h2>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Ad Title</th><th>Type</th><th>Category</th><th>Zone</th><th>Size</th><th>Clicks</th><th>Status</th><th>Actions</th></tr></thead>
+    <section class="bg-white border border-gray-200 rounded-md p-5">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Active Links ({links.length})</h2>
+      <div class="overflow-auto">
+        <table class="w-full border-collapse text-sm">
+          <thead><tr>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Ad Title</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Type</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Category</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Zone</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Size</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Clicks</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Status</th>
+            <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Actions</th>
+          </tr></thead>
           <tbody>
-            {links.length === 0 && <tr><td colspan="8" class="empty">No affiliate links yet.</td></tr>}
+            {links.length === 0 && <tr><td colspan="8" class="py-12 text-center text-gray-500">No affiliate links yet.</td></tr>}
             {links.map((link: any) => {
               const fileUrl = link.banner_file && link.collectionId
                 ? `${PB_FILE_BASE}/api/files/${link.collectionId}/${link.id}/${link.banner_file}?thumb=64x64`
                 : null;
               const displayType = link.display_type || 'text';
               return (
-                <tr>
-                  <td class="name-cell">
-                    {fileUrl && <img src={fileUrl} alt="" class="thumb" loading="lazy" />}
-                    <span>{link.name}</span>
+                <tr class="border-b border-gray-200">
+                  <td class="px-2.5 py-2.5">
+                    <div class="flex items-center gap-2 max-w-[280px] font-medium">
+                      {fileUrl && <img src={fileUrl} alt="" class="w-8 h-8 object-cover rounded border border-gray-200" loading="lazy" />}
+                      <span>{link.name}</span>
+                    </div>
                   </td>
-                  <td><span class="zone-badge">{displayType}</span></td>
-                  <td>{link.category || 'general'}</td>
-                  <td><span class="zone-badge">{link.zone}</span></td>
-                  <td class="dim">{link.banner_width || '-'}{link.banner_height ? `×${link.banner_height}` : ''}</td>
-                  <td><b>{link.clicks || 0}</b></td>
-                  <td><span class={`status ${link.active ? 'active' : 'inactive'}`}>{link.active ? 'Active' : 'Paused'}</span></td>
-                  <td class="actions">
-                    <button class="btn-sm btn-edit"
-                      data-id={link.id}
-                      data-name={link.name}
-                      data-description={link.description || ''}
-                      data-url={link.url}
-                      data-category={link.category || 'general'}
-                      data-zone={link.zone}
-                      data-display-type={displayType}
-                      data-banner-width={link.banner_width || ''}
-                      data-banner-height={link.banner_height || ''}
-                      data-image-url={link.image_url || ''}
-                      data-banner-html={link.banner_html || ''}>Edit</button>
-                    <button class="btn-sm" data-id={link.id} data-action="toggle">{link.active ? 'Pause' : 'Activate'}</button>
-                    <button class="btn-sm btn-danger" data-id={link.id} data-action="delete">Delete</button>
+                  <td class="px-2.5 py-2.5"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{displayType}</span></td>
+                  <td class="px-2.5 py-2.5 text-gray-500">{link.category || 'general'}</td>
+                  <td class="px-2.5 py-2.5"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{link.zone}</span></td>
+                  <td class="px-2.5 py-2.5 text-gray-500 text-xs">{link.banner_width || '-'}{link.banner_height ? `×${link.banner_height}` : ''}</td>
+                  <td class="px-2.5 py-2.5"><b class="text-gray-900">{link.clicks || 0}</b></td>
+                  <td class="px-2.5 py-2.5"><span class={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${link.active ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-800'}`}>{link.active ? 'Active' : 'Paused'}</span></td>
+                  <td class="px-2.5 py-2.5">
+                    <div class="flex gap-1 flex-wrap">
+                      <button class="px-2 py-0.5 text-xs rounded border border-green-200 text-green-800 bg-white hover:bg-green-50 transition-colors btn-edit"
+                        data-id={link.id}
+                        data-name={link.name}
+                        data-description={link.description || ''}
+                        data-url={link.url}
+                        data-category={link.category || 'general'}
+                        data-zone={link.zone}
+                        data-display-type={displayType}
+                        data-banner-width={link.banner_width || ''}
+                        data-banner-height={link.banner_height || ''}
+                        data-image-url={link.image_url || ''}
+                        data-banner-html={link.banner_html || ''}>Edit</button>
+                      <button class="px-2 py-0.5 text-xs rounded border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors" data-id={link.id} data-action="toggle">{link.active ? 'Pause' : 'Activate'}</button>
+                      <button class="px-2 py-0.5 text-xs rounded border border-red-200 text-red-600 bg-white hover:bg-red-50 transition-colors" data-id={link.id} data-action="delete">Delete</button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -221,7 +196,6 @@ const zones = [
     updateConditionalFields();
   }
 
-  // Show/hide image-only and html-only field groups based on display_type
   const displayTypeSelect = document.getElementById('display_type') as HTMLSelectElement;
   function updateConditionalFields() {
     const current = displayTypeSelect?.value || 'text';
@@ -239,6 +213,7 @@ const zones = [
     e.preventDefault();
     errorEl.hidden = true;
     submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-50');
     const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Saving…';
 
@@ -252,12 +227,14 @@ const zones = [
         errorEl.textContent = data.error || 'Could not save affiliate link.';
         errorEl.hidden = false;
         submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50');
         submitBtn.textContent = originalText;
       }
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
       errorEl.hidden = false;
       submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-50');
       submitBtn.textContent = originalText;
     }
   });
@@ -301,55 +278,7 @@ const zones = [
 </script>
 
 <style>
-  .admin-wrap { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem; }
-  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-  h1 { font-size: 22px; margin: 0; font-weight: 600; color: #1a1a1a; }
-  h2 { font-size: 14px; font-weight: 600; color: #1a1a1a; margin: 0 0 12px; }
-  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-  .metric { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px; }
-  .metric b { display: block; font-size: 22px; font-weight: 600; color: #1a1a1a; }
-  .metric span { font-size: 12px; color: #666; }
-  .panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
-
-  .add-form { display: grid; gap: 12px; }
-  .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
-  .form-row label { flex: 1; min-width: 200px; display: grid; gap: 4px; }
-  .form-row label.full-width { flex: 1 0 100%; }
-  .field-label { font-size: 12px; font-weight: 500; color: #444; }
-  .field { width: 100%; border: 1px solid #e0e0e0; border-radius: 4px; padding: 8px 10px; font-size: 13px; box-sizing: border-box; }
-  .field:focus { outline: none; border-color: #2d6a4f; }
-  .field-textarea { resize: vertical; font-family: monospace; font-size: 12px; }
-
-  .form-actions { display: flex; gap: 8px; }
-  .btn-save { background: #2d6a4f; color: #fff; border: none; border-radius: 4px; padding: 9px 16px; font-size: 13px; font-weight: 500; cursor: pointer; }
-  .btn-save:hover { background: #245a42; }
-  .btn-save:disabled { opacity: 0.6; cursor: wait; }
-  .btn-cancel { background: #fff; color: #666; border: 1px solid #e0e0e0; border-radius: 4px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
-
-  .form-error { color: #dc2626; font-size: 12px; margin: 0; padding: 8px 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; }
-
-  .btn-sm { padding: 4px 10px; font-size: 11px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; cursor: pointer; }
-  .btn-sm:hover { background: #f5f5f5; }
-  .btn-edit { color: #2d6a4f; border-color: #cde3d4; }
-  .btn-danger { color: #dc2626; border-color: #fca5a5; }
-
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { padding: 10px 8px; border-bottom: 1px solid #f5f5f5; text-align: left; vertical-align: middle; }
-  th { font-weight: 600; color: #444; background: #fafafa; font-size: 12px; }
-  .name-cell { display: flex; align-items: center; gap: 8px; max-width: 280px; font-weight: 500; }
-  .thumb { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; border: 1px solid #e0e0e0; }
-  .zone-badge { display: inline-block; padding: 2px 8px; background: #f0f0f0; border-radius: 999px; font-size: 11px; font-weight: 500; }
-  .status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
-  .status.active { background: #e8f4f0; color: #2d6a4f; }
-  .status.inactive { background: #fef3c7; color: #92400e; }
-  .actions { display: flex; gap: 4px; flex-wrap: wrap; }
-  .empty { text-align: center; color: #aaa; padding: 2rem; }
-  .dim { color: #888; font-size: 12px; }
-
   @media (max-width: 760px) {
-    .metrics { grid-template-columns: repeat(2, 1fr); }
     header { flex-direction: column; align-items: flex-start; }
-    .form-row label { min-width: 100%; }
   }
 </style>

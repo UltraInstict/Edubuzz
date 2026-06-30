@@ -1,11 +1,4 @@
 ---
-/**
- * EmptyState — centered empty placeholder.
- *
- * To hide the icon entirely, pass `icon={null}` or `icon="none"`.
- * Default behavior renders no icon (text-only) — matches the
- * Edubuzz "no decorative icons on profile pages" rule.
- */
 export interface Props {
   title?: string;
   description?: string;
@@ -30,57 +23,13 @@ const icons: Record<string, string> = {
 const iconChar = icon && icon !== 'none' ? icons[icon] : '';
 ---
 
-<div class="empty-state">
-  {iconChar && <span class="empty-icon" aria-hidden="true">{iconChar}</span>}
-  <h2 class="empty-title">{title}</h2>
-  <p class="empty-desc">{description}</p>
+<div class="flex flex-col items-center justify-center py-12 px-6 text-center bg-white border border-gray-200 rounded-md">
+  {iconChar && <span class="text-4xl mb-3" aria-hidden="true">{iconChar}</span>}
+  <h2 class="text-base font-semibold text-gray-900 mb-1">{title}</h2>
+  <p class="text-sm text-gray-600 max-w-sm leading-relaxed mb-4">{description}</p>
   {action && (
-    <a href={action.href} class="empty-action">{action.label}</a>
+    <a href={action.href} class="inline-flex items-center bg-green-800 text-white rounded-md text-sm font-medium px-4 py-2 hover:bg-green-900 transition-colors">
+      {action.label}
+    </a>
   )}
 </div>
-
-<style>
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem 1.5rem;
-    text-align: center;
-    background: var(--color-white, #fff);
-    border: 1px solid var(--color-border, #e0e0e0);
-    border-radius: var(--radius-md, 6px);
-  }
-  .empty-icon {
-    font-size: 2.5rem;
-    margin-bottom: 0.75rem;
-  }
-  .empty-title {
-    margin: 0 0 0.25rem;
-    font-size: var(--text-lg, 1rem);
-    font-weight: var(--font-semibold, 600);
-    color: var(--color-navy, #1a1a1a);
-  }
-  .empty-desc {
-    margin: 0 0 1rem;
-    font-size: var(--text-sm, 0.8125rem);
-    color: var(--color-muted, #666);
-    max-width: 360px;
-    line-height: 1.5;
-  }
-  .empty-action {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    background: var(--color-brand, #2d6a4f);
-    color: var(--color-white, #fff);
-    border-radius: var(--radius-sm, 4px);
-    font-size: var(--text-sm, 0.8125rem);
-    font-weight: var(--font-medium, 500);
-    text-decoration: none;
-    transition: background var(--transition-fast, 0.15s ease);
-  }
-  .empty-action:hover {
-    background: var(--color-brand-dark, #245a42);
-  }
-</style>

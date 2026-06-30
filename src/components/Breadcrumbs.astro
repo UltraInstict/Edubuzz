@@ -8,16 +8,16 @@ const { items } = Astro.props as { items: Crumb[] };
 const origin = Astro.url?.origin || 'https://edubuzz.co.za';
 ---
 
-<nav aria-label="Breadcrumb" class="breadcrumbs">
-  <ol>
+<nav aria-label="Breadcrumb" class="text-xs">
+  <ol class="list-none m-0 p-0 flex flex-wrap items-center gap-1">
     {items.map((crumb, i) => (
       <li>
         {crumb.href ? (
-          <a href={crumb.href}>{crumb.label}</a>
+          <a href={crumb.href} class="text-gray-600 hover:text-green-800 hover:underline">{crumb.label}</a>
         ) : (
-          <span class="current" aria-current="page">{crumb.label}</span>
+          <span class="text-gray-900 font-medium" aria-current="page">{crumb.label}</span>
         )}
-        {i < items.length - 1 && <span class="sep" aria-hidden="true">&rsaquo;</span>}
+        {i < items.length - 1 && <span class="text-gray-500 mx-0.5" aria-hidden="true">&rsaquo;</span>}
       </li>
     ))}
   </ol>
@@ -33,36 +33,3 @@ const origin = Astro.url?.origin || 'https://edubuzz.co.za';
     item: crumb.href ? (crumb.href.startsWith('http') ? crumb.href : `${origin}${crumb.href}`) : undefined,
   })),
 })} />
-
-<style>
-  .breadcrumbs {
-    font-size: 12px;
-    color: #666;
-    padding: 0;
-  }
-  .breadcrumbs ol {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px;
-  }
-  .breadcrumbs a {
-    color: #666;
-    text-decoration: none;
-  }
-  .breadcrumbs a:hover {
-    color: #2d6a4f;
-    text-decoration: underline;
-  }
-  .breadcrumbs .current {
-    color: #1a1a1a;
-    font-weight: 500;
-  }
-  .breadcrumbs .sep {
-    color: #aaa;
-    margin: 0 2px;
-  }
-</style>

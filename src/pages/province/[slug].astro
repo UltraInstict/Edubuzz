@@ -20,7 +20,7 @@ const { items: jobs, totalItems, totalPages } = await getJobs({ page, perPage: 2
   prevPage={page > 1 ? `${Astro.url.origin}/province/${slug}?page=${Math.max(1, page - 1)}` : undefined}
   nextPage={page < totalPages ? `${Astro.url.origin}/province/${slug}?page=${page + 1}` : undefined}
 >
-  <div class="bg-white border-b border-border py-10 px-6">
+  <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">
       <div class="mb-4">
         <Breadcrumbs items={[
@@ -30,7 +30,7 @@ const { items: jobs, totalItems, totalPages } = await getJobs({ page, perPage: 2
         ]} />
       </div>
       <h1 class="text-2xl font-semibold text-navy">Jobs in {province}</h1>
-      <p class="text-muted text-sm">{totalItems.toLocaleString()} jobs available in {province}</p>
+      <p class="text-gray-500 text-sm">{totalItems.toLocaleString()} jobs available in {province}</p>
     </div>
   </div>
 
@@ -41,7 +41,7 @@ const { items: jobs, totalItems, totalPages } = await getJobs({ page, perPage: 2
       </div>
       {jobs.length === 0 && (
         <div class="card text-center py-12">
-          <p class="text-muted">No jobs in {province} right now. Check back soon!</p>
+          <p class="text-gray-500">No jobs in {province} right now. Check back soon!</p>
         </div>
       )}
       {totalPages > 1 && (
@@ -50,7 +50,7 @@ const { items: jobs, totalItems, totalPages } = await getJobs({ page, perPage: 2
             const p = i + 1;
             return (
               <a href={`/province/${slug}?page=${p}`}
-                class={`w-9 h-9 flex items-center justify-center rounded-lg text-sm border transition-colors ${p === page ? 'border-accent text-accent bg-accent-light font-bold' : 'border-border text-muted hover:border-accent bg-white'}`}>
+                class={`w-9 h-9 flex items-center justify-center rounded-md text-sm border transition-colors ${p === page ? 'border-green-800 text-green-800 bg-green-800-light font-bold' : 'border-gray-200 text-gray-500 hover:border-green-800 bg-white'}`}>
                 {p}
               </a>
             );

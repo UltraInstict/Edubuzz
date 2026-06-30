@@ -17,107 +17,59 @@ const recentApps = { items: recentAppList };
 ---
 
 <Layout title="Admin Dashboard" description="Edubuzz admin dashboard." canonicalUrl={Astro.url.href}>
-  <main class="admin-wrap">
-    <header>
-      <h1>Admin dashboard</h1>
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="flex justify-between items-center mb-4 gap-4">
+      <h1 class="text-2xl font-bold text-gray-900 m-0">Admin dashboard</h1>
       <AdminNav current="dashboard" />
     </header>
 
-    <section class="metrics">
-      <div><b>{metrics.activeJobs}</b><span>Active jobs</span></div>
-      <div><b>{metrics.pendingJobs}</b><span>Pending jobs</span></div>
-      <div><b>{metrics.expiredJobs}</b><span>Expired jobs</span></div>
-      <div><b>{metrics.totalEmployers}</b><span>Employers</span></div>
-      <div><b>{metrics.applicationsToday}</b><span>Applications today</span></div>
-      <div><b>{metrics.alertSubscribers}</b><span>Alert subscribers</span></div>
-      <div><b>R{metrics.revenueThisMonth.toLocaleString('en-ZA')}</b><span>Revenue this month</span></div>
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">{metrics.activeJobs}</b>
+        <span class="text-sm text-gray-500">Active jobs</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">{metrics.pendingJobs}</b>
+        <span class="text-sm text-gray-500">Pending jobs</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">{metrics.expiredJobs}</b>
+        <span class="text-sm text-gray-500">Expired jobs</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">{metrics.totalEmployers}</b>
+        <span class="text-sm text-gray-500">Employers</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">{metrics.applicationsToday}</b>
+        <span class="text-sm text-gray-500">Applications today</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">{metrics.alertSubscribers}</b>
+        <span class="text-sm text-gray-500">Alert subscribers</span>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-md p-5">
+        <b class="block text-xl font-semibold text-gray-900">R{metrics.revenueThisMonth.toLocaleString('en-ZA')}</b>
+        <span class="text-sm text-gray-500">Revenue this month</span>
+      </div>
     </section>
 
-    <section class="panel">
-      <h2>Recent activity</h2>
-      <ul>
-        {recentJobs.items.map((job: any) => <li>New job: {job.title} at {job.company}</li>)}
-        {recentApps.items.map((app: any) => <li>Application: {app.name || 'Unknown'} for {(app.expand?.job?.title) || 'a job'}</li>)}
-        {recentJobs.items.length === 0 && recentApps.items.length === 0 && <li class="text-gray-500">No recent activity.</li>}
+    <section class="bg-white border border-gray-200 rounded-md p-5">
+      <h2 class="text-sm font-semibold text-gray-900 mb-2">Recent activity</h2>
+      <ul class="m-0 p-0 list-none space-y-1">
+        {recentJobs.items.map((job: any) => <li class="text-sm text-gray-500">New job: {job.title} at {job.company}</li>)}
+        {recentApps.items.map((app: any) => <li class="text-sm text-gray-500">Application: {app.name || 'Unknown'} for {(app.expand?.job?.title) || 'a job'}</li>)}
+        {recentJobs.items.length === 0 && recentApps.items.length === 0 && <li class="text-sm text-gray-500">No recent activity.</li>}
       </ul>
     </section>
   </main>
 </Layout>
 
 <style>
-  .admin-wrap {
-    max-width: 1100px;
-    margin: 1.5rem auto;
-    padding: 0 1.5rem;
-  }
-
-  header {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-  }
-
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .metrics div {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 14px;
-  }
-
-  b {
-    display: block;
-    font-size: 20px;
-    font-weight: 600;
-  }
-
-  span,
-  li {
-    color: #666666;
-    font-size: 13px;
-  }
-
-  .panel {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 14px;
-  }
-
-  .panel ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 4px;
-  }
-
-  h2 {
-    margin: 0 0 8px;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
   @media (max-width: 760px) {
-    .metrics {
+    .grid {
       grid-template-columns: repeat(2, 1fr);
     }
-
     header {
       flex-direction: column;
       align-items: flex-start;

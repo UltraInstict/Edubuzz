@@ -25,6 +25,7 @@ const {
   ogDescription = description,
   ogType = 'website',
   noindex = false,
+  noLeaderboard = false,
   prevPage,
   nextPage,
 } = Astro.props;
@@ -116,9 +117,9 @@ const isAdmin = Astro.url.pathname.startsWith('/admin');
       </div>
     </nav>
 
-    {!isAdmin && (
-      <div class="ad-slot my-6 flex items-center justify-center border border-gray-100 bg-gray-50 rounded-md max-w-6xl mx-auto" style="min-height:90px">
-        <span class="text-xs text-gray-400">Advertisement</span>
+    {!isAdmin && !noLeaderboard && (
+      <div class="ad-slot my-6 flex items-center justify-center border border-gray-200 bg-gray-50 rounded-md max-w-6xl mx-auto" style="min-height:90px">
+        <span class="text-xs text-gray-500">Advertisement</span>
       </div>
     )}
 
@@ -127,8 +128,8 @@ const isAdmin = Astro.url.pathname.startsWith('/admin');
     </div>
 
     {!isAdmin && (
-      <div class="ad-slot my-6 flex items-center justify-center border border-gray-100 bg-gray-50 rounded-md max-w-6xl mx-auto" style="min-height:90px">
-        <span class="text-xs text-gray-400">Advertisement</span>
+      <div class="ad-slot my-6 flex items-center justify-center border border-gray-200 bg-gray-50 rounded-md max-w-6xl mx-auto" style="min-height:90px">
+        <span class="text-xs text-gray-500">Advertisement</span>
       </div>
     )}
 
@@ -166,7 +167,7 @@ const isAdmin = Astro.url.pathname.startsWith('/admin');
             </div>
           </div>
         </div>
-        <div class="border-t border-gray-100 mt-8 pt-6 flex flex-col sm:flex-row justify-between gap-2">
+        <div class="border-t border-gray-200 mt-8 pt-6 flex flex-col sm:flex-row justify-between gap-2">
           <p class="text-xs text-gray-400">&copy; {new Date().getFullYear()} Edubuzz.co.za</p>
         </div>
       </div>

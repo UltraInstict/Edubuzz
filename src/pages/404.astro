@@ -13,34 +13,25 @@ Astro.response.status = isGone ? 410 : 404;
 ---
 
 <Layout title={isGone ? 'Job expired' : 'Page not found'} description={isGone ? 'This job has expired.' : 'This page doesn\'t exist.'} canonicalUrl="" noindex={true}>
-  <main class="not-found">
-    <p class="code">{isGone ? '410' : '404'}</p>
+  <main class="max-w-2xl mx-auto min-h-[56vh] py-12 px-4 text-center">
+    <p class="text-[56px] text-gray-500 font-semibold leading-none m-0">{isGone ? '410' : '404'}</p>
     {isJobUrl || isGone ? (
       <>
-        <h1>{isGone ? 'This job has expired' : 'This job may have expired'}</h1>
-        <p>The listing you're looking for has been removed, filled, or never existed.</p>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2 mb-1">{isGone ? 'This job has expired' : 'This job may have expired'}</h1>
+        <p class="text-sm text-gray-600">The listing you're looking for has been removed, filled, or never existed.</p>
       </>
     ) : (
       <>
-        <h1>Page not found</h1>
-        <p>The page you're looking for doesn't exist.</p>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2 mb-1">Page not found</h1>
+        <p class="text-sm text-gray-600">The page you're looking for doesn't exist.</p>
       </>
     )}
-    <a href="/" class="btn-home">Go to homepage &rarr;</a>
+    <a href="/" class="inline-flex mt-3 mb-5.5 bg-green-800 text-white text-sm font-semibold px-4 py-2.5 rounded-md hover:bg-green-900 transition-colors">Go to homepage &rarr;</a>
     {suggestions.items.length > 0 && (
-      <section class="suggestions">
-        <p>Or try one of these:</p>
+      <section class="text-left">
+        <p class="text-sm text-gray-600 mb-2">Or try one of these:</p>
         {suggestions.items.map((job) => <JobCard job={job} compact />)}
       </section>
     )}
   </main>
 </Layout>
-
-<style>
-  .not-found { max-width: 720px; margin: 0 auto; min-height: 56vh; padding: 3rem 1rem; text-align: center; }
-  .code { margin: 0; color: #888888; font-size: 56px; font-weight: 600; line-height: 1; }
-  h1 { margin: 8px 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-  p { color: #666666; font-size: 13px; }
-  .btn-home { display: inline-flex; margin: 12px 0 22px; border: 1px solid #2d6a4f; background: #2d6a4f; color: #fff; border-radius: 4px; padding: 9px 12px; font-size: 13px; font-weight: 600; }
-  .suggestions { text-align: left; }
-</style>
