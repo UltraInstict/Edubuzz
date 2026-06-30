@@ -52,7 +52,7 @@ const resultSummary = `Showing ${totalItems.toLocaleString('en-ZA')} active jobs
       </form>
       <div class="flex gap-2 mt-3 flex-wrap">
         {pills.map(pill => (
-          <a href={withParams({ type: pill.value, page: '' })} class={`inline-block text-sm px-4 py-1.5 rounded-md transition-colors ${pill.value === job_type ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-600 hover:border-green-800 hover:text-green-800'}`}>{pill.label}</a>
+          <a href={withParams({ type: pill.value, page: '' })} class={`inline-block text-sm px-4 py-1.5 rounded-md transition-colors ${pill.value === job_type ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-900 hover:border-green-800 hover:text-green-800'}`}>{pill.label}</a>
         ))}
       </div>
     </div>
@@ -86,9 +86,9 @@ const resultSummary = `Showing ${totalItems.toLocaleString('en-ZA')} active jobs
           )}
           {totalPages > 1 && (
             <div class="flex gap-1 mt-4 flex-wrap">
-              {page > 1 && <a href={pageUrl(page-1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-gray-600 hover:border-green-800">Previous</a>}
-              {Array.from({length: Math.min(totalPages,7)}, (_,i) => i+1).map(p => <a href={pageUrl(p)} class={`rounded-md px-3 py-1.5 text-sm ${p===page ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-600 hover:border-green-800'}`}>{p}</a>)}
-              {page < totalPages && <a href={pageUrl(page+1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-gray-600 hover:border-green-800">Next</a>}
+              {page > 1 && <a href={pageUrl(page-1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800 hover:text-green-900">Previous</a>}
+              {Array.from({length: Math.min(totalPages,7)}, (_,i) => i+1).map(p => <a href={pageUrl(p)} class={`rounded-md px-3 py-1.5 text-sm ${p===page ? 'bg-green-800 text-white' : 'border border-gray-200 text-green-800 hover:border-green-800 hover:text-green-900'}`}>{p}</a>)}
+              {page < totalPages && <a href={pageUrl(page+1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800 hover:text-green-900">Next</a>}
             </div>
           )}
         </section>

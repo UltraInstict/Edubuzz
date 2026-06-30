@@ -13,3 +13,8 @@ See [design-system/taste.md](design-system/taste.md)
 
 # communication
 - Provide evidence-backed audit reports with raw command output; avoid summary claims like "everything is fixed" or "looks good." Confidence: 0.75
+
+# deployment
+- Always use --update-env flag on pm2 restart to ensure process picks up .env changes. Confidence: 0.85
+- For the standard deploy sequence, use `npm ci` (not `npm install`) to ensure a clean, reproducible build from the lockfile. Confidence: 0.70
+- If PM2 logs show "ClientResponseError 400: Failed to authenticate", this means PM2 is running with stale credentials in memory. The fix is `pm2 restart edubuzz --update-env` — do NOT edit source files for this error. Confidence: 0.80

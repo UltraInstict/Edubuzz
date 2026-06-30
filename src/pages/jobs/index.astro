@@ -45,7 +45,7 @@ function pageUrl(n: number) { return withParams({ page: String(n) }); }
       <div class="flex gap-2 mt-3 flex-wrap">
         {[{label:'All',value:''},{label:'Full-time',value:'Full-time'},{label:'Part-time',value:'Part-time'},{label:'Contract',value:'Contract'},{label:'Remote',value:'Remote'},{label:'Internship',value:'Internship'},{label:'Learnership',value:'Learnership'},{label:'Graduate',value:'Graduate Programme'}].map(p => {
           const active = p.value === job_type;
-          return <a href={withParams({job_type:p.value,page:''})} class={active ? 'bg-green-800 text-white text-sm px-4 py-1.5 rounded-md' : 'border border-gray-200 text-gray-600 text-sm px-4 py-1.5 rounded-md hover:border-green-800 hover:text-green-800'}>{p.label}</a>
+          return <a href={withParams({job_type:p.value,page:''})} class={active ? 'bg-green-800 text-white text-sm px-4 py-1.5 rounded-md' : 'border border-gray-200 text-gray-900 text-sm px-4 py-1.5 rounded-md hover:border-green-800 hover:text-green-800'}>{p.label}</a>
         })}
       </div>
     </div>
@@ -61,9 +61,9 @@ function pageUrl(n: number) { return withParams({ page: String(n) }); }
         <p class="text-xs text-gray-500 mb-3">Showing {jobs.length} of {totalItems.toLocaleString('en-ZA')} jobs</p>
         {jobs.length > 0 ? jobs.map(j => <JobCard job={j} />) : <div class="bg-white border border-gray-200 rounded-md p-8 text-center"><p class="text-sm text-gray-600">No jobs found. Try adjusting your search.</p></div>}
         {totalPages > 1 && <div class="flex gap-1 mt-4 flex-wrap">
-          {page > 1 && <a href={pageUrl(page-1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-gray-600 hover:border-green-800">Previous</a>}
-          {Array.from({length: Math.min(totalPages, 7)}, (_, i) => i + 1).map(p => <a href={pageUrl(p)} class={p === page ? 'bg-green-800 text-white rounded-md px-3 py-1.5 text-sm' : 'border border-gray-200 rounded-md px-3 py-1.5 text-sm text-gray-600 hover:border-green-800'}>{p}</a>)}
-          {page < totalPages && <a href={pageUrl(page+1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-gray-600 hover:border-green-800">Next</a>}
+          {page > 1 && <a href={pageUrl(page-1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800 hover:text-green-900">Previous</a>}
+          {Array.from({length: Math.min(totalPages, 7)}, (_, i) => i + 1).map(p => <a href={pageUrl(p)} class={p === page ? 'bg-green-800 text-white rounded-md px-3 py-1.5 text-sm' : 'border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800 hover:text-green-900'}>{p}</a>)}
+          {page < totalPages && <a href={pageUrl(page+1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800 hover:text-green-900">Next</a>}
         </div>}
       </div>
       <aside><Sidebar /></aside>

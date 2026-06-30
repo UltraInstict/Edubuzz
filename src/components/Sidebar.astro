@@ -22,7 +22,7 @@ const MOST_SEARCHED = ['General Worker','Admin','Security','Cashier','Driver','C
   <div class="bg-white border border-gray-200 rounded-md p-5">
     <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Browse Jobs</h3>
     <div class="space-y-1">
-      {BROWSE_LINKS.map(l => <a href={l.href} class="block text-sm text-gray-600 hover:text-green-800">{l.label}</a>)}
+      {BROWSE_LINKS.map(l => <a href={l.href} class="block text-sm text-green-800 hover:text-green-900">{l.label}</a>)}
     </div>
   </div>
 
@@ -32,7 +32,7 @@ const MOST_SEARCHED = ['General Worker','Admin','Security','Cashier','Driver','C
     <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Browse by category</h3>
     <div class="space-y-0.5">
       {categories.map(cat => (
-        <a href={`/category/${cat.slug}`} class="flex justify-between text-sm text-gray-600 hover:text-green-800 py-0.5">
+        <a href={`/category/${cat.slug}`} class="flex justify-between text-sm text-green-800 hover:text-green-900 py-0.5">
           <span>{cat.name}</span>
           <span class="text-xs text-gray-400">{cat.count}</span>
         </a>
@@ -45,7 +45,7 @@ const MOST_SEARCHED = ['General Worker','Admin','Security','Cashier','Driver','C
     <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Browse by province</h3>
     <div class="grid grid-cols-2 gap-1">
       {PROVINCES.map(p => (
-        <a href={`/province/${slugify(p)}`} class="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 hover:border-green-800 hover:text-green-800 text-center">{p}</a>
+        <a href={`/province/${slugify(p)}`} class="border border-gray-200 rounded-md px-3 py-2 text-sm text-green-800 hover:text-green-900 text-center">{p}</a>
       ))}
     </div>
   </div>
@@ -54,7 +54,7 @@ const MOST_SEARCHED = ['General Worker','Admin','Security','Cashier','Driver','C
     <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Most Searched</h3>
     <div class="space-y-1">
       {MOST_SEARCHED.map(term => (
-        <a href={`/jobs?q=${encodeURIComponent(term)}`} class="block text-sm text-gray-600 hover:text-green-800">{term} Jobs</a>
+        <a href={`/jobs?q=${encodeURIComponent(term)}`} class="block text-sm text-green-800 hover:text-green-900">{term} Jobs</a>
       ))}
     </div>
   </div>

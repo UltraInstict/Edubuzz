@@ -17,7 +17,7 @@ function jobCount(emp: any) { return jobCounts[emp.id] || jobCounts[emp.company_
     <h1 class="text-2xl font-bold text-gray-900 mb-2">Companies hiring on Edubuzz</h1>
     <p class="text-sm text-gray-600 mb-4">Verified employers with active job listings</p>
     <div class="flex gap-2 mb-6 flex-wrap">
-      {['',...PROVINCES].map(p => <a href={provinceSlug(p)} class={`text-sm px-4 py-1.5 rounded-md transition-colors ${p===province||(!province&&p==='') ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-600 hover:border-green-800 hover:text-green-800'}`}>{p||'All'}</a>)}
+      {['',...PROVINCES].map(p => <a href={provinceSlug(p)} class={`text-sm px-4 py-1.5 rounded-md transition-colors ${p===province||(!province&&p==='') ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-900 hover:border-green-800 hover:text-green-800'}`}>{p||'All'}</a>)}
     </div>
     {employers.items.length ? (
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
