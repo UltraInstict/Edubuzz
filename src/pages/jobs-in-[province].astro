@@ -75,10 +75,10 @@ const summaryText = `Browse ${totalItems.toLocaleString('en-ZA')} jobs in ${prov
       )}
       {totalPages > 1 && (
         <div class="flex gap-1.5 mt-6 flex-wrap">
-          {page > 1 && <a href={`/jobs-in-${provinceSlug}?page=${page-1}`} class="px-3 py-1.5 border border-gray-200 rounded-md text-sm text-gray-500 hover:border-green-800 bg-white">Previous</a>}
+          {page > 1 && <a href={`/jobs-in-${provinceSlug}?page=${page-1}`} class="px-3 py-1.5 border border-gray-200 rounded-md text-sm text-green-800 hover:border-green-800 hover:text-green-900 bg-white">Previous</a>}
           {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
             const p = i + 1;
-            return <a href={`/jobs-in-${provinceSlug}?page=${p}`} class={`px-3 py-1.5 rounded-md text-sm border ${p === page ? 'border-green-800 bg-green-800 text-white font-semibold' : 'border-gray-200 text-gray-500 hover:border-green-800 bg-white'}`}>{p}</a>;
+            return <a href={`/jobs-in-${provinceSlug}?page=${p}`} class={`px-3 py-1.5 rounded-md text-sm border ${p === page ? 'border-green-800 bg-green-800 text-white font-semibold' : 'border-gray-200 text-green-800 hover:border-green-800 hover:text-green-900 bg-white'}`}>{p}</a>;
           })}
           {page < totalPages && <a href={`/jobs-in-${provinceSlug}?page=${page+1}`} class="px-3 py-1.5 border border-gray-200 rounded-md text-sm text-green-800 hover:border-green-800 hover:text-green-900 bg-white">Next</a>}
         </div>
