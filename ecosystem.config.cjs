@@ -1,5 +1,10 @@
 // PM2 Ecosystem File for Edubuzz Production
 // Usage: pm2 start ecosystem.config.cjs --env production
+//
+// Secrets are loaded from environment (systemd env, .env file, or PM2 env).
+// NEVER hardcode credentials here — this file is committed.
+
+require('dotenv').config();
 
 module.exports = {
   apps: [{
@@ -11,11 +16,11 @@ module.exports = {
       NODE_ENV: 'production',
       HOST: '127.0.0.1',
       PORT: 4321,
-      PB_URL: 'http://127.0.0.1:8090',
-      SITE_URL: 'https://edubuzz.co.za',
-      PB_ADMIN_EMAIL: 'praiseleeto@gmail.com',
-      PB_ADMIN_PASSWORD: 'Mogaila1996!@#',
-      CSRF_SECRET: '0e7e7bc03a1f67280b3d90cc6f0b113c668bb17f192fe783f09331c919ce9e6a',
+      PB_URL: process.env.PB_URL || 'http://127.0.0.1:8090',
+      SITE_URL: process.env.SITE_URL || 'https://edubuzz.co.za',
+      PB_ADMIN_EMAIL: process.env.PB_ADMIN_EMAIL || '',
+      PB_ADMIN_PASSWORD: process.env.PB_ADMIN_PASSWORD || '',
+      CSRF_SECRET: process.env.CSRF_SECRET || '',
     },
     max_memory_restart: '512M',
     max_restarts: 10,
@@ -35,11 +40,11 @@ module.exports = {
       NODE_ENV: 'production',
       HOST: '127.0.0.1',
       PORT: 4321,
-      PB_URL: 'http://127.0.0.1:8090',
-      SITE_URL: 'https://edubuzz.co.za',
-      PB_ADMIN_EMAIL: 'praiseleeto@gmail.com',
-      PB_ADMIN_PASSWORD: 'Mogaila1996!@#',
-      CSRF_SECRET: '0e7e7bc03a1f67280b3d90cc6f0b113c668bb17f192fe783f09331c919ce9e6a',
+      PB_URL: process.env.PB_URL || 'http://127.0.0.1:8090',
+      SITE_URL: process.env.SITE_URL || 'https://edubuzz.co.za',
+      PB_ADMIN_EMAIL: process.env.PB_ADMIN_EMAIL || '',
+      PB_ADMIN_PASSWORD: process.env.PB_ADMIN_PASSWORD || '',
+      CSRF_SECRET: process.env.CSRF_SECRET || '',
     },
     env_staging: {
       NODE_ENV: 'staging',
