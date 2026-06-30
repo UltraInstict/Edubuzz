@@ -234,7 +234,7 @@ src/
   components/
     ui/           # Design system primitives (Button, Card, Input, etc.)
     layout/       # Layout, Header, Footer, Sidebar
-    jobs/         # JobCard, JobList, SearchForm
+    jobs/         # JobCard, JobList
     admin/        # AdminNav, DataTable, FilterBar
     employer/     # Employer dashboard widgets
   services/       # Business logic + data access

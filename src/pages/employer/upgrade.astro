@@ -6,6 +6,28 @@ if (!user) return Astro.redirect('/login?next=' + Astro.url.pathname);
 const jobId = Astro.url.searchParams.get('job') || '';
 ---
 <Layout title="Upgrade Listing" description="Boost a job listing on Edubuzz." canonicalUrl={Astro.url.href}>
-<main class="wrap"><h1>Upgrade your listing</h1><section class="tiers"><div><h2>Basic</h2><b>Free</b><p>Standard listing</p></div><div class="selected"><h2>Featured</h2><b>R299</b><p>Top of results for 60 days</p><form method="post" action="/api/payments/initiate"><input type="hidden" name="jobId" value={jobId}/><button>Pay now</button></form></div><div><h2>Sponsored</h2><b>R499/week</b><p>Homepage sponsored strip</p></div></section></main>
+<main class="max-w-3xl mx-auto px-6 py-6">
+  <h1 class="text-2xl font-bold text-gray-900 mb-3">Upgrade your listing</h1>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div class="bg-white border border-gray-200 rounded-md p-4">
+      <h2 class="text-sm font-semibold text-gray-900 mb-1">Basic</h2>
+      <b class="text-green-800 text-lg">Free</b>
+      <p class="text-sm text-gray-600">Standard listing</p>
+    </div>
+    <div class="bg-white border-2 border-green-800 rounded-md p-4">
+      <h2 class="text-sm font-semibold text-gray-900 mb-1">Featured</h2>
+      <b class="text-green-800 text-lg">R299</b>
+      <p class="text-sm text-gray-600">Top of results for 60 days</p>
+      <form method="post" action="/api/payments/initiate">
+        <input type="hidden" name="jobId" value={jobId}/>
+        <button class="border border-green-800 bg-green-800 text-white rounded px-3 py-2 text-sm font-semibold">Pay now</button>
+      </form>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-md p-4">
+      <h2 class="text-sm font-semibold text-gray-900 mb-1">Sponsored</h2>
+      <b class="text-green-800 text-lg">R499/week</b>
+      <p class="text-sm text-gray-600">Homepage sponsored strip</p>
+    </div>
+  </div>
+</main>
 </Layout>
-<style>.wrap{max-width:900px;margin:1.5rem auto;padding:0 1.5rem}h1{font-size:22px;margin:0 0 12px;font-weight:600;letter-spacing:-0.3px}.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tiers div{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:1rem}.selected{border:2px solid #166534!important}h2{font-size:14px;margin:0 0 4px}b{color:#166534}p{font-size:13px;color:#6b7280}button{border:1px solid #166534;background:#166534;color:#fff;border-radius:4px;padding:9px 12px}@media(max-width:760px){.tiers{grid-template-columns:1fr}}</style>

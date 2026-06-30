@@ -31,9 +31,9 @@ const faq = [
   <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">
       <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
-        <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href="/resources" class="hover:text-navy">Resources</a> &rsaquo; <span class="text-navy font-medium">CV Tips for {category.name}</span>
+        <a href="/" class="hover:text-gray-900">Home</a> &rsaquo; <a href="/resources" class="hover:text-gray-900">Resources</a> &rsaquo; <span class="text-gray-900 font-medium">CV Tips for {category.name}</span>
       </nav>
-      <h1 class="text-2xl font-semibold text-navy">CV Tips for {category.name} Jobs</h1>
+      <h1 class="text-2xl font-semibold text-gray-900">CV Tips for {category.name} Jobs</h1>
       <p class="text-gray-500 text-sm mt-2">Expert advice on crafting a compelling CV for {category.name.toLowerCase()} positions in South Africa</p>
     </div>
   </div>
@@ -43,7 +43,7 @@ const faq = [
       <article class="prose max-w-none mb-8">
         <p class="text-gray-500">Creating a strong CV is essential for landing your next {category.name.toLowerCase()} role in South Africa. Employers in the {category.name.toLowerCase()} sector look for specific qualifications, relevant experience, and demonstrated skills. Here's how to make your application stand out.</p>
 
-        <h2 class="text-lg font-semibold text-navy mt-6">Key Sections for Your {category.name} CV</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mt-6">Key Sections for Your {category.name} CV</h2>
         <ul class="list-disc pl-5 text-gray-500 space-y-1">
           <li><strong>Professional Summary:</strong> A 2-3 sentence overview of your experience and career goals in the {category.name.toLowerCase()} field.</li>
           <li><strong>Work Experience:</strong> List positions relevant to {category.name.toLowerCase()}, with measurable achievements.</li>
@@ -52,7 +52,7 @@ const faq = [
           <li><strong>Professional Affiliations:</strong> Membership in relevant professional bodies or associations.</li>
         </ul>
 
-        <h2 class="text-lg font-semibold text-navy mt-6">South Africa-Specific CV Tips</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mt-6">South Africa-Specific CV Tips</h2>
         <ul class="list-disc pl-5 text-gray-500 space-y-1">
           <li>Include your South African ID number and driver's license details.</li>
           <li>List your language proficiency (English plus any African languages).</li>
@@ -65,7 +65,7 @@ const faq = [
       </article>
 
       <section class="mb-8">
-        <h2 class="text-lg font-semibold text-navy mb-4">Related Career Fields</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Related Career Fields</h2>
         <div class="flex flex-wrap gap-2">
           {categoriesWithJobs.map(cat => (
             <a href={`/cv-tips-for-${cat.slug}`} class="inline-flex items-center px-3 py-1.5 bg-green-50 text-green-800 text-xs font-medium rounded-full hover:bg-green-100 transition-colors">
@@ -76,11 +76,11 @@ const faq = [
       </section>
 
       <section class="mb-8">
-        <h2 class="text-lg font-semibold text-navy mb-4">Frequently Asked Questions</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
         <div class="space-y-4" itemscope itemtype="https://schema.org/FAQPage">
           {faq.map(item => (
-            <div class="card p-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-              <h3 class="font-medium text-navy text-sm mb-1" itemprop="name">{item.q}</h3>
+            <div class="card p-5" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+              <h3 class="font-medium text-gray-900 text-sm mb-1" itemprop="name">{item.q}</h3>
               <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                 <p class="text-gray-500 text-xs" itemprop="text">{item.a}</p>
               </div>
@@ -91,7 +91,7 @@ const faq = [
 
       {totalItems > 0 && (
         <section>
-          <h2 class="text-lg font-semibold text-navy mb-4">Latest {category.name} Jobs</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Latest {category.name} Jobs</h2>
           <div class="space-y-3">{jobs.map(job => <JobCard job={job} />)}</div>
         </section>
       )}

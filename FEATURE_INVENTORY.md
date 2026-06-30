@@ -170,7 +170,7 @@
 | 104 | **Layout** | HTML shell: SEO meta, nav bar, footer, stats bar, JSON-LD schemas | `src/layouts/Layout.astro` | `jobs`, `categories` | — |
 | 105 | **Job card** | Reusable job listing card with compact mode | `src/components/JobCard.astro` | — | `timeAgo`, `formatSalary` |
 | 106 | **Sidebar** | Categories with counts, provinces, popular searches, job alert form | `src/components/Sidebar.astro` | `categories`, `jobs` | — |
-| 107 | **Search form** | Search bar + province dropdown + filter pills | `src/components/SearchForm.astro` | — | — |
+| 107 | **Search form** | Search bar + province dropdown + filter pills (inlined in page markup) | — | — | — |
 | 108 | **Admin nav** | Admin tab navigation: Dashboard, Jobs, Employers, Growth, Import, Settings | `src/components/AdminNav.astro` | — | — |
 | 109 | **Ad slot** | Google AdSense placeholder | `src/components/AdSlot.astro` | — | — |
 | 110 | **Sponsored strip** | Promotional CTA banner | `src/components/SponsoredStrip.astro` | — | — |

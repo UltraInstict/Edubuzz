@@ -302,7 +302,6 @@ edubuzz/
 ├── src/
 │   ├── components/
 │   │   ├── JobCard.astro        # reusable job card
-│   │   ├── SearchForm.astro     # search bar + filter pills
 │   │   └── Sidebar.astro        # categories, provinces, alert form
 │   ├── layouts/
 │   │   └── Layout.astro         # nav + footer shell

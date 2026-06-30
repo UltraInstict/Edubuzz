@@ -23,6 +23,14 @@ const breadcrumb = { '@context': 'https://schema.org', '@type': 'BreadcrumbList'
 ---
 <Layout title={title} description={`Browse ${jobs.length} ${categoryName} jobs in ${locationName}. Apply today on Edubuzz.`} canonicalUrl={Astro.url.href}>
 <Fragment slot="head"><script type="application/ld+json" set:html={JSON.stringify(breadcrumb)} /></Fragment>
-<main class="seo-grid"><section><nav class="crumb"><a href="/">Home</a> &gt; <a href="/jobs">Jobs</a> &gt; <a href={`/jobs/${categorySlug}`}>{categoryName}</a> &gt; {locationName}</nav><h1>{title} ({jobs.length} available)</h1>{jobs.length ? jobs.map(job=><JobCard job={job}/>) : <div class="panel">No matching jobs right now.</div>}</section><aside><Sidebar /></aside></main>
+<main class="max-w-6xl mx-auto px-6 py-6 grid grid-cols-[1fr_240px] gap-4 max-md:grid-cols-1">
+  <section>
+    <nav class="text-xs text-gray-600 mb-2">
+      <a href="/" class="text-green-800">Home</a> &gt; <a href="/jobs" class="text-green-800">Jobs</a> &gt; <a href={`/jobs/${categorySlug}`} class="text-green-800">{categoryName}</a> &gt; {locationName}
+    </nav>
+    <h1 class="text-2xl font-bold text-gray-900 mt-2 mb-3">{title} ({jobs.length} available)</h1>
+    {jobs.length ? jobs.map((job: any) => <JobCard job={job}/>) : <div class="bg-white border border-gray-200 rounded-md p-5 text-sm text-gray-600">No matching jobs right now.</div>}
+  </section>
+  <aside><Sidebar /></aside>
+</main>
 </Layout>
-<style>.seo-grid{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;display:grid;grid-template-columns:1fr 240px;gap:16px}.crumb,.crumb a{font-size:12px;color:#6b7280}.crumb a{color:#166534}h1{font-size:22px;margin:8px 0 12px;font-weight:600;letter-spacing:-0.3px}@media(max-width:820px){.seo-grid{grid-template-columns:1fr}}</style>

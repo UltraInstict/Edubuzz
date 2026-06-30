@@ -10,7 +10,7 @@ const categories = await getCategoriesWithCounts();
     <p class="text-sm text-gray-600 leading-relaxed mb-6">Find jobs in your field across all nine provinces.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
       {categories.map(cat => (
-        <a href={`/category/${cat.slug}`} class="bg-white border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors block">
+        <a href={`/category/${cat.slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
           <span class="text-sm font-medium text-gray-900">{cat.name}</span>
           <span class="block text-xs text-gray-500 mt-0.5">{cat.count.toLocaleString('en-ZA')} jobs</span>
         </a>

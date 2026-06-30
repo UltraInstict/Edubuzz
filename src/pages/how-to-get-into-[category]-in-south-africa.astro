@@ -30,9 +30,9 @@ const faq = [
   <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">
       <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
-        <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href="/resources" class="hover:text-navy">Resources</a> &rsaquo; <span class="text-navy font-medium">Careers in {category.name}</span>
+        <a href="/" class="hover:text-gray-900">Home</a> &rsaquo; <a href="/resources" class="hover:text-gray-900">Resources</a> &rsaquo; <span class="text-gray-900 font-medium">Careers in {category.name}</span>
       </nav>
-      <h1 class="text-2xl font-semibold text-navy">How to Get Into {category.name} in South Africa</h1>
+      <h1 class="text-2xl font-semibold text-gray-900">How to Get Into {category.name} in South Africa</h1>
       <p class="text-gray-500 text-sm mt-2">Your complete guide to starting and advancing a career in {category.name.toLowerCase()} in South Africa</p>
     </div>
   </div>
@@ -42,7 +42,7 @@ const faq = [
       <article class="prose max-w-none mb-8">
         <p class="text-gray-500">The {category.name.toLowerCase()} sector in South Africa offers diverse career opportunities across both public and private sectors. Whether you're a school leaver, graduate, or career changer, this guide will help you navigate your path into the {category.name.toLowerCase()} industry.</p>
 
-        <h2 class="text-lg font-semibold text-navy mt-6">Educational Requirements</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mt-6">Educational Requirements</h2>
         <p class="text-gray-500">Most {category.name.toLowerCase()} positions require a minimum of a Grade 12/Matric certificate. For professional roles, a relevant degree or diploma from a South African university or TVET college is typically required. Key qualifications include:</p>
         <ul class="list-disc pl-5 text-gray-500 space-y-1 mt-2">
           <li>National Senior Certificate (Grade 12) with relevant subject passes</li>
@@ -51,7 +51,7 @@ const faq = [
           <li>Professional registration where applicable (e.g., HPCSA, SANC, ECSA, SAQA)</li>
         </ul>
 
-        <h2 class="text-lg font-semibold text-navy mt-6">Key Skills for Success</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mt-6">Key Skills for Success</h2>
         <ul class="list-disc pl-5 text-gray-500 space-y-1">
           <li>Strong communication in English and at least one African language</li>
           <li>Relevant technical skills for the {category.name.toLowerCase()} field</li>
@@ -60,7 +60,7 @@ const faq = [
           <li>Professional ethics and attention to detail</li>
         </ul>
 
-        <h2 class="text-lg font-semibold text-navy mt-6">Career Progression Path</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mt-6">Career Progression Path</h2>
         <ol class="list-decimal pl-5 text-gray-500 space-y-1 mt-2">
           <li><strong>Entry Level (0-2 years):</strong> Junior roles, internships, learnerships, or graduate programmes</li>
           <li><strong>Mid Level (3-5 years):</strong> Specialist roles with increased responsibility</li>
@@ -70,7 +70,7 @@ const faq = [
       </article>
 
       <section class="mb-8">
-        <h2 class="text-lg font-semibold text-navy mb-4">Explore Other Career Paths</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Explore Other Career Paths</h2>
         <div class="flex flex-wrap gap-2">
           {categoriesWithJobs.map(cat => (
             <a href={`/how-to-get-into-${cat.slug}-in-south-africa`} class="inline-flex items-center px-3 py-1.5 bg-green-50 text-green-800 text-xs font-medium rounded-full hover:bg-green-100 transition-colors">
@@ -81,11 +81,11 @@ const faq = [
       </section>
 
       <section class="mb-8">
-        <h2 class="text-lg font-semibold text-navy mb-4">Frequently Asked Questions</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
         <div class="space-y-4" itemscope itemtype="https://schema.org/FAQPage">
           {faq.map(item => (
-            <div class="card p-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-              <h3 class="font-medium text-navy text-sm mb-1" itemprop="name">{item.q}</h3>
+            <div class="card p-5" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+              <h3 class="font-medium text-gray-900 text-sm mb-1" itemprop="name">{item.q}</h3>
               <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                 <p class="text-gray-500 text-xs" itemprop="text">{item.a}</p>
               </div>
@@ -96,7 +96,7 @@ const faq = [
 
       {totalItems > 0 && (
         <section>
-          <h2 class="text-lg font-semibold text-navy mb-4">Latest {category.name} Jobs</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Latest {category.name} Jobs</h2>
           <div class="space-y-3">{jobs.map(job => <JobCard job={job} />)}</div>
         </section>
       )}

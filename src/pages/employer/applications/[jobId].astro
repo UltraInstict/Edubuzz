@@ -14,7 +14,43 @@ const apps = { items };
 const statuses = ['pending','reviewed','shortlisted','rejected'];
 ---
 <Layout title={`Applications for ${job.title}`} description="Review job applications." canonicalUrl={Astro.url.href}>
-<main class="wrap"><h1>Applications: {job.title}</h1><nav>{['','pending','shortlisted','rejected'].map(s=><a href={s?`?status=${s}`:'?'} class={s===status?'active':''}>{s || 'All'}</a>)}</nav><div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Applied</th><th>CV</th><th>Status</th></tr></thead><tbody>{apps.items.map((app:any)=><tr><td>{app.applicant_name || app.name}</td><td>{app.applicant_email || app.email}</td><td>{app.applicant_phone || app.phone}</td><td>{app.created?.slice(0,10)}</td><td>{app.cv_file ? <a href={`${import.meta.env.PB_URL || 'http://127.0.0.1:8090'}/api/files/applications/${app.id}/${app.cv_file}`}>Download</a> : '-'}</td><td><select data-app={app.id}>{statuses.map(s=><option value={s} selected={(app.status || 'pending')===s}>{s}</option>)}</select></td></tr>)}</tbody></table></div></main>
+<main class="max-w-6xl mx-auto px-6 py-6">
+  <h1 class="text-2xl font-bold text-gray-900 mb-2.5">Applications: {job.title}</h1>
+  <nav class="flex gap-2 mb-3">
+    {['','pending','shortlisted','rejected'].map((s) => (
+      <a href={s ? `?status=${s}` : '?'} class={`text-sm text-green-800 ${s === status ? 'font-semibold' : ''}`}>{s || 'All'}</a>
+    ))}
+  </nav>
+  <div class="overflow-auto bg-white border border-gray-200 rounded-md">
+    <table class="w-full border-collapse text-xs">
+      <thead>
+        <tr>
+          <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Name</th>
+          <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Email</th>
+          <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Phone</th>
+          <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Applied</th>
+          <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">CV</th>
+          <th class="px-2 py-2 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {apps.items.map((app: any) => (
+          <tr class="border-b border-gray-200">
+            <td class="px-2 py-2 text-gray-600">{app.applicant_name || app.name}</td>
+            <td class="px-2 py-2 text-gray-600">{app.applicant_email || app.email}</td>
+            <td class="px-2 py-2 text-gray-600">{app.applicant_phone || app.phone}</td>
+            <td class="px-2 py-2 text-gray-600">{app.created?.slice(0,10)}</td>
+            <td class="px-2 py-2">{app.cv_file ? <a href={`${import.meta.env.PB_URL || 'http://127.0.0.1:8090'}/api/files/applications/${app.id}/${app.cv_file}`} class="text-green-800 text-xs">Download</a> : '-'}</td>
+            <td class="px-2 py-2">
+              <select data-app={app.id} class="border border-gray-200 rounded bg-white px-1.5 py-1 text-xs focus:outline-none focus:border-green-800">
+                {statuses.map((s) => <option value={s} selected={(app.status || 'pending')===s}>{s}</option>)}
+              </select>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</main>
 </Layout>
 <script>document.querySelectorAll('[data-app]').forEach((select)=>select.addEventListener('change',async()=>{const el=select as HTMLSelectElement;await fetch('/api/employer/update-application-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({applicationId:el.dataset.app,status:el.value})});}));</script>
-<style>.wrap{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem}h1{font-size:22px;margin:0 0 10px;font-weight:600;letter-spacing:-0.3px}nav{display:flex;gap:8px;margin-bottom:12px}a{color:#166534;font-size:13px}.active{font-weight:600}.table-wrap{overflow:auto;background:#fff;border:1px solid #e5e7eb;border-radius:6px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}select{border:1px solid #e5e7eb;border-radius:4px;background:#fff;padding:5px}</style>

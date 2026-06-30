@@ -26,9 +26,9 @@ const summaryText = `Find ${totalItems.toLocaleString('en-ZA')} bursaries and sc
   <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">
       <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
-        <a href="/" class="hover:text-navy">Home</a> &rsaquo; <span class="text-navy font-medium">Bursaries</span>
+        <a href="/" class="hover:text-gray-900">Home</a> &rsaquo; <span class="text-gray-900 font-medium">Bursaries</span>
       </nav>
-      <h1 class="text-2xl font-semibold text-navy">Bursaries in South Africa 2026</h1>
+      <h1 class="text-2xl font-semibold text-gray-900">Bursaries in South Africa 2026</h1>
       <p class="text-gray-500 text-sm mt-1 mb-2">Bursaries provide financial support for South African students studying towards qualifications in fields such as engineering, IT, medicine, and education. Browse available bursary opportunities.</p>
       <p class="text-gray-500 text-sm mt-2">{totalItems.toLocaleString('en-ZA')} bursary and scholarship opportunities</p>
     </div>
@@ -38,8 +38,8 @@ const summaryText = `Find ${totalItems.toLocaleString('en-ZA')} bursaries and sc
     <div>
       {totalItems > 0 ? (
         <>
-          <section class="card p-4 mb-6">
-            <h2 class="text-sm font-semibold text-navy mb-2">Popular Bursary Fields</h2>
+          <section class="card p-5 mb-6">
+            <h2 class="text-sm font-semibold text-gray-900 mb-2">Popular Bursary Fields</h2>
             <div class="flex flex-wrap gap-2">
               {topCategories.map(cat => (
                 <a href={`/category/${cat.slug}`} class="inline-flex items-center px-3 py-1.5 bg-green-50 text-green-800 text-xs font-medium rounded-full hover:bg-green-100 transition-colors">
@@ -55,7 +55,7 @@ const summaryText = `Find ${totalItems.toLocaleString('en-ZA')} bursaries and sc
         </>
       ) : (
         <div class="card text-center py-12">
-          <h2 class="text-lg font-semibold text-navy mb-2">No bursaries available</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-2">No bursaries available</h2>
           <p class="text-gray-500 text-sm mb-4">Check back soon for new bursary listings.</p>
           <a href="/jobs" class="inline-flex items-center px-4 py-2 bg-green-800 text-white text-sm font-medium rounded-md hover:bg-green-900 transition-colors">Browse All Jobs</a>
         </div>

@@ -12,16 +12,23 @@ const categories = await getCategories();
 const csrfToken = generateToken();
 ---
 <Layout title="Employer Post Job" description="Post a job from your employer account." canonicalUrl={Astro.url.href}>
-<main class="form-page panel"><h1>Post a job</h1><form id="job-form">
-<input type="hidden" name="_csrf" value={csrfToken} />
-<input type="hidden" name="company" value={employer.company_name} />
-<label>Job title <input class="form-field" name="title" required /></label>
-<div class="grid"><label>Category <select class="form-field" name="category">{categories.map(c=><option value={c.name}>{c.name}</option>)}</select></label><label>Province <select class="form-field" name="province" required>{PROVINCES.map(p=><option value={p}>{p}</option>)}</select></label></div>
-<div class="grid"><label>City <input class="form-field" name="city" /></label><label>Job type <select class="form-field" name="job_type" required>{JOB_TYPES.map(t=><option value={t}>{t}</option>)}</select></label></div>
-<div class="grid"><label>Salary min <input class="form-field" type="number" name="salary_min" /></label><label>Salary max <input class="form-field" type="number" name="salary_max" /></label></div>
-<div class="grid"><label>Apply email <input class="form-field" type="email" name="apply_email" /></label><label>Apply URL <input class="form-field" type="url" name="apply_url" /></label></div>
-<label>Description <textarea class="form-field" name="description" rows="10" required></textarea></label>
-<p id="message" hidden aria-live="polite"></p><div class="actions"><button name="draft" value="true">Save as draft</button><button>Post Job</button></div>
-</form></main></Layout>
+<main class="max-w-2xl mx-auto px-6 py-6">
+  <h1 class="text-2xl font-bold text-gray-900 mb-4">Post a job</h1>
+  <form id="job-form" class="grid gap-3">
+    <input type="hidden" name="_csrf" value={csrfToken} />
+    <input type="hidden" name="company" value={employer.company_name} />
+    <label class="grid gap-1 text-xs font-medium text-gray-700">Job title <input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="title" required /></label>
+    <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1"><label class="grid gap-1 text-xs font-medium text-gray-700">Category <select class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="category">{categories.map((c: any) => <option value={c.name}>{c.name}</option>)}</select></label><label class="grid gap-1 text-xs font-medium text-gray-700">Province <select class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="province" required>{PROVINCES.map((p: string) => <option value={p}>{p}</option>)}</select></label></div>
+    <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1"><label class="grid gap-1 text-xs font-medium text-gray-700">City <input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="city" /></label><label class="grid gap-1 text-xs font-medium text-gray-700">Job type <select class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="job_type" required>{JOB_TYPES.map((t: string) => <option value={t}>{t}</option>)}</select></label></div>
+    <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1"><label class="grid gap-1 text-xs font-medium text-gray-700">Salary min <input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="number" name="salary_min" /></label><label class="grid gap-1 text-xs font-medium text-gray-700">Salary max <input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="number" name="salary_max" /></label></div>
+    <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1"><label class="grid gap-1 text-xs font-medium text-gray-700">Apply email <input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="email" name="apply_email" /></label><label class="grid gap-1 text-xs font-medium text-gray-700">Apply URL <input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="url" name="apply_url" /></label></div>
+    <label class="grid gap-1 text-xs font-medium text-gray-700">Description <textarea class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="description" rows="10" required></textarea></label>
+    <p id="message" hidden aria-live="polite"></p>
+    <div class="flex gap-2">
+      <button name="draft" value="true" class="border border-green-800 bg-green-800 text-white rounded px-4 py-2.5 text-sm font-semibold">Save as draft</button>
+      <button class="border border-green-800 bg-green-800 text-white rounded px-4 py-2.5 text-sm font-semibold">Post Job</button>
+    </div>
+  </form>
+</main>
+</Layout>
 <script>document.getElementById('job-form')?.addEventListener('submit',async(e)=>{e.preventDefault();const submitter=(e as SubmitEvent).submitter as HTMLButtonElement;const form=e.currentTarget as HTMLFormElement;const data=Object.fromEntries(new FormData(form));if(submitter?.value==='true')data.draft='true';const res=await fetch('/api/employer/save-job',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const msg=document.getElementById('message') as HTMLParagraphElement;msg.textContent=res.ok?"Your job has been submitted for review. We'll notify you once it's approved.":'Could not save job.';msg.hidden=false;if(res.ok)form.reset();});</script>
-<style>.form-page{max-width:760px;margin:1.5rem auto}h1{font-size:22px;margin:0 0 16px;font-weight:600;letter-spacing:-0.3px}form{display:grid;gap:12px}label{display:grid;gap:4px;color:#374151;font-size:12px;font-weight:500}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.actions{display:flex;gap:8px}button{border:1px solid #166534;border-radius:4px;background:#166534;color:#fff;padding:10px 14px;font-weight:600}@media(max-width:560px){.grid{grid-template-columns:1fr}}</style>

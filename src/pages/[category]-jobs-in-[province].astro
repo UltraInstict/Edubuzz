@@ -33,9 +33,9 @@ const pageCanonical = page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.p
   <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">
       <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
-        <a href="/" class="hover:text-navy">Home</a> &rsaquo; <a href={`/category/${category.slug}`} class="hover:text-navy">{category.name} Jobs</a> &rsaquo; <span class="text-navy font-medium">{category.name} Jobs in {province}</span>
+        <a href="/" class="hover:text-gray-900">Home</a> &rsaquo; <a href={`/category/${category.slug}`} class="hover:text-gray-900">{category.name} Jobs</a> &rsaquo; <span class="text-gray-900 font-medium">{category.name} Jobs in {province}</span>
       </nav>
-      <h1 class="text-2xl font-semibold text-navy">{category.name} Jobs in {province}</h1>
+      <h1 class="text-2xl font-semibold text-gray-900">{category.name} Jobs in {province}</h1>
       <p class="text-gray-500 text-sm mt-2">{totalItems.toLocaleString('en-ZA')} {category.name.toLowerCase()} jobs available in {province}</p>
     </div>
   </div>
@@ -43,8 +43,8 @@ const pageCanonical = page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.p
   <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
     <div>
       {totalItems > 0 && (
-        <section class="card p-4 mb-6">
-          <h2 class="text-sm font-semibold text-navy mb-2">Browse {category.name} Jobs by Province</h2>
+        <section class="card p-5 mb-6">
+          <h2 class="text-sm font-semibold text-gray-900 mb-2">Browse {category.name} Jobs by Province</h2>
           <div class="flex flex-wrap gap-2">
             {PROVINCES.filter(p => p !== province).map(p => (
               <a href={`/${slugify(category.name)}-jobs-in-${slugify(p)}`} class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-500 text-xs font-medium rounded-full hover:border-green-800 hover:text-green-800 transition-colors">
@@ -59,11 +59,9 @@ const pageCanonical = page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.p
       </div>
       {totalItems === 0 && (
         <div class="card text-center py-12">
-          <h2 class="text-lg font-semibold text-navy mb-2">No {category.name} jobs in {province} right now</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-2">No {category.name} jobs in {province} right now</h2>
           <p class="text-gray-500 text-sm mb-4">Browse {category.name} jobs in other provinces or across South Africa.</p>
-          <a href={`/category/${category.slug}`} class="inline-flex items-center px-4 py-2 bg-green-800 text-white text-sm font-medium rounded-md hover:bg-green-800-dark transition-colors">
-            All {category.name} Jobs &rarr;
-          </a>
+          <a href={`/category/${category.slug}`} class="inline-flex items-center px-4 py-2 bg-green-800 text-white text-sm font-medium rounded-md hover:bg-green-900 transition-colors">All {category.name} Jobs &rarr;</a>
         </div>
       )}
       {totalPages > 1 && (
