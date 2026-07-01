@@ -72,9 +72,10 @@ export const POST: APIRoute = async ({ request }) => {
         collectionMissing = true;
         break;
       }
-      const msg = err?.message || String(err);
-      console.error(`[admin/settings] Failed for key "${cleanKey}":`, msg);
-      errors.push(`${cleanKey}: ${msg}`);
+      const fieldErrors = err?.data?.data || err?.response?.data;
+      const detail = fieldErrors ? JSON.stringify(fieldErrors) : (err?.message || String(err));
+      console.error(`[admin/settings] Failed for key "${cleanKey}":`, detail);
+      errors.push(`${cleanKey}: ${detail}`);
     }
   }
 
