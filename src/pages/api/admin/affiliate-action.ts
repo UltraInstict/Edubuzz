@@ -175,8 +175,12 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (err: any) {
     if (isCollectionMissing(err)) return fail(COLLECTION_MISSING_MSG, 400);
     const fieldErrors = err?.data?.data || err?.response?.data;
-    const detail = fieldErrors ? JSON.stringify(fieldErrors) : (err?.message || String(err));
-    console.error('[admin/affiliate-action] Error:', detail);
+    const hasFieldErrors = fieldErrors && Object.keys(fieldErrors).length > 0;
+    const topMessage = err?.data?.message || err?.message || String(err);
+    const detail = hasFieldErrors
+      ? `${topMessage} — ${JSON.stringify(fieldErrors)}`
+      : topMessage;
+    console.error('[admin/affiliate-action] Full error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
     return fail(`Failed to create record: ${detail}`, 500);
   }
 };

@@ -73,8 +73,12 @@ export const POST: APIRoute = async ({ request }) => {
         break;
       }
       const fieldErrors = err?.data?.data || err?.response?.data;
-      const detail = fieldErrors ? JSON.stringify(fieldErrors) : (err?.message || String(err));
-      console.error(`[admin/settings] Failed for key "${cleanKey}":`, detail);
+      const hasFieldErrors = fieldErrors && Object.keys(fieldErrors).length > 0;
+      const topMessage = err?.data?.message || err?.message || String(err);
+      const detail = hasFieldErrors
+        ? `${topMessage} — ${JSON.stringify(fieldErrors)}`
+        : topMessage;
+      console.error(`[admin/settings] Full error for key "${cleanKey}":`, JSON.stringify(err, Object.getOwnPropertyNames(err)));
       errors.push(`${cleanKey}: ${detail}`);
     }
   }
