@@ -174,8 +174,9 @@ export const POST: APIRoute = async ({ request }) => {
     return fail('Unknown action.', 400);
   } catch (err: any) {
     if (isCollectionMissing(err)) return fail(COLLECTION_MISSING_MSG, 400);
-    const msg = err?.message || String(err);
-    console.error('[admin/affiliate-action] Error:', msg);
-    return fail(`Failed: ${msg}`, 500);
+    const fieldErrors = err?.data?.data || err?.response?.data;
+    const detail = fieldErrors ? JSON.stringify(fieldErrors) : (err?.message || String(err));
+    console.error('[admin/affiliate-action] Error:', detail);
+    return fail(`Failed to create record: ${detail}`, 500);
   }
 };

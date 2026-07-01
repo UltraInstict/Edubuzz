@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { getSiteStats } from '../lib/pocketbase';
+import SmartAdSlot from '../components/SmartAdSlot.astro';
 
 interface Props {
   title?: string;
@@ -118,9 +119,7 @@ const isAdmin = Astro.url.pathname.startsWith('/admin');
     </nav>
 
     {!isAdmin && !noLeaderboard && (
-      <div class="ad-slot my-6 flex items-center justify-center border border-gray-200 bg-gray-50 rounded-md max-w-6xl mx-auto" style="min-height:90px">
-        <span class="text-xs text-gray-500">Advertisement</span>
-      </div>
+      <SmartAdSlot zone="strip" />
     )}
 
     <div class="flex-1">
@@ -128,9 +127,7 @@ const isAdmin = Astro.url.pathname.startsWith('/admin');
     </div>
 
     {!isAdmin && (
-      <div class="ad-slot my-6 flex items-center justify-center border border-gray-200 bg-gray-50 rounded-md max-w-6xl mx-auto" style="min-height:90px">
-        <span class="text-xs text-gray-500">Advertisement</span>
-      </div>
+      <SmartAdSlot zone="strip" />
     )}
 
     <footer class="border-t border-gray-200 bg-white py-10">
