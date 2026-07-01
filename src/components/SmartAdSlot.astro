@@ -85,7 +85,7 @@ let bannerFileUrl = '';
 if (affiliate?.banner_file && affiliate?.id && affiliate?.collectionId) {
   const filename = Array.isArray(affiliate.banner_file) ? affiliate.banner_file[0] : affiliate.banner_file;
   if (filename) {
-    bannerFileUrl = `${PB_FILE_BASE}/api/files/${affiliate.collectionId}/${affiliate.id}/${filename}`;
+    bannerFileUrl = `${PB_FILE_BASE}/files/${affiliate.collectionId}/${affiliate.id}/${filename}`;
   }
 }
 

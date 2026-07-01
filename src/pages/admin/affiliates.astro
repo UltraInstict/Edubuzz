@@ -114,7 +114,7 @@ const zones = [
               const rawFile = link.banner_file;
               const bannerFile = Array.isArray(rawFile) ? rawFile[0] : rawFile;
               const fileUrl = bannerFile && link.collectionId
-                ? `${PB_FILE_BASE}/api/files/${link.collectionId}/${link.id}/${bannerFile}?thumb=64x64`
+                ? `${PB_FILE_BASE}/files/${link.collectionId}/${link.id}/${bannerFile}?thumb=64x64`
                 : null;
               const displayType = link.display_type || 'text';
               return (

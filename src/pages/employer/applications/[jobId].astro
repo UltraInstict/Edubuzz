@@ -12,6 +12,7 @@ const status = Astro.url.searchParams.get('status') || '';
 const items = await listJobApplicationsFiltered(job.id, status);
 const apps = { items };
 const statuses = ['pending','reviewed','shortlisted','rejected'];
+const cvBase = (import.meta.env.PUBLIC_PB_URL || process.env.PUBLIC_PB_URL || 'https://edubuzz.co.za/pb-api').replace(/\/$/, '');
 ---
 <Layout title={`Applications for ${job.title}`} description="Review job applications." canonicalUrl={Astro.url.href}>
 <main class="max-w-6xl mx-auto px-6 py-6">
@@ -40,7 +41,7 @@ const statuses = ['pending','reviewed','shortlisted','rejected'];
             <td class="px-2 py-2 text-gray-600">{app.applicant_email || app.email}</td>
             <td class="px-2 py-2 text-gray-600">{app.applicant_phone || app.phone}</td>
             <td class="px-2 py-2 text-gray-600">{app.created?.slice(0,10)}</td>
-            <td class="px-2 py-2">{app.cv_file ? <a href={`${import.meta.env.PB_URL || 'http://127.0.0.1:8090'}/api/files/applications/${app.id}/${app.cv_file}`} class="text-green-800 text-xs">Download</a> : '-'}</td>
+            <td class="px-2 py-2">{app.cv_file ? <a href={`${cvBase}/files/applications/${app.id}/${app.cv_file}`} class="text-green-800 text-xs">Download</a> : '-'}</td>
             <td class="px-2 py-2">
               <select data-app={app.id} class="border border-gray-200 rounded bg-white px-1.5 py-1 text-xs focus:outline-none focus:border-green-800">
                 {statuses.map((s) => <option value={s} selected={(app.status || 'pending')===s}>{s}</option>)}
