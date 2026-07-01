@@ -41,8 +41,6 @@ const slotKey = `adsense_slot_${zone.replace('-', '_')}`;
 const slotId = (settings[slotKey] || '').trim();
 const previewMode = settings.adsense_preview_mode === 'true';
 
-const useAdSense = adsenseEnabled && !!publisherId && !!slotId;
-
 type AffiliateRender = {
   id: string;
   name: string;
@@ -58,27 +56,25 @@ type AffiliateRender = {
 };
 
 let affiliate: AffiliateRender | null = null;
-if (!useAdSense) {
-  const matchCategory = getCategoryForAffiliate(category);
-  const link = await getAffiliateLinkByCategory(matchCategory, zone).catch(() => null);
-  if (link) {
-    const l = link as any;
-    let display: 'text' | 'image' | 'html' = (l.display_type as any) || 'text';
-    if (!['text', 'image', 'html'].includes(display)) display = 'text';
-    affiliate = {
-      id: l.id,
-      name: l.name,
-      description: l.description,
-      url: l.url,
-      display_type: display,
-      banner_html: l.banner_html,
-      image_url: l.image_url,
-      banner_file: l.banner_file,
-      banner_width: l.banner_width,
-      banner_height: l.banner_height,
-      collectionId: l.collectionId,
-    };
-  }
+const matchCategory = getCategoryForAffiliate(category);
+const link = await getAffiliateLinkByCategory(matchCategory, zone).catch(() => null);
+if (link) {
+  const l = link as any;
+  let display: 'text' | 'image' | 'html' = (l.display_type as any) || 'text';
+  if (!['text', 'image', 'html'].includes(display)) display = 'text';
+  affiliate = {
+    id: l.id,
+    name: l.name,
+    description: l.description,
+    url: l.url,
+    display_type: display,
+    banner_html: l.banner_html,
+    image_url: l.image_url,
+    banner_file: l.banner_file,
+    banner_width: l.banner_width,
+    banner_height: l.banner_height,
+    collectionId: l.collectionId,
+  };
 }
 
 let bannerFileUrl = '';
@@ -89,9 +85,7 @@ if (affiliate?.banner_file && affiliate?.id && affiliate?.collectionId) {
   }
 }
 
-const showAdSense = useAdSense;
-const showAffiliate = !useAdSense && !!affiliate;
-const showPreview = !useAdSense && !affiliate && previewMode;
+const useAdSense = adsenseEnabled && !!publisherId && !!slotId;
 
 // Subtitle for text ads — use description or first 80 chars of title
 let textSubtitle = '';
@@ -126,44 +120,17 @@ const dims: Record<string, { format: string; style: string }> = {
 };
 const dim = dims[zone];
 
-function imgStyle(): string {
-  const parts: string[] = ['display:block', 'max-width:100%', 'height:auto'];
-  if (affiliate?.banner_width) {
-    const max = zone === 'sidebar' ? Math.min(affiliate.banner_width, 300) : affiliate.banner_width;
-    parts.push(`width:${max}px`);
-  }
-  return parts.join(';');
-}
+// ── Decide what to render ─────────────────────────────────────────────
+// Each slot can independently render affiliate (by display_type),
+// AdSense, preview placeholder, or none — they are NOT mutually exclusive.
 
-// ── Decide which render mode to use ────────────────────────────────────
-// The order matters: AdSense > affiliate (by display_type) > preview > nothing.
-//
-// Per spec: when display_type === 'image' but no image is configured, render
-// nothing for that slot — do NOT fall back to text. Same for 'html' with no
-// banner_html. Only display_type === 'text' (or missing/null) renders the
-// text card.
-
-type RenderMode = 'adsense' | 'affiliate-html' | 'affiliate-image' | 'affiliate-text' | 'preview' | 'none';
-
-let mode: RenderMode = 'none';
-if (showAdSense) {
-  mode = 'adsense';
-} else if (showAffiliate) {
-  const dt = affiliate!.display_type;
-  if (dt === 'html') {
-    mode = affiliate!.banner_html ? 'affiliate-html' : 'none';
-  } else if (dt === 'image') {
-    mode = (bannerFileUrl || affiliate!.image_url) ? 'affiliate-image' : 'none';
-  } else {
-    // text, undefined, or unknown → text ad card
-    mode = 'affiliate-text';
-  }
-} else if (showPreview) {
-  mode = 'preview';
-}
+const hasImage = affiliate && affiliate.display_type === 'image' && (bannerFileUrl || affiliate.image_url);
+const hasHtml = affiliate && affiliate.display_type === 'html' && !!affiliate.banner_html;
+const isText = affiliate && !hasImage && !hasHtml; // text or unknown display_type
+const showPreview = !affiliate && previewMode;
 ---
 
-{mode === 'adsense' && (
+{useAdSense && (
   <div class={`smart-ad smart-ad--${zone}`} data-ad-type="adsense">
     <span class="smart-ad__label">SPONSORED</span>
     <ins
@@ -180,30 +147,33 @@ if (showAdSense) {
   </div>
 )}
 
-{mode === 'affiliate-html' && (
+{hasHtml && (
   <div class={`smart-ad smart-ad--${zone} smart-ad--html`} data-ad-type="affiliate-html">
     <span class="smart-ad__label">SPONSORED</span>
     <div class="smart-ad__banner" set:html={affiliate!.banner_html} />
   </div>
 )}
 
-{mode === 'affiliate-image' && (
+{hasImage && (
   <div class={`smart-ad smart-ad--${zone} smart-ad--image`} data-ad-type="affiliate-image">
     <span class="smart-ad__label">SPONSORED</span>
-    <a href={affiliate!.url} target="_blank" rel="nofollow sponsored noopener noreferrer" class="smart-ad__img-link" data-affiliate-id={affiliate!.id}>
+    <a
+      href={affiliate!.url}
+      target="_blank"
+      rel="nofollow sponsored noopener noreferrer"
+      class={`smart-ad__frame smart-ad__frame--${zone}`}
+      data-affiliate-id={affiliate!.id}
+    >
       <img
         src={bannerFileUrl || affiliate!.image_url}
         alt={affiliate!.name}
         loading="lazy"
-        style={imgStyle()}
-        width={affiliate!.banner_width || undefined}
-        height={affiliate!.banner_height || undefined}
       />
     </a>
   </div>
 )}
 
-{mode === 'affiliate-text' && (
+{isText && (
   <a
     href={affiliate!.url}
     target="_blank"
@@ -221,7 +191,7 @@ if (showAdSense) {
   </a>
 )}
 
-{mode === 'preview' && (
+{showPreview && (
   <div class={`smart-ad smart-ad--${zone} smart-ad--preview`} data-ad-type="preview">
     <span class="smart-ad__label">SPONSORED</span>
     <div class="smart-ad__placeholder" style={`max-width:${preview.width};height:${preview.height}`}>
@@ -380,15 +350,44 @@ if (showAdSense) {
     }
   }
 
-  /* ─── IMAGE ad ───────────────────────── */
-  .smart-ad__img-link { display: inline-block; line-height: 0; }
-  .smart-ad__img-link img {
-    display: block;
-    max-width: 100%;
-    height: auto;
+  /* ─── IMAGE ad — fixed frame per zone ─────────------
+   * Every affiliate image is constrained to the zone's target
+   * ad shape via aspect-ratio, centered with object-fit: contain.
+   * This prevents tall or wide source images from breaking the layout.
+   */
+  .smart-ad__frame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    width: 100%;
+    margin: 0 auto;
+    background: #f9fafb;
     border-radius: 4px;
   }
-  .smart-ad--sidebar .smart-ad__img-link img { max-width: 300px; }
+  .smart-ad__frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .smart-ad__frame--strip {
+    aspect-ratio: 728 / 90;
+    max-width: 728px;
+  }
+  .smart-ad__frame--sidebar {
+    aspect-ratio: 300 / 250;
+    max-width: 300px;
+  }
+  .smart-ad__frame--infeed {
+    aspect-ratio: 468 / 60;
+    max-width: 468px;
+  }
+  .smart-ad__frame--jobs-top {
+    aspect-ratio: 728 / 90;
+    max-width: 728px;
+  }
 
   /* ─── HTML ad ───────────────────────── */
   .smart-ad__banner { display: block; max-width: 100%; }
