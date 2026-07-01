@@ -32,6 +32,8 @@ const {
 } = Astro.props;
 
 const isAdmin = Astro.url.pathname.startsWith('/admin');
+const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT || process.env.PUBLIC_ADSENSE_CLIENT || '';
+const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
 ---
 
 <!doctype html>
@@ -93,6 +95,24 @@ const isAdmin = Astro.url.pathname.startsWith('/admin');
       sameAs: ['https://www.facebook.com/edubuzzsa','https://www.linkedin.com/company/edubuzzsa','https://twitter.com/edubuzzsa'],
     })} />
     <slot name="head" />
+    {adsenseClient && (
+      <script
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+        crossorigin="anonymous"
+      ></script>
+    )}
+    {gaId && (
+      <>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+        <script define:vars={{ gaId }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', gaId);
+        </script>
+      </>
+    )}
   </head>
   <body class="min-h-screen flex flex-col bg-white">
     <div class="bg-green-800 text-white text-center text-xs py-1.5">

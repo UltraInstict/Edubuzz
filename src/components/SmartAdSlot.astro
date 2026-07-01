@@ -83,7 +83,10 @@ if (!useAdSense) {
 
 let bannerFileUrl = '';
 if (affiliate?.banner_file && affiliate?.id && affiliate?.collectionId) {
-  bannerFileUrl = `${PB_FILE_BASE}/api/files/${affiliate.collectionId}/${affiliate.id}/${affiliate.banner_file}`;
+  const filename = Array.isArray(affiliate.banner_file) ? affiliate.banner_file[0] : affiliate.banner_file;
+  if (filename) {
+    bannerFileUrl = `${PB_FILE_BASE}/api/files/${affiliate.collectionId}/${affiliate.id}/${filename}`;
+  }
 }
 
 const showAdSense = useAdSense;

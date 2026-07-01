@@ -111,8 +111,10 @@ const zones = [
           <tbody>
             {links.length === 0 && <tr><td colspan="8" class="py-12 text-center text-gray-500">No affiliate links yet.</td></tr>}
             {links.map((link: any) => {
-              const fileUrl = link.banner_file && link.collectionId
-                ? `${PB_FILE_BASE}/api/files/${link.collectionId}/${link.id}/${link.banner_file}?thumb=64x64`
+              const rawFile = link.banner_file;
+              const bannerFile = Array.isArray(rawFile) ? rawFile[0] : rawFile;
+              const fileUrl = bannerFile && link.collectionId
+                ? `${PB_FILE_BASE}/api/files/${link.collectionId}/${link.id}/${bannerFile}?thumb=64x64`
                 : null;
               const displayType = link.display_type || 'text';
               return (
