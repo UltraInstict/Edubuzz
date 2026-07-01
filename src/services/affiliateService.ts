@@ -9,7 +9,11 @@
 
 import { getAdminPB } from '../lib/auth';
 
-export const PB_FILE_BASE = (import.meta.env.PB_URL || process.env.PB_URL || 'http://127.0.0.1:8090').replace(/\/$/, '');
+export const PB_FILE_BASE = (
+  import.meta.env.PUBLIC_PB_URL ||
+  process.env.PUBLIC_PB_URL ||
+  'https://edubuzz.co.za/pb-api'
+).replace(/\/$/, '');
 
 export type AffiliateZone = 'strip' | 'sidebar' | 'infeed' | 'jobs-top' | 'all';
 export type AffiliateDisplayType = 'text' | 'image' | 'html';
