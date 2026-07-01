@@ -2,18 +2,14 @@
 /**
  * SmartAdSlot — single ad slot driven by admin settings.
  *
- * Priority waterfall:
- *   1. Google AdSense (if adsense_enabled && publisher id && slot id all set)
- *   2. Affiliate link (matched by zone + optional category)
- *      - Renders by display_type: text | image | html
- *   3. Preview placeholder (ONLY when adsense_preview_mode === 'true')
- *   4. Render nothing (zero height)
- *
  * Zones:
  *   - strip      Full-width banner
  *   - sidebar    Vertical native card, max 300px wide
  *   - infeed     Compact horizontal card between job cards
  *   - jobs-top   Same as strip but with subtle green tint
+ *
+ * AdSense and affiliate rendering are fully independent — each
+ * checks its own conditions and never references the other's state.
  */
 import { getAdminSettings } from '../services/jobService';
 import { getAffiliateLinkByCategory, getCategoryForAffiliate, PB_FILE_BASE } from '../services/affiliateService';
@@ -85,17 +81,13 @@ if (affiliate?.banner_file && affiliate?.id && affiliate?.collectionId) {
   }
 }
 
-const useAdSense = adsenseEnabled && !!publisherId && !!slotId;
-
-// Subtitle for text ads — use description or first 80 chars of title
+// Subtitle for text ads
 let textSubtitle = '';
 if (affiliate?.display_type === 'text') {
   const desc = (affiliate.description || '').trim();
   if (desc) {
     textSubtitle = desc;
   } else if (affiliate.name && affiliate.name.length > 0) {
-    // Fallback: only show truncated title as subtitle if it's longer than 40 chars
-    // (otherwise it duplicates the headline awkwardly)
     if (affiliate.name.length > 40) {
       textSubtitle = affiliate.name.length > 80 ? affiliate.name.slice(0, 80).trim() + '…' : affiliate.name;
     }
@@ -120,60 +112,50 @@ const dims: Record<string, { format: string; style: string }> = {
 };
 const dim = dims[zone];
 
-// ── Decide what to render ─────────────────────────────────────────────
-// Each slot can independently render affiliate (by display_type),
-// AdSense, preview placeholder, or none — they are NOT mutually exclusive.
-
-const hasImage = affiliate && affiliate.display_type === 'image' && (bannerFileUrl || affiliate.image_url);
-const hasHtml = affiliate && affiliate.display_type === 'html' && !!affiliate.banner_html;
-const isText = affiliate && !hasImage && !hasHtml; // text or unknown display_type
+// ── Affiliate render flags (independent of AdSense) ────────────────────
+const affImage = affiliate && affiliate.display_type === 'image' && (bannerFileUrl || affiliate.image_url);
+const affHtml  = affiliate && affiliate.display_type === 'html' && !!affiliate.banner_html;
+const affText  = affiliate && !affImage && !affHtml;
 const showPreview = !affiliate && previewMode;
+
+// Explicit dimension helpers
+const bw = affiliate?.banner_width;
+const bh = affiliate?.banner_height;
+const imgStyle = bw || bh ? `width:${bw || ''}${bw ? 'px' : ''};height:${bh ? bh + 'px' : 'auto'}` : '';
+const frameClass = zone === 'sidebar' ? 'smart-ad__frame smart-ad__frame--sidebar' : 'smart-ad__frame smart-ad__frame--flexible';
 ---
 
-{useAdSense && (
-  <div class={`smart-ad smart-ad--${zone}`} data-ad-type="adsense">
-    <span class="smart-ad__label">SPONSORED</span>
-    <ins
-      class="adsbygoogle"
-      style={dim.style}
-      data-ad-client={publisherId}
-      data-ad-slot={slotId}
-      data-ad-format={dim.format}
-      data-full-width-responsive="true"
-    ></ins>
-    <script>
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-  </div>
-)}
-
-{hasHtml && (
-  <div class={`smart-ad smart-ad--${zone} smart-ad--html`} data-ad-type="affiliate-html">
-    <span class="smart-ad__label">SPONSORED</span>
-    <div class="smart-ad__banner" set:html={affiliate!.banner_html} />
-  </div>
-)}
-
-{hasImage && (
+{/* ─── AFFILIATE IMAGE ────────────────────────────────── */}
+{affImage && (
   <div class={`smart-ad smart-ad--${zone} smart-ad--image`} data-ad-type="affiliate-image">
     <span class="smart-ad__label">SPONSORED</span>
     <a
       href={affiliate!.url}
       target="_blank"
       rel="nofollow sponsored noopener noreferrer"
-      class={`smart-ad__frame smart-ad__frame--${zone}`}
+      class={frameClass}
       data-affiliate-id={affiliate!.id}
     >
       <img
         src={bannerFileUrl || affiliate!.image_url}
         alt={affiliate!.name}
+        style={imgStyle}
         loading="lazy"
       />
     </a>
   </div>
 )}
 
-{isText && (
+{/* ─── AFFILIATE HTML ─────────────────────────────────── */}
+{affHtml && (
+  <div class={`smart-ad smart-ad--${zone} smart-ad--html`} data-ad-type="affiliate-html">
+    <span class="smart-ad__label">SPONSORED</span>
+    <div class="smart-ad__banner" set:html={affiliate!.banner_html} />
+  </div>
+)}
+
+{/* ─── AFFILIATE TEXT ─────────────────────────────────── */}
+{affText && (
   <a
     href={affiliate!.url}
     target="_blank"
@@ -191,6 +173,25 @@ const showPreview = !affiliate && previewMode;
   </a>
 )}
 
+{/* ─── AdSense (fully independent of affiliate state) ──── */}
+{adsenseEnabled && !!publisherId && !!slotId && (
+  <div class={`smart-ad smart-ad--${zone}`} data-ad-type="adsense">
+    <span class="smart-ad__label">SPONSORED</span>
+    <ins
+      class="adsbygoogle"
+      style={dim.style}
+      data-ad-client={publisherId}
+      data-ad-slot={slotId}
+      data-ad-format={dim.format}
+      data-full-width-responsive="true"
+    ></ins>
+    <script>
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+)}
+
+{/* ─── PREVIEW PLACEHOLDER ─────────────────────────────── */}
 {showPreview && (
   <div class={`smart-ad smart-ad--${zone} smart-ad--preview`} data-ad-type="preview">
     <span class="smart-ad__label">SPONSORED</span>
@@ -225,7 +226,7 @@ const showPreview = !affiliate && previewMode;
   .smart-ad--sidebar { max-width: 300px; margin-top: 0; }
   .smart-ad--jobs-top { width: 100%; }
 
-  /* Sponsored label used by image, html, and adsense renders */
+  /* Sponsored label used by all render types */
   .smart-ad__label {
     display: block;
     font-size: 10px;
@@ -236,7 +237,46 @@ const showPreview = !affiliate && previewMode;
     margin-bottom: 4px;
   }
 
-  /* ─── TEXT AD — high-conversion native card ───────────────────────── */
+  /* ─── FLEXIBLE FRAME (strip, infeed, jobs-top) ──────
+   * Centers the image but imposes no shape — the image
+   * keeps its natural aspect ratio, constrained only by
+   * max-width: 100%. Explicit sizing from banner_width/
+   * banner_height is applied as an inline style.
+   */
+  .smart-ad__frame--flexible {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .smart-ad__frame--flexible img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+  }
+
+  /* ─── SIDEBAR FRAME (shape-constrained, unchanged) ─── */
+  .smart-ad__frame--sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    background: #f9fafb;
+    border-radius: 4px;
+    aspect-ratio: 300 / 250;
+  }
+  .smart-ad__frame--sidebar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* ─── TEXT AD — high-conversion native card ───────── */
   .text-ad {
     display: flex;
     align-items: center;
@@ -297,12 +337,8 @@ const showPreview = !affiliate && previewMode;
     background: #14532d;
   }
 
-  /* Strip zone — full width row */
-  .text-ad--strip {
-    width: 100%;
-  }
+  .text-ad--strip { width: 100%; }
 
-  /* Sidebar zone — vertical stack, full-width CTA */
   .text-ad--sidebar {
     flex-direction: column;
     align-items: stretch;
@@ -317,7 +353,6 @@ const showPreview = !affiliate && previewMode;
     padding: 0.5rem 1rem;
   }
 
-  /* Infeed zone — compact, with subtle top/bottom borders */
   .text-ad--infeed {
     padding: 0.6rem 1rem;
     border-top: 1px solid #e5e7eb;
@@ -327,12 +362,8 @@ const showPreview = !affiliate && previewMode;
   }
   .text-ad--infeed .text-ad__title { font-size: 14px; }
 
-  /* Jobs-top zone — warm green tint to feel like a relevant opportunity */
-  .text-ad--jobs-top {
-    background: #f0fdf4;
-  }
+  .text-ad--jobs-top { background: #f0fdf4; }
 
-  /* Mobile: stack and full-width CTA on strip/jobs-top */
   @media (max-width: 560px) {
     .text-ad--strip,
     .text-ad--jobs-top,
@@ -350,51 +381,12 @@ const showPreview = !affiliate && previewMode;
     }
   }
 
-  /* ─── IMAGE ad — fixed frame per zone ─────────------
-   * Every affiliate image is constrained to the zone's target
-   * ad shape via aspect-ratio, centered with object-fit: contain.
-   * This prevents tall or wide source images from breaking the layout.
-   */
-  .smart-ad__frame {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    width: 100%;
-    margin: 0 auto;
-    background: #f9fafb;
-    border-radius: 4px;
-  }
-  .smart-ad__frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-  }
-
-  .smart-ad__frame--strip {
-    aspect-ratio: 728 / 90;
-    max-width: 728px;
-  }
-  .smart-ad__frame--sidebar {
-    aspect-ratio: 300 / 250;
-    max-width: 300px;
-  }
-  .smart-ad__frame--infeed {
-    aspect-ratio: 468 / 60;
-    max-width: 468px;
-  }
-  .smart-ad__frame--jobs-top {
-    aspect-ratio: 728 / 90;
-    max-width: 728px;
-  }
-
   /* ─── HTML ad ───────────────────────── */
   .smart-ad__banner { display: block; max-width: 100%; }
   .smart-ad__banner :global(iframe),
   .smart-ad__banner :global(img) { max-width: 100%; height: auto; }
 
-  /* ─── Preview placeholder (preview mode only) ─── */
+  /* ─── Preview placeholder ─── */
   .smart-ad__placeholder {
     display: flex;
     flex-direction: column;
