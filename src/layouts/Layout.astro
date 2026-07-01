@@ -118,12 +118,6 @@ const isAdmin = Astro.url.pathname.startsWith('/admin');
       </div>
     </nav>
 
-    {!isAdmin && !noLeaderboard && (
-      <div class="max-w-6xl mx-auto px-4">
-        <SmartAdSlot zone="strip" />
-      </div>
-    )}
-
     <div class="flex-1">
       <slot />
     </div>
