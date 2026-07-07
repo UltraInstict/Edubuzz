@@ -3,3 +3,4 @@ node_modules/
 dist/
 .astro/
 dev-server.log
+__pycache__/

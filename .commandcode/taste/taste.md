@@ -10,13 +10,16 @@ See [design-system/taste.md](design-system/taste.md)
 # code-quality
 - Delete dead code (unused components, unused CSS) rather than leaving it in the codebase. Confidence: 0.70
 - After design system changes, run grep verification to catch hardcoded hex colors, inconsistent border-radius, leftover <style> blocks, and card padding drift. Confidence: 0.75
+- Prefer configuration over hardcoding; use config-driven patterns so behavior can be changed without code changes. Confidence: 0.70
 
 # communication
 - Provide evidence-backed audit reports with raw command output; avoid summary claims like "everything is fixed" or "looks good." Confidence: 0.85
 - When verifying a fix, check the specific resource (image URL, API endpoint, asset) directly with curl and show the full HTTP response; do not rely solely on top-level pages returning 200. Confidence: 0.65
+- Always explain WHY a change is recommended, not just what the change is. Confidence: 0.80
 
 # workflow
 See [workflow/taste.md](workflow/taste.md)
+- When writing architectural plan files in plan mode, use `~/.commandcode/plans/<filename>.md` (the home directory path), NOT the project-local `.commandcode/plans/` path. The plan mode enforces the home directory location. Confidence: 0.70
 # design-system
 - Always use --update-env flag on pm2 restart to ensure process picks up .env changes. Confidence: 0.85
 - For the standard deploy sequence, use `npm ci` (not `npm install`) to ensure a clean, reproducible build from the lockfile. Confidence: 0.70

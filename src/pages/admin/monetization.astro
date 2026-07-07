@@ -1,0 +1,402 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/auth';
+import { listCampaigns, listHouseAds } from '../../services/monetizationService';
+import { listAllAffiliateLinks } from '../../services/affiliateService';
+
+const { redirect } = await requireAdmin(Astro.request);
+if (redirect) return redirect;
+
+const [campaigns, houseAds, affiliateLinks] = await Promise.all([
+  listCampaigns(),
+  listHouseAds(),
+  listAllAffiliateLinks(),
+]);
+
+const TYPE_LABELS: Record<string, string> = {
+  affiliate_image: 'Affiliate Image',
+  affiliate_html: 'Affiliate HTML',
+  affiliate_text: 'Affiliate Text',
+  adsense_manual: 'AdSense Unit',
+  house_ad: 'House Ad',
+  sponsored_job: 'Sponsored Job',
+  sponsored_employer: 'Sponsored Employer',
+};
+
+const ZONE_LABELS: Record<string, string> = {
+  strip: 'Strip (full-width)',
+  sidebar: 'Sidebar',
+  infeed: 'In-feed',
+  'jobs-top': 'Jobs Page Top',
+  'homepage-hero': 'Homepage Hero',
+  all: 'All Zones',
+};
+
+const campaignTypes = Object.entries(TYPE_LABELS);
+const zones = Object.entries(ZONE_LABELS);
+
+const activeTab = Astro.url.searchParams.get('tab') || 'campaigns';
+---
+
+<Layout title="Monetization | Admin" canonicalUrl={Astro.url.href}>
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <header class="flex justify-between items-center mb-4 flex-wrap gap-3">
+      <h1 class="text-2xl font-bold text-gray-900 m-0">Monetization</h1>
+      <AdminNav current="monetization" />
+    </header>
+
+    <div class="flex gap-1 mb-4 border-b border-gray-200">
+      <a href="?tab=campaigns" class={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${activeTab === 'campaigns' ? 'text-green-800 border-green-800' : 'text-gray-500 border-transparent hover:text-gray-900'}`}>Campaigns</a>
+      <a href="?tab=house-ads" class={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${activeTab === 'house-ads' ? 'text-green-800 border-green-800' : 'text-gray-500 border-transparent hover:text-gray-900'}`}>House Ads</a>
+      <a href="/admin/affiliates" class="px-3 py-1.5 text-sm font-medium border-b-2 transition-colors text-gray-500 border-transparent hover:text-gray-900">Affiliate Links</a>
+    </div>
+
+    {/* ── CAMPAIGNS TAB ── */}
+    {activeTab === 'campaigns' && (
+      <>
+        <section class="grid grid-cols-4 gap-2.5 mb-4">
+          <div class="bg-white border border-gray-200 rounded-md p-5">
+            <b class="block text-xl font-semibold text-gray-900">{campaigns.length}</b>
+            <span class="text-xs text-gray-500">Total campaigns</span>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-md p-5">
+            <b class="block text-xl font-semibold text-green-800">{campaigns.filter((c: any) => c.active).length}</b>
+            <span class="text-xs text-gray-500">Active</span>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-md p-5">
+            <b class="block text-xl font-semibold text-amber-700">{campaigns.filter((c: any) => !c.active).length}</b>
+            <span class="text-xs text-gray-500">Paused</span>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-md p-5">
+            <b class="block text-xl font-semibold text-gray-900">{campaigns.reduce((sum: number, c: any) => sum + (c.clicks || 0), 0).toLocaleString('en-ZA')}</b>
+            <span class="text-xs text-gray-500">Total clicks</span>
+          </div>
+        </section>
+
+        <section class="bg-white border border-gray-200 rounded-md p-5 mb-4">
+          <h2 class="text-sm font-semibold text-gray-900 mb-3">New Campaign</h2>
+          <form id="campaign-form" class="space-y-3">
+            <input type="hidden" name="action" value="create" />
+            <input type="hidden" name="id" value="" />
+
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Name</label><input type="text" name="name" required placeholder="e.g. MaxBounty Sidebar Finance" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
+
+            <div class="flex gap-3 flex-wrap">
+              <label class="flex-1 min-w-[200px]"><span class="block text-sm font-medium text-gray-700 mb-1">Type</span>
+                <select name="campaign_type" id="campaign_type" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800">
+                  {campaignTypes.map(([v, label]) => <option value={v}>{label}</option>)}
+                </select>
+              </label>
+              <label class="flex-1 min-w-[200px]"><span class="block text-sm font-medium text-gray-700 mb-1">Zone</span>
+                <select name="zone" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800">
+                  {zones.map(([v, label]) => <option value={v}>{label}</option>)}
+                </select>
+              </label>
+              <label class="min-w-[100px]"><span class="block text-sm font-medium text-gray-700 mb-1">Priority</span>
+                <input type="number" name="priority" value="80" min="0" max="200" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" />
+              </label>
+            </div>
+
+            <div id="reference-wrapper">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                <span id="reference-label">Affiliate Link</span>
+              </label>
+              <select id="affiliate-select" name="reference_id" class="reference-field w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800">
+                <option value="">Select an affiliate link...</option>
+                {affiliateLinks.map((link: any) => <option value={link.id}>{link.name} ({link.zone})</option>)}
+              </select>
+              <input id="reference-input" type="text" name="reference_id_manual" class="reference-field w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" placeholder="Enter reference ID" style="display:none" />
+            </div>
+
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Category target (optional)</label><input type="text" name="category_target" placeholder="e.g. finance" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
+
+            <p id="form-error" hidden class="text-red-600 text-xs p-2 bg-red-50 border border-red-200 rounded-md m-0"></p>
+            <div class="flex gap-2">
+              <button type="submit" id="submit-btn" class="bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Add Campaign</button>
+              <button type="button" id="cancel-btn" class="bg-white text-gray-600 text-sm font-medium px-5 py-2.5 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors" hidden>Cancel</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="flex justify-end mb-3 gap-2">
+          <button id="seed-btn" class="bg-amber-600 text-white text-xs font-medium px-4 py-2 rounded-md hover:bg-amber-700 transition-colors">Import Affiliate Links as Campaigns</button>
+        </section>
+
+        <section class="bg-white border border-gray-200 rounded-md p-5">
+          <h2 class="text-sm font-semibold text-gray-900 mb-3">Campaigns ({campaigns.length})</h2>
+          <div class="overflow-auto">
+            <table class="w-full border-collapse text-sm">
+              <thead><tr>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Priority</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Name</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Type</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Zone</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Category</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Clicks</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Status</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Actions</th>
+              </tr></thead>
+              <tbody>
+                {campaigns.length === 0 && <tr><td colspan="8" class="py-12 text-center text-gray-500">No campaigns yet. Create one above or import from affiliate links.</td></tr>}
+                {campaigns.map((c: any) => (
+                  <tr class="border-b border-gray-200">
+                    <td class="px-2.5 py-2.5"><b class={c.priority < 40 ? 'text-amber-600' : c.priority < 60 ? 'text-blue-600' : 'text-gray-500'}>{c.priority}</b></td>
+                    <td class="px-2.5 py-2.5 font-medium max-w-[200px] truncate">{c.name}</td>
+                    <td class="px-2.5 py-2.5"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{TYPE_LABELS[c.campaign_type] || c.campaign_type}</span></td>
+                    <td class="px-2.5 py-2.5 text-gray-500">{ZONE_LABELS[c.zone] || c.zone}</td>
+                    <td class="px-2.5 py-2.5 text-gray-500">{c.category_target || 'general'}</td>
+                    <td class="px-2.5 py-2.5">{c.clicks || 0}</td>
+                    <td class="px-2.5 py-2.5"><span class={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${c.active ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-800'}`}>{c.active ? 'Active' : 'Paused'}</span></td>
+                    <td class="px-2.5 py-2.5">
+                      <div class="flex gap-1 flex-wrap">
+                        <button class="px-2 py-0.5 text-xs rounded border border-green-200 text-green-800 bg-white hover:bg-green-50 btn-edit"
+                          data-id={c.id}
+                          data-name={c.name}
+                          data-type={c.campaign_type}
+                          data-zone={c.zone}
+                          data-priority={c.priority}
+                          data-category-target={c.category_target || ''}
+                          data-reference-id={c.reference_id}>Edit</button>
+                        <button class="px-2 py-0.5 text-xs rounded border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 btn-toggle" data-id={c.id}>{c.active ? 'Pause' : 'Activate'}</button>
+                        <button class="px-2 py-0.5 text-xs rounded border border-red-200 text-red-600 bg-white hover:bg-red-50 btn-delete" data-id={c.id}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </>
+    )}
+
+    {/* ── HOUSE ADS TAB ── */}
+    {activeTab === 'house-ads' && (
+      <>
+        <section class="bg-white border border-gray-200 rounded-md p-5 mb-4">
+          <h2 class="text-sm font-semibold text-gray-900 mb-3">New House Ad</h2>
+          <form id="house-form" class="space-y-3">
+            <input type="hidden" name="action" value="create" />
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Title</label><input type="text" name="title" required placeholder="e.g. Advertise with Edubuzz" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label><input type="text" name="description" maxlength="200" placeholder="e.g. Reach 50k+ job seekers" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">CTA text</label><input type="text" name="cta_text" placeholder="Learn more" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Link URL</label><input type="text" name="link_url" required placeholder="/advertise" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" /></div>
+            <p id="house-error" hidden class="text-red-600 text-xs p-2 bg-red-50 border border-red-200 rounded-md m-0"></p>
+            <button type="submit" class="bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Add House Ad</button>
+          </form>
+        </section>
+
+        <section class="bg-white border border-gray-200 rounded-md p-5">
+          <h2 class="text-sm font-semibold text-gray-900 mb-3">House Ads ({houseAds.length})</h2>
+          <div class="overflow-auto">
+            <table class="w-full border-collapse text-sm">
+              <thead><tr>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Title</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">CTA</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Link</th>
+                <th class="px-2.5 py-2.5 text-left font-semibold text-gray-900 bg-gray-50 border-b-2 border-gray-200 text-xs">Actions</th>
+              </tr></thead>
+              <tbody>
+                {houseAds.length === 0 && <tr><td colspan="4" class="py-12 text-center text-gray-500">No house ads yet.</td></tr>}
+                {houseAds.map((ad: any) => (
+                  <tr class="border-b border-gray-200">
+                    <td class="px-2.5 py-2.5 font-medium">{ad.title}</td>
+                    <td class="px-2.5 py-2.5">{ad.cta_text}</td>
+                    <td class="px-2.5 py-2.5 text-green-800">{ad.link_url}</td>
+                    <td class="px-2.5 py-2.5">
+                      <button class="px-2 py-0.5 text-xs rounded border border-red-200 text-red-600 bg-white hover:bg-red-50 btn-delete-house" data-id={ad.id}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </>
+    )}
+  </main>
+</Layout>
+
+<script>
+  // ── Campaign form ──
+  const form = document.getElementById('campaign-form') as HTMLFormElement;
+  const headingEl = form?.previousElementSibling as HTMLHeadingElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+  const errorEl = document.getElementById('form-error') as HTMLParagraphElement;
+  const refLabel = document.getElementById('reference-label') as HTMLElement;
+  const affiliateSelect = document.getElementById('affiliate-select') as HTMLSelectElement;
+  const refInput = document.getElementById('reference-input') as HTMLInputElement;
+
+  function setMode(mode: 'add' | 'edit', data?: Record<string, string>) {
+    const actionInput = form.elements.namedItem('action') as HTMLInputElement;
+    const idInput = form.elements.namedItem('id') as HTMLInputElement;
+    if (mode === 'edit' && data) {
+      headingEl.textContent = 'Edit Campaign';
+      submitBtn.textContent = 'Update';
+      cancelBtn.hidden = false;
+      actionInput.value = 'update';
+      idInput.value = data.id || '';
+      (form.elements.namedItem('name') as HTMLInputElement).value = data.name || '';
+      (form.elements.namedItem('campaign_type') as HTMLSelectElement).value = data.type || 'affiliate_text';
+      (form.elements.namedItem('zone') as HTMLSelectElement).value = data.zone || 'sidebar';
+      (form.elements.namedItem('priority') as HTMLInputElement).value = data.priority || '80';
+      (form.elements.namedItem('category_target') as HTMLInputElement).value = data.categoryTarget || '';
+      (form.elements.namedItem('reference_id') as HTMLSelectElement).value = data.refId || '';
+      updateRefField();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      headingEl.textContent = 'New Campaign';
+      submitBtn.textContent = 'Add Campaign';
+      cancelBtn.hidden = true;
+      actionInput.value = 'create';
+      idInput.value = '';
+      form.reset();
+      affiliateSelect.style.display = '';
+      refInput.style.display = 'none';
+    }
+    errorEl.hidden = true;
+  }
+
+  const typeSelect = document.getElementById('campaign_type') as HTMLSelectElement;
+  function updateRefField() {
+    const ct = typeSelect?.value || '';
+    const needsSelect = ct.startsWith('affiliate_') || ct === 'sponsored_job';
+    refLabel.textContent = ct === 'house_ad' ? 'House Ad ID' : ct === 'adsense_manual' ? 'Slot Key (strip/sidebar/infeed)' : ct === 'sponsored_employer' ? 'Employer ID' : ct === 'sponsored_job' ? 'Job ID' : 'Affiliate Link';
+    if (needsSelect) {
+      affiliateSelect.style.display = '';
+      refInput.style.display = 'none';
+      affiliateSelect.name = 'reference_id';
+      refInput.name = 'reference_id_manual';
+    } else {
+      affiliateSelect.style.display = 'none';
+      refInput.style.display = '';
+      affiliateSelect.name = 'reference_id_manual';
+      refInput.name = 'reference_id';
+    }
+  }
+  typeSelect?.addEventListener('change', updateRefField);
+  cancelBtn?.addEventListener('click', () => setMode('add'));
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.hidden = true;
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-50');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Saving\u2026';
+
+    try {
+      const fd = new FormData(form);
+      // Use reference_id from whichever field is visible
+      const refVal = affiliateSelect.style.display !== 'none' ? fd.get('reference_id') : fd.get('reference_id_manual');
+      fd.set('reference_id', String(refVal || ''));
+
+      const res = await fetch('/api/admin/monetization/campaign-action', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success !== false) {
+        location.reload();
+      } else {
+        errorEl.textContent = data.error || 'Could not save campaign.';
+        errorEl.hidden = false;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50');
+        submitBtn.textContent = originalText;
+      }
+    } catch {
+      errorEl.textContent = 'Network error.';
+      errorEl.hidden = false;
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-50');
+      submitBtn.textContent = originalText;
+    }
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.btn-edit').forEach(btn =>
+    btn.addEventListener('click', () => setMode('edit', {
+      id: btn.dataset.id || '',
+      name: btn.dataset.name || '',
+      type: btn.dataset.type || 'affiliate_text',
+      zone: btn.dataset.zone || 'sidebar',
+      priority: btn.dataset.priority || '80',
+      categoryTarget: btn.dataset.categoryTarget || '',
+      refId: btn.dataset.refId || '',
+    }))
+  );
+
+  document.querySelectorAll<HTMLButtonElement>('.btn-toggle').forEach(btn =>
+    btn.addEventListener('click', async () => {
+      const res = await fetch('/api/admin/monetization/campaign-action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle', id: btn.dataset.id }),
+      });
+      if (res.ok) location.reload();
+    })
+  );
+
+  document.querySelectorAll<HTMLButtonElement>('.btn-delete').forEach(btn =>
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this campaign?')) return;
+      const res = await fetch('/api/admin/monetization/campaign-action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id: btn.dataset.id }),
+      });
+      if (res.ok) location.reload();
+    })
+  );
+
+  document.getElementById('seed-btn')?.addEventListener('click', async () => {
+    if (!confirm('Import all affiliate links as campaigns? (Existing links will be skipped)')) return;
+    const btn = document.getElementById('seed-btn') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Importing\u2026';
+    const res = await fetch('/api/admin/monetization/campaign-action', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'seed' }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (data.success) {
+      alert(`Done! Created ${data.data.created}, skipped ${data.data.skipped} (already exist), ${data.data.total} total.`);
+    } else {
+      alert('Import failed: ' + (data.error || 'Unknown error'));
+    }
+    btn.disabled = false;
+    btn.textContent = 'Import Affiliate Links as Campaigns';
+    location.reload();
+  });
+
+  // ── House Ad actions ──
+  document.querySelectorAll<HTMLButtonElement>('.btn-delete-house').forEach(btn =>
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this house ad?')) return;
+      const res = await fetch('/api/admin/monetization/campaign-action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_house', id: btn.dataset.id }),
+      });
+      if (res.ok) location.reload();
+    })
+  );
+
+  // ── House ads form ──
+  const houseForm = document.getElementById('house-form') as HTMLFormElement;
+  houseForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(houseForm);
+    fd.set('action', 'create_house');
+    const res = await fetch('/api/admin/monetization/campaign-action', { method: 'POST', body: fd });
+    if (res.ok) location.reload();
+    else {
+      const data = await res.json().catch(() => ({}));
+      const err = document.getElementById('house-error') as HTMLParagraphElement;
+      err.textContent = data.error || 'Failed to create house ad.';
+      err.hidden = false;
+    }
+  });
+</script>
+
+<style>
+  @media (max-width: 760px) {
+    header { flex-direction: column; align-items: flex-start; }
+  }
+</style>

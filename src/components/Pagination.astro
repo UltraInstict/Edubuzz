@@ -1,0 +1,46 @@
+---
+export interface Props {
+  page: number;
+  totalPages: number;
+  baseUrl: string;
+  paramName?: string;
+}
+
+const { page, totalPages, baseUrl, paramName = 'page' } = Astro.props;
+
+const buildUrl = (p: number) => {
+  const url = new URL(baseUrl, Astro.url.origin);
+  if (p > 1) {
+    url.searchParams.set(paramName, String(p));
+  } else {
+    url.searchParams.delete(paramName);
+  }
+  return url.pathname + url.search;
+};
+---
+
+{totalPages > 1 && (
+  <div class="flex gap-1.5 mt-6 flex-wrap">
+    {page > 1 && (
+      <a href={buildUrl(page - 1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800 hover:text-green-900">
+        Previous
+      </a>
+    )}
+    {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+      const p = i + 1;
+      return (
+        <a
+          href={buildUrl(p)}
+          class={`rounded-md px-3 py-1.5 text-sm ${p === page ? 'bg-green-800 text-white' : 'border border-gray-200 text-green-800 hover:border-green-800 hover:text-green-900'}`}
+        >
+          {p}
+        </a>
+      );
+    })}
+    {page < totalPages && (
+      <a href={buildUrl(page + 1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800 hover:text-green-900">
+        Next
+      </a>
+    )}
+  </div>
+)}

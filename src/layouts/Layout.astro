@@ -1,7 +1,8 @@
 ---
 import '../styles/global.css';
 import { getSiteStats } from '../lib/pocketbase';
-import SmartAdSlot from '../components/SmartAdSlot.astro';
+import MonetizationSlot from '../components/MonetizationSlot.astro';
+import { SITE_NAME, SITE_DESCRIPTION, SITE_TAGLINE, SITE_LOCALE, SITE_LANG, DEFAULT_OG_IMAGE, TWITTER_HANDLE, SOCIAL_URLS } from '../lib/constants';
 
 interface Props {
   title?: string;
@@ -19,9 +20,9 @@ interface Props {
 const stats = await getSiteStats();
 const {
   title = 'Find Jobs in South Africa',
-  description = 'Browse thousands of verified job listings across all nine provinces — updated daily.',
+  description = SITE_DESCRIPTION,
   canonicalUrl = Astro.url.href,
-  ogImage = 'https://edubuzz.co.za/og-default.png',
+  ogImage = DEFAULT_OG_IMAGE,
   ogTitle = title,
   ogDescription = description,
   ogType = 'website',
@@ -37,11 +38,11 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={SITE_LANG}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} | Edubuzz.co.za</title>
+    <title>{title} | {SITE_NAME}.co.za</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
     <meta property="og:title" content={ogTitle} />
@@ -49,12 +50,15 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:site_name" content="Edubuzz" />
-    <meta property="og:locale" content="en_ZA" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content={SITE_LOCALE} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={ogDescription} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:site" content={TWITTER_HANDLE} />
     <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap.xml" />
@@ -67,32 +71,30 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
-    <!-- ADSENSE: Replace the ad-slot divs with your AdSense units once approved -->
-    <!-- Publisher ID: ca-pub-XXXXXXXXXX — update when approved -->
     <script>
       window.googletag = window.googletag || {cmd:[]};
     </script>
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'Edubuzz',
+      name: SITE_NAME,
       url: Astro.url.origin,
-      description: 'South African job marketplace connecting employers with qualified candidates across all sectors.',
+      description: SITE_DESCRIPTION,
       potentialAction: {
         '@type': 'SearchAction',
         target: { '@type': 'EntryPoint', urlTemplate: `${Astro.url.origin}/?search={search_term_string}` },
         'query-input': 'required name=search_term_string',
       },
-      publisher: { '@type': 'Organization', name: 'Edubuzz', url: Astro.url.origin, logo: { '@type': 'ImageObject', url: `${Astro.url.origin}/favicon.svg` } },
+      publisher: { '@type': 'Organization', name: SITE_NAME, url: Astro.url.origin, logo: { '@type': 'ImageObject', url: `${Astro.url.origin}/favicon.svg` } },
     })} />
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'Edubuzz',
+      name: SITE_NAME,
       url: Astro.url.origin,
       logo: { '@type': 'ImageObject', url: `${Astro.url.origin}/favicon.svg` },
-      description: 'South African job board connecting employers with qualified candidates across government, health, IT, and education sectors.',
-      sameAs: ['https://www.facebook.com/edubuzzsa','https://www.linkedin.com/company/edubuzzsa','https://twitter.com/edubuzzsa'],
+      description: SITE_DESCRIPTION,
+      sameAs: [SOCIAL_URLS.facebook, SOCIAL_URLS.linkedin, SOCIAL_URLS.twitter],
     })} />
     <slot name="head" />
     {adsenseClient && (
@@ -121,7 +123,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
 
     <nav class="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
-        <a href="/" class="text-lg font-bold text-gray-900">Edubuzz</a>
+        <a href="/" class="text-lg font-bold text-gray-900">{SITE_NAME}</a>
         <div class="hidden md:flex items-center gap-6">
           <a href="/jobs" class="text-sm text-green-800 hover:text-green-900">Browse Jobs</a>
           <a href="/companies" class="text-sm text-green-800 hover:text-green-900">Companies</a>
@@ -144,7 +146,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
 
     {!isAdmin && (
       <div class="max-w-6xl mx-auto px-4">
-        <SmartAdSlot zone="strip" />
+        <MonetizationSlot zone="strip" />
       </div>
     )}
 
@@ -152,8 +154,8 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
       <div class="max-w-6xl mx-auto px-4">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <a href="/" class="text-lg font-bold text-gray-900">Edubuzz</a>
-            <p class="text-sm text-gray-500 mt-1">South African jobs, updated daily.</p>
+            <a href="/" class="text-lg font-bold text-gray-900">{SITE_NAME}</a>
+            <p class="text-sm text-gray-500 mt-1">{SITE_TAGLINE}</p>
           </div>
           <div>
             <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Job seekers</h3>
@@ -183,7 +185,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
           </div>
         </div>
         <div class="border-t border-gray-200 mt-8 pt-6 flex flex-col sm:flex-row justify-between gap-2">
-          <p class="text-xs text-gray-400">&copy; {new Date().getFullYear()} Edubuzz.co.za</p>
+          <p class="text-xs text-gray-400">&copy; {new Date().getFullYear()} {SITE_NAME}.co.za</p>
         </div>
       </div>
     </footer>
