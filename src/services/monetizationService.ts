@@ -121,8 +121,8 @@ function expandZoneVariants(zone: string): string[] {
   const lower = zone.toLowerCase().trim();
   const map: Record<string, string[]> = {
     'sidebar':      ['sidebar', 'Sidebar'],
-    'strip':        ['strip', 'Strip', 'Strip (full-width banner)'],
-    'infeed':       ['infeed', 'In-feed', 'In-feed (between job cards)'],
+    'strip':        ['strip', 'Strip'],
+    'infeed':       ['infeed', 'In-feed'],
     'jobs-top':     ['jobs-top', 'jobs_top', 'Jobs Page Top', 'Jobs-Top', 'jobsTop'],
     'homepage-hero':['homepage-hero', 'homepage_hero', 'Homepage Hero'],
   };
