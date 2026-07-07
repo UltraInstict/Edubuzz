@@ -205,18 +205,9 @@ async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
 
   try {
     const pb = getPB();
-    // Use raw PB API to avoid SDK encoding issues with filter parameters
-    const result: any[] = [];
-    let page = 1;
-    while (true) {
-      const batch = await pb.send(`/api/collections/monetization_campaigns/records`, {
-        method: 'GET',
-        query: { page, perPage: 100, sort: 'priority,+created' },
-      });
-      result.push(...(batch?.items || []));
-      if (batch?.totalPages <= page) break;
-      page++;
-    }
+    const result = await pb.collection('monetization_campaigns').getFullList({
+      sort: 'priority,+created',
+    });
     // Filter by zone and schedule in JS
     const now = todayIso();
     const filtered = (result as unknown as Campaign[]).filter((c) => {
