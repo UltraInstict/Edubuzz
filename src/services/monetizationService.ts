@@ -30,7 +30,6 @@ async function pbFetch(collection: string, opts?: { filter?: string; sort?: stri
   params.set('perPage', '500');
   // Drop sort — PB 400s on sort=priority,+created. We filter in JS anyway.
   let urlStr = `${PB_URL}/api/collections/${collection}/records?${params.toString()}`;
-  console.error('[monetization] pbFetch URL:', urlStr);
   const res = await fetch(urlStr);
   if (!res.ok) throw new Error(`PB ${res.status}: ${res.statusText}`);
   const data = await res.json();
