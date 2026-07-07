@@ -193,17 +193,23 @@ export async function resolveSlot(
 }
 
 async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
-  const today = todayIso();
   const variants = expandZoneVariants(zone);
-  const zoneOrs = variants.map((v) => `zone="${esc(v)}"`).join('||');
 
   try {
     const pb = await getAdminPB();
-    const result = await pb.collection('monetization_campaigns').getFullList({
-      filter: 'active=true',
-      sort: 'priority,+created',
-    });
-    // Filter by zone and schedule in JS (avoids PB filter parser quirks)
+    // Use raw PB API to avoid SDK encoding issues with filter parameters
+    const result: any[] = [];
+    let page = 1;
+    while (true) {
+      const batch = await pb.send(`/api/collections/monetization_campaigns/records`, {
+        method: 'GET',
+        query: { page, perPage: 100, sort: 'priority,+created' },
+      });
+      result.push(...(batch?.items || []));
+      if (batch?.totalPages <= page) break;
+      page++;
+    }
+    // Filter by zone and schedule in JS
     const now = todayIso();
     const filtered = (result as unknown as Campaign[]).filter((c) => {
       if (!variants.includes(c.zone)) return false;
