@@ -204,7 +204,7 @@ async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
   const variants = expandZoneVariants(zone);
 
   try {
-    const pb = await getAdminPB();
+    const pb = getPB();
     // Use raw PB API to avoid SDK encoding issues with filter parameters
     const result: any[] = [];
     let page = 1;
