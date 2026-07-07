@@ -28,9 +28,8 @@ const PB_URL = import.meta.env.PB_URL || 'http://127.0.0.1:8090';
 async function pbFetch(collection: string, opts?: { filter?: string; sort?: string }): Promise<any[]> {
   const params = new URLSearchParams();
   params.set('perPage', '500');
-  if (opts?.sort) params.set('sort', opts.sort);
-  // URLSearchParams encodes + as %2B and , as %2C — PB can't parse either.
-  let urlStr = `${PB_URL}/api/collections/${collection}/records?${params.toString().replace(/%2B/g, '+').replace(/%2C/g, ',')}`;
+  // Drop sort — PB 400s on sort=priority,+created. We filter in JS anyway.
+  let urlStr = `${PB_URL}/api/collections/${collection}/records?${params.toString()}`;
   console.error('[monetization] pbFetch URL:', urlStr);
   const res = await fetch(urlStr);
   if (!res.ok) throw new Error(`PB ${res.status}: ${res.statusText}`);
