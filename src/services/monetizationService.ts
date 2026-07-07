@@ -24,7 +24,27 @@ import { getAdminSettings } from './jobService';
 
 const PB_URL = import.meta.env.PB_URL || 'http://127.0.0.1:8090';
 
-/** Plain client for public reads (collections have open API rules). */
+/** Direct HTTP fetch to PocketBase REST API — bypasses SDK entirely for SSR reliability. */
+async function pbFetch(collection: string, opts?: { filter?: string; sort?: string }): Promise<any[]> {
+  const url = new URL(`${PB_URL}/api/collections/${collection}/records`);
+  url.searchParams.set('perPage', '500');
+  if (opts?.sort) url.searchParams.set('sort', opts.sort);
+  if (opts?.filter) url.searchParams.set('filter', opts.filter);
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`PB ${res.status}: ${res.statusText}`);
+  const data = await res.json();
+  return data.items || [];
+}
+
+/** Get a single record by ID. */
+async function pbFetchOne(collection: string, id: string): Promise<any | null> {
+  const url = `${PB_URL}/api/collections/${collection}/records/${encodeURIComponent(id)}`;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+/** Plain client for admin writes (CRUD, seed). */
 function getPB(): PocketBase {
   return new PocketBase(PB_URL);
 }
@@ -204,8 +224,7 @@ async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
   const variants = expandZoneVariants(zone);
 
   try {
-    const pb = getPB();
-    const result = await pb.collection('monetization_campaigns').getFullList({
+    const result = await pbFetch('monetization_campaigns', {
       sort: 'priority,+created',
     });
     // Filter by zone and schedule in JS
@@ -277,8 +296,7 @@ async function resolveCampaignContent(campaign: Campaign): Promise<ResolvedSlot 
 
 async function resolveAffiliateContent(linkId: string): Promise<AffiliateContent | null> {
   try {
-    const pb = getPB();
-    const record = await pb.collection('affiliate_links').getOne(linkId);
+    const record = await pbFetchOne('affiliate_links', linkId);
     if (!record || !(record as any).active) return null;
 
     const l = record as any;
