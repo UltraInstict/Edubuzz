@@ -215,7 +215,8 @@ async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
     });
     return filtered;
   } catch (err: any) {
-    console.error('[monetization] getActiveCampaigns failed for zone', zone, ':', err?.message || err);
+    console.error('[monetization] getActiveCampaigns failed for zone', zone);
+    console.error('[monetization] PB status:', err?.status, 'response:', JSON.stringify(err?.response || {}).slice(0,300));
     return [];
   }
 }
