@@ -221,6 +221,7 @@ export async function resolveSlot(
     if (resolved) return resolved;
   }
 
+  console.error(`[monetization] zone=${zone}: ${campaigns.length} active campaigns found but none resolved to valid content`);
   return { type: 'empty', content: null };
 }
 
@@ -262,31 +263,46 @@ async function resolveCampaignContent(campaign: Campaign): Promise<ResolvedSlot 
       case 'affiliate_html':
       case 'affiliate_text': {
         const content = await resolveAffiliateContent(refId);
-        if (!content) return null;
+        if (!content) {
+          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: affiliate link ${refId.slice(0,8)} not found or has no content`);
+          return null;
+        }
         return { ...base, type, content };
       }
 
       case 'adsense_manual': {
         const content = await resolveAdSenseContent(refId);
-        if (!content) return null;
+        if (!content) {
+          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: AdSense slot ${refId} not configured`);
+          return null;
+        }
         return { ...base, type, content };
       }
 
       case 'house_ad': {
         const content = await resolveHouseAdContent(refId);
-        if (!content) return null;
+        if (!content) {
+          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: house ad ${refId.slice(0,8)} not found`);
+          return null;
+        }
         return { ...base, type, content };
       }
 
       case 'sponsored_job': {
         const content = await resolveSponsoredJobContent(refId);
-        if (!content) return null;
+        if (!content) {
+          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: sponsored job ${refId.slice(0,8)} not found`);
+          return null;
+        }
         return { ...base, type, content };
       }
 
       case 'sponsored_employer': {
         const content = await resolveSponsoredEmployerContent(refId);
-        if (!content) return null;
+        if (!content) {
+          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: sponsored employer ${refId.slice(0,8)} not found`);
+          return null;
+        }
         return { ...base, type, content };
       }
 

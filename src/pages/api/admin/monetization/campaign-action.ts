@@ -68,8 +68,8 @@ export const POST: Astro.APIRoute = async ({ request }) => {
           end_date: body.end_date || undefined,
           category_target: body.category_target || '',
           reference_id: String(body.reference_id || ''),
-          ad_width: body.ad_width ? Number(body.ad_width) : undefined,
-          ad_height: body.ad_height ? Number(body.ad_height) : undefined,
+          ad_width: body.ad_width ? (() => { const w = Number(body.ad_width); return Number.isFinite(w) && w > 0 && w <= 4096 ? w : undefined; })() : undefined,
+          ad_height: body.ad_height ? (() => { const h = Number(body.ad_height); return Number.isFinite(h) && h > 0 && h <= 4096 ? h : undefined; })() : undefined,
         });
 
         if (!campaign) return fail('Failed to create campaign.');
@@ -97,8 +97,16 @@ export const POST: Astro.APIRoute = async ({ request }) => {
         if (body.end_date !== undefined) updates.end_date = body.end_date || null;
         if (body.category_target !== undefined) updates.category_target = String(body.category_target);
         if (body.reference_id !== undefined) updates.reference_id = String(body.reference_id);
-        if (body.ad_width !== undefined && body.ad_width !== '') updates.ad_width = Number(body.ad_width) || null;
-        if (body.ad_height !== undefined && body.ad_height !== '') updates.ad_height = Number(body.ad_height) || null;
+        if (body.ad_width !== undefined && body.ad_width !== '') {
+          const w = Number(body.ad_width);
+          if (!Number.isFinite(w) || w <= 0 || w > 4096) return fail('ad_width must be between 1 and 4096');
+          updates.ad_width = w;
+        }
+        if (body.ad_height !== undefined && body.ad_height !== '') {
+          const h = Number(body.ad_height);
+          if (!Number.isFinite(h) || h <= 0 || h > 4096) return fail('ad_height must be between 1 and 4096');
+          updates.ad_height = h;
+        }
 
         const campaign = await updateCampaign(id, updates);
         if (!campaign) return fail('Failed to update campaign.');

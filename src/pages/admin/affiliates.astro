@@ -20,6 +20,25 @@ const zones = [
   { value: 'jobs-top', label: 'Jobs Page Top' },
   { value: 'all',      label: 'All zones' },
 ];
+
+// Helper: check if a link has minimum content to render
+function linkStatus(link: any): { label: string; color: string } {
+  if (!link.active) return { label: 'Draft', color: 'bg-amber-50 text-amber-800' };
+  const dt = link.display_type || 'text';
+  if (dt === 'image' && !link.image_url && (!link.banner_file || (Array.isArray(link.banner_file) && link.banner_file.length === 0))) {
+    return { label: 'Incomplete — no image', color: 'bg-red-50 text-red-700' };
+  }
+  if (dt === 'html' && !link.banner_html) {
+    return { label: 'Incomplete — no HTML', color: 'bg-red-50 text-red-700' };
+  }
+  if (!link.url || !link.url.startsWith('http')) {
+    return { label: 'Incomplete — invalid URL', color: 'bg-red-50 text-red-700' };
+  }
+  if (!link.name || link.name.length < 3) {
+    return { label: 'Incomplete — no title', color: 'bg-red-50 text-red-700' };
+  }
+  return { label: 'Active', color: 'bg-green-50 text-green-800' };
+}
 ---
 
 <Layout title="Affiliate Links | Admin" canonicalUrl={Astro.url.href}>
@@ -130,7 +149,14 @@ const zones = [
                   <td class="px-2.5 py-2.5"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{link.zone}</span></td>
                   <td class="px-2.5 py-2.5 text-gray-500 text-xs">{link.banner_width || '-'}{link.banner_height ? `×${link.banner_height}` : ''}</td>
                   <td class="px-2.5 py-2.5"><b class="text-gray-900">{link.clicks || 0}</b></td>
-                  <td class="px-2.5 py-2.5"><span class={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${link.active ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-800'}`}>{link.active ? 'Active' : 'Paused'}</span></td>
+                  <td class="px-2.5 py-2.5">
+                    <div class="flex flex-col gap-0.5">
+                      {(()=>{
+                        const st = linkStatus(link);
+                        return <span class={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${st.color}`}>{st.label}</span>;
+                      })()}
+                    </div>
+                  </td>
                   <td class="px-2.5 py-2.5">
                     <div class="flex gap-1 flex-wrap">
                       <button class="px-2 py-0.5 text-xs rounded border border-green-200 text-green-800 bg-white hover:bg-green-50 transition-colors btn-edit"
@@ -264,7 +290,30 @@ const zones = [
       const action = btn.dataset.action;
       const id = btn.dataset.id;
       if (!action || !id) return;
-      if (action === 'delete' && !confirm('Delete this affiliate link?')) return;
+      if (action === 'delete') {
+        // First try without force — API will warn if referenced
+        let res = await fetch('/api/admin/affiliate-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ linkId: id, action: 'delete' }),
+        });
+        if (res.status === 409) {
+          const body = await res.json().catch(() => ({}));
+          if (!confirm(body.error + '\n\nProceed with deletion?')) return;
+          // Retry with force flag
+          res = await fetch('/api/admin/affiliate-action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ linkId: id, action: 'delete', force: true }),
+          });
+        }
+        if (res.ok) location.reload();
+        else {
+          const body = await res.json().catch(() => ({}));
+          alert(body.error || 'Action failed.');
+        }
+        return;
+      }
       const res = await fetch('/api/admin/affiliate-action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

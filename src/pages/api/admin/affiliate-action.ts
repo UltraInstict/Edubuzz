@@ -14,6 +14,16 @@ function isCollectionMissing(err: any): boolean {
   return false;
 }
 
+// ── Basic URL validation (format check only, not live reachability) ──
+function isValidUrlFormat(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 const VALID_ZONES = new Set(['strip', 'sidebar', 'infeed', 'jobs-top', 'all']);
 
 /**
@@ -113,15 +123,35 @@ export const POST: APIRoute = async ({ request }) => {
     if (action === 'add' || action === 'edit') {
       const name = String(body.name || '').trim();
       const url = String(body.url || '').trim();
+      const displayType = pickDisplayType(body.display_type);
       if (!name || !url) return fail('Ad title and URL are required.', 400);
+      if (name.length < 3) return fail('Ad title must be at least 3 characters.', 400);
+      if (!isValidUrlFormat(url)) return fail('URL must start with https:// or http://', 400);
+
+      // Validate content requirements per type
+      const imageUrl = String(body.image_url || '').trim();
+      const bannerFile = body.banner_file instanceof File && body.banner_file.size > 0 ? body.banner_file : null;
+      const hasImage = !!imageUrl || !!bannerFile;
+      const bannerHtml = String(body.banner_html || '').trim();
+
+      if (displayType === 'image' && !hasImage) {
+        return fail('Image type requires an uploaded banner or an image URL. Save as draft (active=false) to skip.', 400);
+      }
+      if (displayType === 'html' && !bannerHtml) {
+        return fail('HTML type requires banner HTML code. Save as draft (active=false) to skip.', 400);
+      }
+
+      // Default new links to inactive — must be explicitly activated after content is ready
+      const explicitlySet = body.active !== undefined;
+      const defaultActive = action === 'add' ? false : parseBool(body.active, true);
 
       const payload: Record<string, any> = {
         name,
         url,
         category: String(body.category || 'general').trim() || 'general',
         zone: pickZone(body.zone),
-        display_type: pickDisplayType(body.display_type),
-        active: parseBool(body.active, true),
+        display_type: displayType,
+        active: explicitlySet ? parseBool(body.active, true) : defaultActive,
         description: String(body.description || '').trim().slice(0, 120),
         banner_html: String(body.banner_html || '').trim(),
         image_url: String(body.image_url || '').trim(),
@@ -166,6 +196,20 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     if (action === 'delete' && body.linkId) {
+      // Check for dependent campaigns before deleting
+      const force = parseBool(body.force, false);
+      if (!force) {
+        const campaignFilter = `reference_id_manual="${body.linkId}"`;
+        try {
+          const campaigns = await pb.collection('monetization_campaigns').getFullList({ filter: `reference_id="${body.linkId}"` });
+          if (campaigns.length > 0) {
+            const names = campaigns.map((c: any) => `${c.name} (${c.zone})`).join(', ');
+            return fail(`This affiliate link is used by ${campaigns.length} campaign(s): ${names}. Delete anyway?`, 409);
+          }
+        } catch {
+          // Filter query might fail if reference_id doesn't support filter — skip guard
+        }
+      }
       await pb.collection('affiliate_links').delete(body.linkId);
       auditLog('affiliate_link_deleted', { adminId: user?.id, linkId: body.linkId });
       return ok();
