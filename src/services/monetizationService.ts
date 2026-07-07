@@ -227,9 +227,10 @@ async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
     const result = await pbFetch('monetization_campaigns', {
       sort: 'priority,+created',
     });
-    // Filter by zone and schedule in JS
+    // Filter by active status, zone, and schedule in JS
     const now = todayIso();
     const filtered = (result as unknown as Campaign[]).filter((c) => {
+      if (!c.active) return false;
       if (!variants.includes(c.zone)) return false;
       if (c.start_date && c.start_date > now) return false;
       if (c.end_date && c.end_date < now) return false;
@@ -297,7 +298,7 @@ async function resolveCampaignContent(campaign: Campaign): Promise<ResolvedSlot 
 async function resolveAffiliateContent(linkId: string): Promise<AffiliateContent | null> {
   try {
     const record = await pbFetchOne('affiliate_links', linkId);
-    if (!record || !(record as any).active) return null;
+    if (!record) return null;
 
     const l = record as any;
     let display: 'text' | 'image' | 'html' = (l.display_type as any) || 'text';
