@@ -331,7 +331,7 @@ export async function getCategoriesWithCounts(): Promise<(Category & { count: nu
   const pb = getPB();
   const [categories, jobs] = await Promise.all([
     pb.collection('categories').getFullList({ sort: 'name', fields: 'id,name,slug' }),
-    pb.collection('jobs').getFullList({ filter: activeFilter(), fields: 'category', perPage: 500 }),
+    pb.collection('jobs').getFullList({ filter: activeFilter(), fields: 'category', perPage: 5000 }),
   ]);
   const counts: Record<string, number> = {};
   for (const job of jobs) {

@@ -156,6 +156,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 
 /**
  * Returns categories with live job counts — ONE query, not N+1.
+ * Capped at 5000 jobs to prevent OOM at scale.
  */
 export async function getCategoriesWithCounts(): Promise<(Category & { count: number })[]> {
   const [categories, jobs] = await Promise.all([
@@ -163,6 +164,7 @@ export async function getCategoriesWithCounts(): Promise<(Category & { count: nu
     pb().collection('jobs').getFullList({
       filter: `active=true&&expires>"${todayIso()}"`,
       fields: 'category',
+      perPage: 5000,
     }),
   ]);
   const counts: Record<string, number> = {};
