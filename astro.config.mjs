@@ -15,16 +15,5 @@ export default defineConfig({
       'import.meta.env.SITE_URL': JSON.stringify(process.env.SITE_URL ?? 'https://edubuzz.co.za'),
       'import.meta.env.PB_URL': JSON.stringify(process.env.PB_URL ?? 'http://127.0.0.1:8090'),
     },
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes('MonetizationSlot') || id.includes('Sidebar') || id.includes('Layout') || id.includes('Breadcrumbs') || id.includes('JobCard') || id.includes('Pagination')) {
-              return 'shared-ui';
-            }
-          },
-        },
-      },
-    },
   },
 });

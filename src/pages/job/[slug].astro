@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import JobCard from '../../components/JobCard.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import SmartAdSlot from '../../components/SmartAdSlot.astro';
+import MonetizationSlot from '../../components/MonetizationSlot.astro';
 import { formatSalary, getJobBySlug, getRelatedJobs, isSalaryDisclosed, sanitizeHtml, PROVINCES } from '../../lib/pocketbase';
 import { timeAgo } from '../../lib/timeAgo';
 import { trackEvent } from '../../lib/analytics';
@@ -170,7 +170,7 @@ const breadcrumbLd = {
         <div set:html={sanitizeHtml(job.description)} />
       </section>
 
-      <SmartAdSlot zone="infeed" category={job.category} />
+      <MonetizationSlot zone="infeed" category={job.category} />
 
       {!isExpired && job.apply_email && (
         <section id="apply-section" class="panel apply-form">
