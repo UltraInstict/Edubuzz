@@ -26,11 +26,12 @@ const PB_URL = import.meta.env.PB_URL || 'http://127.0.0.1:8090';
 
 /** Direct HTTP fetch to PocketBase REST API — bypasses SDK entirely for SSR reliability. */
 async function pbFetch(collection: string, opts?: { filter?: string; sort?: string }): Promise<any[]> {
-  const url = new URL(`${PB_URL}/api/collections/${collection}/records`);
-  url.searchParams.set('perPage', '500');
-  if (opts?.sort) url.searchParams.set('sort', opts.sort);
-  if (opts?.filter) url.searchParams.set('filter', opts.filter);
-  const res = await fetch(url.toString());
+  const params = new URLSearchParams();
+  params.set('perPage', '500');
+  if (opts?.sort) params.set('sort', opts.sort);
+  // URLSearchParams encodes + as %2B, which PB can't parse. Fix sort direction.
+  let urlStr = `${PB_URL}/api/collections/${collection}/records?${params.toString().replace(/%2B/g, '+')}`;
+  const res = await fetch(urlStr);
   if (!res.ok) throw new Error(`PB ${res.status}: ${res.statusText}`);
   const data = await res.json();
   return data.items || [];
