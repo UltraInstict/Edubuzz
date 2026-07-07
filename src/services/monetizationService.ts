@@ -31,6 +31,7 @@ async function pbFetch(collection: string, opts?: { filter?: string; sort?: stri
   if (opts?.sort) params.set('sort', opts.sort);
   // URLSearchParams encodes + as %2B, which PB can't parse. Fix sort direction.
   let urlStr = `${PB_URL}/api/collections/${collection}/records?${params.toString().replace(/%2B/g, '+')}`;
+  console.error('[monetization] pbFetch URL:', urlStr);
   const res = await fetch(urlStr);
   if (!res.ok) throw new Error(`PB ${res.status}: ${res.statusText}`);
   const data = await res.json();
