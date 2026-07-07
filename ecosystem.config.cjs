@@ -4,7 +4,7 @@
 // Secrets are loaded from environment (systemd env, .env file, or PM2 env).
 // NEVER hardcode credentials here — this file is committed.
 
-require('dotenv').config();
+require('dotenv').config({ path: '/home/edubuzz/app/.env' });
 
 module.exports = {
   apps: [{

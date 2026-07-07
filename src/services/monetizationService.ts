@@ -203,13 +203,19 @@ async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
       filter: [
         'active=true',
         `(${zoneOrs})`,
-        `(start_date=null||start_date<="${today}")`,
-        `(end_date=null||end_date>="${today}")`,
       ].join('&&'),
       sort: 'priority,+created',
     });
-    return result as unknown as Campaign[];
-  } catch {
+    // Filter out scheduled campaigns that aren't active yet in JS
+    const now = todayIso();
+    const filtered = (result as unknown as Campaign[]).filter((c) => {
+      if (c.start_date && c.start_date > now) return false;
+      if (c.end_date && c.end_date < now) return false;
+      return true;
+    });
+    return filtered;
+  } catch (err: any) {
+    console.error('[monetization] getActiveCampaigns failed for zone', zone, ':', err?.message || err);
     return [];
   }
 }
