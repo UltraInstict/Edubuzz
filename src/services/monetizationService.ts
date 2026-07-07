@@ -199,17 +199,14 @@ async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
 
   try {
     const pb = await getAdminPB();
-    const filter = [
-      'active=true',
-      `(${zoneOrs})`,
-    ].join('&&');
-    console.error('[monetization] querying zone', zone, 'filter:', filter);
     const result = await pb.collection('monetization_campaigns').getFullList({
+      filter: 'active=true',
       sort: 'priority,+created',
     });
-    // Filter out scheduled campaigns that aren't active yet in JS
+    // Filter by zone and schedule in JS (avoids PB filter parser quirks)
     const now = todayIso();
     const filtered = (result as unknown as Campaign[]).filter((c) => {
+      if (!variants.includes(c.zone)) return false;
       if (c.start_date && c.start_date > now) return false;
       if (c.end_date && c.end_date < now) return false;
       return true;
