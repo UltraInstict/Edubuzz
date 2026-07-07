@@ -68,6 +68,8 @@ export const POST: Astro.APIRoute = async ({ request }) => {
           end_date: body.end_date || undefined,
           category_target: body.category_target || '',
           reference_id: String(body.reference_id || ''),
+          ad_width: body.ad_width ? Number(body.ad_width) : undefined,
+          ad_height: body.ad_height ? Number(body.ad_height) : undefined,
         });
 
         if (!campaign) return fail('Failed to create campaign.');
@@ -95,6 +97,8 @@ export const POST: Astro.APIRoute = async ({ request }) => {
         if (body.end_date !== undefined) updates.end_date = body.end_date || null;
         if (body.category_target !== undefined) updates.category_target = String(body.category_target);
         if (body.reference_id !== undefined) updates.reference_id = String(body.reference_id);
+        if (body.ad_width !== undefined && body.ad_width !== '') updates.ad_width = Number(body.ad_width) || null;
+        if (body.ad_height !== undefined && body.ad_height !== '') updates.ad_height = Number(body.ad_height) || null;
 
         const campaign = await updateCampaign(id, updates);
         if (!campaign) return fail('Failed to update campaign.');

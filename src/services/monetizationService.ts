@@ -83,6 +83,8 @@ export interface Campaign {
   clicks: number;
   created: string;
   updated: string;
+  ad_width?: number;
+  ad_height?: number;
 }
 
 export interface AffiliateContent {
@@ -136,6 +138,8 @@ export interface ResolvedSlot {
   type: CampaignType | 'empty';
   campaignId?: string;
   content: AffiliateContent | HouseAdContent | SponsoredJobContent | SponsoredEmployerContent | AdSenseContent | null;
+  ad_width?: number;
+  ad_height?: number;
 }
 
 export interface SlotContext {
@@ -248,6 +252,7 @@ async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
 }
 
 async function resolveCampaignContent(campaign: Campaign): Promise<ResolvedSlot | null> {
+  const base = { campaignId: campaign.id, ad_width: campaign.ad_width, ad_height: campaign.ad_height };
   const type = campaign.campaign_type;
   const refId = campaign.reference_id;
 
@@ -258,31 +263,31 @@ async function resolveCampaignContent(campaign: Campaign): Promise<ResolvedSlot 
       case 'affiliate_text': {
         const content = await resolveAffiliateContent(refId);
         if (!content) return null;
-        return { type, campaignId: campaign.id, content };
+        return { ...base, type, content };
       }
 
       case 'adsense_manual': {
         const content = await resolveAdSenseContent(refId);
         if (!content) return null;
-        return { type, campaignId: campaign.id, content };
+        return { ...base, type, content };
       }
 
       case 'house_ad': {
         const content = await resolveHouseAdContent(refId);
         if (!content) return null;
-        return { type, campaignId: campaign.id, content };
+        return { ...base, type, content };
       }
 
       case 'sponsored_job': {
         const content = await resolveSponsoredJobContent(refId);
         if (!content) return null;
-        return { type, campaignId: campaign.id, content };
+        return { ...base, type, content };
       }
 
       case 'sponsored_employer': {
         const content = await resolveSponsoredEmployerContent(refId);
         if (!content) return null;
-        return { type, campaignId: campaign.id, content };
+        return { ...base, type, content };
       }
 
       default:
@@ -458,6 +463,8 @@ export async function createCampaign(data: {
   end_date?: string;
   category_target?: string;
   reference_id: string;
+  ad_width?: number;
+  ad_height?: number;
 }): Promise<Campaign | null> {
   try {
     const pb = await getAdminPB();

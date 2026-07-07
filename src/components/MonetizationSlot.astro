@@ -49,11 +49,18 @@ if (affText && affiliate) {
 
 const ctaLabel = zone === 'jobs-top' ? 'Claim offer' : 'Learn more';
 
-// Banner dimensions
-const bw = affiliate?.banner_width;
-const bh = affiliate?.banner_height;
-const imgStyle = bw || bh ? `width:${bw || ''}${bw ? 'px' : ''};height:${bh ? bh + 'px' : 'auto'}` : '';
-const frameClass = zone === 'sidebar' ? 'smart-ad__frame smart-ad__frame--sidebar' : 'smart-ad__frame smart-ad__frame--flexible';
+// Container dimensions — campaign-configured, not zone-based.
+// Fall back to affiliate link's natural image dimensions if no campaign size set.
+const cw = result.ad_width;
+const ch = result.ad_height;
+const containerStyle = cw || ch
+  ? `width:${cw || 'auto'};height:${ch || 'auto'};${cw ? 'max-width:100%' : ''}`
+  : '';
+
+// Image respects container via object-fit: contain — no cropping.
+const imgStyle = containerStyle
+  ? 'width:100%;height:100%;object-fit:contain;display:block'
+  : 'display:block;width:auto;height:auto;max-width:100%';
 
 // AdSense dimensions (NEVER force width/height — responsive only)
 const dims: Record<string, { format: string; style: string }> = {
@@ -116,7 +123,8 @@ const dim = dims[zone];
       href={affiliate.url}
       target="_blank"
       rel="nofollow sponsored noopener noreferrer"
-      class={frameClass}
+      class="smart-ad__frame"
+      style={containerStyle}
       data-campaign-id={campaignId}
       data-affiliate-id={affiliate.id}
     >
@@ -213,40 +221,20 @@ const dim = dims[zone];
     margin-bottom: 4px;
   }
 
-  /* ─── FLEXIBLE FRAME (strip, infeed, jobs-top, homepage-hero) ─── */
-  .smart-ad__frame--flexible {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .smart-ad__frame--flexible img {
-    display: block;
-    width: auto;
-    height: auto;
-    max-width: 100%;
-  }
-
-  /* ─── SIDEBAR FRAME ─── */
-  .smart-ad__frame--sidebar {
+  /* ─── AFFILIATE IMAGE FRAME ────────────────────────── */
+  .smart-ad__frame {
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    width: 100%;
-    max-width: 300px;
-    margin: 0 auto;
     background: #f9fafb;
     border-radius: 4px;
-    aspect-ratio: 300 / 250;
   }
-  .smart-ad__frame--sidebar img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
+  .smart-ad__frame:not([style*="width"]) {
+    /* No campaign size set — fit content naturally */
+    display: inline-flex;
+    max-width: 100%;
   }
-
   /* ─── TEXT AD (shared by affiliate text, sponsored job, house ad) ─── */
   .text-ad {
     display: flex;
