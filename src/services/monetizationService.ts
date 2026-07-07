@@ -14,12 +14,20 @@
  */
 
 import { getAdminPB } from '../lib/auth';
+import PocketBase from 'pocketbase';
 import {
   type AffiliateLink,
   getCategoryForAffiliate,
   PB_FILE_BASE,
 } from './affiliateService';
 import { getAdminSettings } from './jobService';
+
+const PB_URL = import.meta.env.PB_URL || 'http://127.0.0.1:8090';
+
+/** Plain client for public reads (collections have open API rules). */
+function getPB(): PocketBase {
+  return new PocketBase(PB_URL);
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -220,7 +228,10 @@ async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
     return filtered;
   } catch (err: any) {
     console.error('[monetization] getActiveCampaigns failed for zone', zone);
-    console.error('[monetization] PB status:', err?.status, 'response:', JSON.stringify(err?.response || {}).slice(0,300));
+    console.error('[monetization] status:', err?.status);
+    console.error('[monetization] message:', err?.message);
+    console.error('[monetization] data:', JSON.stringify(err?.data || {}));
+    console.error('[monetization] response:', JSON.stringify(err?.response || {}));
     return [];
   }
 }
@@ -275,7 +286,7 @@ async function resolveCampaignContent(campaign: Campaign): Promise<ResolvedSlot 
 
 async function resolveAffiliateContent(linkId: string): Promise<AffiliateContent | null> {
   try {
-    const pb = await getAdminPB();
+    const pb = getPB();
     const record = await pb.collection('affiliate_links').getOne(linkId);
     if (!record || !(record as any).active) return null;
 
@@ -345,7 +356,7 @@ async function resolveAdSenseContent(slotKey: string): Promise<AdSenseContent | 
 
 async function resolveHouseAdContent(adId: string): Promise<HouseAdContent | null> {
   try {
-    const pb = await getAdminPB();
+    const pb = getPB();
     const record = await pb.collection('house_ads').getOne(adId);
     if (!record || !(record as any).active) return null;
 
@@ -373,7 +384,7 @@ async function resolveHouseAdContent(adId: string): Promise<HouseAdContent | nul
 
 async function resolveSponsoredJobContent(jobId: string): Promise<SponsoredJobContent | null> {
   try {
-    const pb = await getAdminPB();
+    const pb = getPB();
     const today = todayIso();
     const record = await pb.collection('jobs').getOne(jobId);
     if (!record) return null;
@@ -396,7 +407,7 @@ async function resolveSponsoredJobContent(jobId: string): Promise<SponsoredJobCo
 
 async function resolveSponsoredEmployerContent(employerId: string): Promise<SponsoredEmployerContent | null> {
   try {
-    const pb = await getAdminPB();
+    const pb = getPB();
     const record = await pb.collection('employers').getOne(employerId);
     if (!record) return null;
 
@@ -417,7 +428,7 @@ async function resolveSponsoredEmployerContent(employerId: string): Promise<Spon
 
 export async function listCampaigns(): Promise<Campaign[]> {
   try {
-    const pb = await getAdminPB();
+    const pb = getPB();
     const result = await pb.collection('monetization_campaigns').getFullList({
       sort: 'priority,zone,-created',
     });
