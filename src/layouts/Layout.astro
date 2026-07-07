@@ -32,6 +32,12 @@ const {
   nextPage,
 } = Astro.props;
 
+const siteDomain = `${SITE_NAME}.co.za`;
+const paginationHead = [
+  prevPage ? `<link rel="prev" href="${prevPage}" />` : '',
+  nextPage ? `<link rel="next" href="${nextPage}" />` : '',
+].filter(Boolean).join('\n    ');
+
 const isAdmin = Astro.url.pathname.startsWith('/admin');
 const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT || process.env.PUBLIC_ADSENSE_CLIENT || '';
 const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
@@ -42,7 +48,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} | {SITE_NAME}.co.za</title>
+    <title>{title} | {siteDomain}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
     <meta property="og:title" content={ogTitle} />
@@ -62,8 +68,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
     <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap.xml" />
-    {prevPage && <link rel="prev" href={prevPage} />}
-    {nextPage && <link rel="next" href={nextPage} />}
+    {paginationHead && <Fragment set:html={paginationHead} />}
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
@@ -185,7 +190,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
           </div>
         </div>
         <div class="border-t border-gray-200 mt-8 pt-6 flex flex-col sm:flex-row justify-between gap-2">
-          <p class="text-xs text-gray-400">&copy; {new Date().getFullYear()} {SITE_NAME}.co.za</p>
+          <p class="text-xs text-gray-400">&copy; {new Date().getFullYear()} {siteDomain}</p>
         </div>
       </div>
     </footer>
