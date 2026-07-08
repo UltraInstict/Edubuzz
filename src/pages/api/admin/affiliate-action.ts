@@ -130,7 +130,7 @@ export const POST: APIRoute = async ({ request }) => {
 
       // Validate content requirements per type
       const imageUrl = String(body.image_url || '').trim();
-      const bannerFile = body.banner_file instanceof File && body.banner_file.size > 0 ? body.banner_file : null;
+      // bannerFile is extracted above from multipart form data, NOT in body
       const hasImage = !!imageUrl || !!bannerFile;
       const bannerHtml = String(body.banner_html || '').trim();
 

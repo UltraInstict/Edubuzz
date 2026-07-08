@@ -15,6 +15,7 @@ See [design-system/taste.md](design-system/taste.md)
 - Provide evidence-backed audit reports with raw command output; avoid summary claims like "everything is fixed" or "looks good." Confidence: 0.85
 - When verifying a fix, check the specific resource (image URL, API endpoint, asset) directly with curl and show the full HTTP response; do not rely solely on top-level pages returning 200. Confidence: 0.65
 - Always explain WHY a change is recommended, not just what the change is. Confidence: 0.80
+- For significant architectural changes, propose the approach first and wait for explicit approval before implementing; do not build and then report. Confidence: 0.75
 
 # workflow
 See [workflow/taste.md](workflow/taste.md)
