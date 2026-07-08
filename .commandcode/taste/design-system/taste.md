@@ -10,3 +10,4 @@
 - Apply focus:border-green-800 focus:outline-none consistently on every input, select, and textarea. Confidence: 0.80
 - Button text color rule: solid dark background (green-800, gray-900, amber, red) must use text-white; light/outline background (white, gray-50) must use dark text (gray-900 or green-800). Confidence: 0.75
 - All links must use text-green-800 with hover:text-green-900 or hover:underline; only nav links in dark headers/footers or button-styled links may use alternate colors. Confidence: 0.70
+- When multiple MonetizationSlot components of the same zone render on one page, they must share the same container/layout so their content aligns horizontally. Confidence: 0.70

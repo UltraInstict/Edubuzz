@@ -232,15 +232,16 @@ const dim = dims[zone];
     border-radius: 4px;
   }
   .smart-ad__frame:not([style*="width"]):not([style*="height"]) {
-    /* No campaign size set — hug image at natural dimensions, transparent bg */
-    display: inline-block;
+    /* No campaign size set — fill parent width, center image, transparent bg */
+    display: block;
+    text-align: center;
     background: transparent;
     max-width: 100%;
   }
   .smart-ad__frame:not([style*="width"]):not([style*="height"]) img {
-    display: block;
-    margin: 0 auto;
+    display: inline-block;
     max-width: 100%;
+    vertical-align: top;
   }
   /* ─── TEXT AD (shared by affiliate text, sponsored job, house ad) ─── */
   .text-ad {
