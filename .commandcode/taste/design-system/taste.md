@@ -1,4 +1,5 @@
 # design-system
+- Do not alter third-party/advertiser creative content (cropping via object-fit:cover, stretching, color-shifting) without explicit approval — it is a content decision, not a CSS fix. Confidence: 0.65
 - Use Tailwind utility classes directly in markup; do not use CSS custom properties (--tokens) or semantic abstractions like bg-brand. Confidence: 0.85
 - Strip ad images (MonetizationSlot zone="strip") must be horizontally centered within their container. Confidence: 0.65
 - Fix CSS specificity issues at the root cause level (global.css `@layer base`) rather than using Tailwind `!important` modifiers on individual elements. Confidence: 0.60
