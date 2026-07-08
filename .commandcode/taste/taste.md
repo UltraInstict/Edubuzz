@@ -3,12 +3,14 @@ See [workflow/taste.md](workflow/taste.md)
 # design-system
 See [design-system/taste.md](design-system/taste.md)
 # code-quality
+- Admin-facing API error messages must include specific detail from the underlying error (e.g. "Could not save: [specific reason]") rather than a single generic string like "Could not save affiliate link." Confidence: 0.85
 - Delete dead code (unused components, unused CSS) rather than leaving it in the codebase. Confidence: 0.70
 - After design system changes, run grep verification to catch hardcoded hex colors, inconsistent border-radius, leftover <style> blocks, and card padding drift. Confidence: 0.75
 - Prefer configuration over hardcoding; use config-driven patterns so behavior can be changed without code changes. Confidence: 0.70
 - Default new data entities to active:false until required fields pass validation; allow saving incomplete drafts rather than blocking saves entirely. Confidence: 0.70
 
 # data-integrity
+- When production data loss occurs (collections dropping to 0 records), investigate the root cause immediately rather than reseeding with placeholder data; reseeding masks the bug and prevents diagnosis. Confidence: 0.85
 - Log all content-resolution failures (missing references, empty fields, fetch errors) as a single terse server-side line with the entity ID, zone, and reason; never silently discard rendering errors. Confidence: 0.70
 
 # communication

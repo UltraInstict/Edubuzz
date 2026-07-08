@@ -224,7 +224,15 @@ export const POST: APIRoute = async ({ request }) => {
     const detail = hasFieldErrors
       ? `${topMessage} — ${JSON.stringify(fieldErrors)}`
       : topMessage;
-    console.error('[admin/affiliate-action] Full error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
-    return fail(`Failed to create record: ${detail}`, 500);
+    console.error('[affiliate-action] CAUGHT ERROR --------------------------------------');
+    console.error('[affiliate-action] message:', err?.message);
+    console.error('[affiliate-action] status:', err?.status);
+    console.error('[affiliate-action] data:', JSON.stringify(err?.data || {}));
+    console.error('[affiliate-action] response:', JSON.stringify(err?.response || {}));
+    console.error('[affiliate-action] toString:', String(err));
+    console.error('[affiliate-action] stack:', err?.stack?.slice(0, 500));
+    console.error('[affiliate-action] usedFormData:', !!bannerFile, 'action:', action);
+    console.error('--------------------------------------------------------------');
+    return fail(`Save failed: ${detail}`, 500);
   }
 };
