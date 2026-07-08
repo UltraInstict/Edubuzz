@@ -58,9 +58,10 @@ const containerStyle = cw || ch
   : '';
 
 // Image respects container via object-fit: contain — no cropping.
+// When no container size: center the image within the full-width parent.
 const imgStyle = containerStyle
   ? 'width:100%;height:100%;object-fit:contain;display:block'
-  : 'display:block;width:auto;height:auto;max-width:100%';
+  : 'display:block;margin:0 auto;max-width:100%';
 
 // AdSense dimensions (NEVER force width/height — responsive only)
 const dims: Record<string, { format: string; style: string }> = {
@@ -230,9 +231,10 @@ const dim = dims[zone];
     background: #f9fafb;
     border-radius: 4px;
   }
-  .smart-ad__frame:not([style*="width"]) {
-    /* No campaign size set — fit content naturally */
-    display: inline-flex;
+  .smart-ad__frame:not([style*="width"]):not([style*="height"]) {
+    /* No campaign size set — fill parent, center image */
+    display: block;
+    text-align: center;
     max-width: 100%;
   }
   /* ─── TEXT AD (shared by affiliate text, sponsored job, house ad) ─── */

@@ -1,5 +1,7 @@
 # workflow
 See [workflow/taste.md](workflow/taste.md)
+# testing
+- When fixing layout/CSS bugs, verify at the actual viewport width where the bug manifests — not just at a single arbitrary width. If the issue is about desktop alignment, test at 1280px, 1440px, and 1920px specifically; mobile-width verification is insufficient evidence. Confidence: 0.75
 # design-system
 See [design-system/taste.md](design-system/taste.md)
 # code-quality
