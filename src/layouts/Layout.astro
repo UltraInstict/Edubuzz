@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { getSiteStats } from '../lib/pocketbase';
 import MonetizationSlot from '../components/MonetizationSlot.astro';
+import { getAdminSettings } from '../services/jobService';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_TAGLINE, SITE_LOCALE, SITE_LANG, DEFAULT_OG_IMAGE, TWITTER_HANDLE, SOCIAL_URLS } from '../lib/constants';
 
 interface Props {
@@ -41,6 +42,19 @@ const paginationHead = [
 const isAdmin = Astro.url.pathname.startsWith('/admin');
 const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT || process.env.PUBLIC_ADSENSE_CLIENT || '';
 const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
+
+// Gate AdSense script on admin settings (not just env var)
+let showAdsenseScript = Boolean(adsenseClient && !isAdmin);
+if (showAdsenseScript) {
+  try {
+    const ms = await getAdminSettings(['monetization_enabled', 'adsense_enabled']);
+    // Only block if explicitly disabled; missing/unset defaults to enabled for revenue
+    if (ms.monetization_enabled === 'false') showAdsenseScript = false;
+    else if (ms.adsense_enabled !== 'true') showAdsenseScript = false;
+  } catch {
+    // PB unreachable — default to showing ads (revenue preservation)
+  }
+}
 ---
 
 <!doctype html>
@@ -102,7 +116,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
       sameAs: [SOCIAL_URLS.facebook, SOCIAL_URLS.linkedin, SOCIAL_URLS.twitter],
     })} />
     <slot name="head" />
-    {adsenseClient && (
+    {showAdsenseScript && (
       <script
         async
         src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
@@ -149,11 +163,7 @@ const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
       <slot />
     </div>
 
-    {!isAdmin && (
-      <div class="max-w-6xl mx-auto px-4">
-        <MonetizationSlot zone="strip" />
-      </div>
-    )}
+    {!isAdmin && <MonetizationSlot zone="strip" />}
 
     <footer class="border-t border-gray-200 bg-white py-10">
       <div class="max-w-6xl mx-auto px-4">

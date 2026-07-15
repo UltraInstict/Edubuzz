@@ -181,6 +181,14 @@ export async function updateSourceAfterCrawl(result: CrawlResult): Promise<void>
 }
 
 export async function crawlAllFeeds(): Promise<CrawlResult[]> {
+  // Respect master import toggle from admin settings
+  const { getAdminSettings } = await import('../services/jobService');
+  const settings = await getAdminSettings(['import_enabled']).catch(() => ({ import_enabled: 'true' }));
+  if (settings.import_enabled !== 'true') {
+    console.log('[feedCrawler] Import disabled via settings — skipping crawl');
+    return [];
+  }
+
   const pb = await getAdminPB();
   const sources = await pb.collection('xml_sources').getFullList({
     filter: 'active=true',

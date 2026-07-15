@@ -4,10 +4,10 @@ import Sidebar from '../../components/Sidebar.astro';
 import JobCard from '../../components/JobCard.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import MonetizationSlot from '../../components/MonetizationSlot.astro';
-import { formatSalary, getJobBySlug, getRelatedJobs, isSalaryDisclosed, sanitizeHtml, PROVINCES } from '../../lib/pocketbase';
-import { timeAgo } from '../../lib/timeAgo';
+import { formatSalary, getJobBySlug, getRelatedJobs, isSalaryDisclosed } from '../../lib/pocketbase';
 import { trackEvent } from '../../lib/analytics';
 import { generateToken } from '../../lib/csrf';
+import { enrichJobContent, type ContentSection } from '../../lib/contentEnricher';
 
 const { slug } = Astro.params;
 const job = await getJobBySlug(slug || '');
@@ -15,98 +15,60 @@ const csrfToken = generateToken();
 
 if (!job) return Astro.redirect('/404?reason=notfound');
 
-// Expired job — return 410 Gone with the 404 page rendered as the body.
 const isExpired = Boolean(
   (job.expires && new Date(job.expires).getTime() <= Date.now()) ||
   (job.active === false && job.expires && new Date(job.expires).getTime() <= Date.now())
 );
 if (isExpired) {
-  return new Response(null, {
-    status: 410,
-    headers: { Location: '/404?reason=expired' },
-  });
+  return new Response(null, { status: 410, headers: { Location: '/404?reason=expired' } });
 }
+
 const similarJobs = await getRelatedJobs(job.category, job.id, 4);
 const descriptionText = (job.description || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 trackEvent(job.id, 'view', Astro.request).catch(() => {});
 const pageUrl = Astro.url.href;
-
 const isRemote = /remote/i.test(job.job_type || '') || /remote/i.test(job.title || '');
-
 const validThrough = job.expires || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+const closeDate = job.expires ? new Date(job.expires).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+const postedDate = job.created ? new Date(job.created).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+const salaryDisplay = isSalaryDisclosed(job.salary_min, job.salary_max) ? formatSalary(job.salary_min, job.salary_max) : 'Not disclosed';
+const contentSections = enrichJobContent(job);
 
-// Map our human-readable job_type to Google Jobs employmentType enum
 const EMPLOYMENT_TYPE_MAP: Record<string, string> = {
-  'full-time': 'FULL_TIME',
-  'part-time': 'PART_TIME',
-  'contract': 'CONTRACTOR',
-  'internship': 'INTERN',
-  'learnership': 'INTERN',
-  'graduate programme': 'INTERN',
-  'temporary': 'TEMPORARY',
-  'remote': 'OTHER',
-  'bursary': 'OTHER',
+  'full-time': 'FULL_TIME', 'part-time': 'PART_TIME', 'contract': 'CONTRACTOR',
+  'internship': 'INTERN', 'learnership': 'INTERN', 'graduate programme': 'INTERN',
+  'temporary': 'TEMPORARY', 'remote': 'OTHER', 'bursary': 'OTHER',
 };
 const jobTypeKey = (job.job_type || '').toLowerCase().trim();
 const employmentType = EMPLOYMENT_TYPE_MAP[jobTypeKey] || 'OTHER';
 
 const jsonLd: Record<string, any> = {
-  '@context': 'https://schema.org',
-  '@type': 'JobPosting',
-  title: job.title,
-  description: descriptionText,
-  identifier: {
-    '@type': 'PropertyValue',
-    name: 'Edubuzz Job ID',
-    value: job.id,
-  },
-  datePosted: job.created,
-  validThrough: validThrough,
-  employmentType,
+  '@context': 'https://schema.org', '@type': 'JobPosting',
+  title: job.title, description: descriptionText,
+  identifier: { '@type': 'PropertyValue', name: 'Edubuzz Job ID', value: job.id },
+  datePosted: job.created, validThrough, employmentType,
   directApply: Boolean(job.apply_email || job.apply_url),
   hiringOrganization: {
-    '@type': 'Organization',
-    name: job.company,
+    '@type': 'Organization', name: job.company,
     sameAs: job.employer_website || job.apply_url || undefined,
     logo: job.company_logo || `${Astro.url.origin}/favicon.svg`,
   },
   jobLocation: {
     '@type': 'Place',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: job.city || '',
-      addressRegion: job.province || '',
-      addressCountry: 'ZA',
-    },
+    address: { '@type': 'PostalAddress', addressLocality: job.city || '', addressRegion: job.province || '', addressCountry: 'ZA' },
   },
-  applicantLocationRequirements: {
-    '@type': 'Country',
-    name: 'South Africa',
-  },
+  applicantLocationRequirements: { '@type': 'Country', name: 'South Africa' },
   jobLocationType: isRemote ? 'TELECOMMUTE' : undefined,
   ...(isSalaryDisclosed(job.salary_min, job.salary_max) ? {
-    baseSalary: {
-      '@type': 'MonetaryAmount',
-      currency: 'ZAR',
-      value: {
-        '@type': 'QuantitativeValue',
-        minValue: job.salary_min || undefined,
-        maxValue: job.salary_max || undefined,
-        unitText: 'MONTH',
-      },
-    },
+    baseSalary: { '@type': 'MonetaryAmount', currency: 'ZAR', value: { '@type': 'QuantitativeValue', minValue: job.salary_min || undefined, maxValue: job.salary_max || undefined, unitText: 'MONTH' } },
   } : {}),
-  image: `${Astro.url.origin}/api/og-image/${job.id}`,
-  url: pageUrl,
-  sameAs: pageUrl,
-  industry: job.category || undefined,
-  occupationalCategory: job.category || undefined,
+  image: `${Astro.url.origin}/api/og-image/${job.id}`, url: pageUrl, sameAs: pageUrl,
+  industry: job.category || undefined, occupationalCategory: job.category || undefined,
   jobBenefits: job.featured ? 'Featured listing' : undefined,
 };
 
 const breadcrumbLd = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: Astro.url.origin },
     { '@type': 'ListItem', position: 2, name: 'Jobs', item: `${Astro.url.origin}/jobs` },
@@ -114,6 +76,8 @@ const breadcrumbLd = {
     { '@type': 'ListItem', position: (job.category ? 4 : 3), name: `${job.title} at ${job.company}`, item: pageUrl },
   ],
 };
+
+const enrichedBadge = contentSections.some(s => s.enriched);
 ---
 
 <Layout
@@ -130,59 +94,86 @@ const breadcrumbLd = {
     <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
   </Fragment>
 
-  <div class="detail-grid">
-    <main class="job-main">
-      <MonetizationSlot zone="jobs-top" category={job.category} />
-      <div class="breadcrumbs-wrap">
-        <Breadcrumbs items={[
-          { label: 'Home', href: '/' },
-          { label: 'Jobs', href: '/jobs' },
-          ...(job.category ? [{ label: `${job.category} Jobs`, href: `/category/${job.category.toLowerCase().replace(/\s+/g, '-')}` }] : []),
-          { label: job.title },
-        ]} />
-      </div>
+  <MonetizationSlot zone="jobs-top" category={job.category} />
 
-      <section class="job-header panel">
-        <h1>{job.title}</h1>
-        <p class="company-line">{job.company} · {job.city || job.province} · {job.province}</p>
-        <p class="meta-line">{job.category} · {job.job_type} · Posted {timeAgo(job.created)}</p>
+  <div class="jd-container">
+    <div class="jd-main">
+      {/* ─── BREADCRUMB ─── */}
+      <Breadcrumbs items={[
+        { label: 'Home', href: '/' },
+        { label: 'Jobs', href: '/jobs' },
+        ...(job.category ? [{ label: `${job.category} Jobs`, href: `/category/${job.category.toLowerCase().replace(/\s+/g, '-')}` }] : []),
+        { label: job.title },
+      ]} />
+
+      {/* ─── HERO ─── */}
+      <section class="jd-hero">
+        <div class="jd-hero-left">
+          <h1 class="jd-title">{job.title}</h1>
+          <p class="jd-company">{job.company}</p>
+          <div class="jd-meta-tags">
+            {job.city && <span class="jd-tag jd-tag-location">📍 {job.city}, {job.province}</span>}
+            {job.job_type && <span class="jd-tag jd-tag-type">💼 {job.job_type}</span>}
+            {job.category && <span class="jd-tag jd-tag-category">{job.category}</span>}
+            {job.featured && <span class="jd-tag jd-tag-featured">Featured</span>}
+          </div>
+          <div class="jd-dates">
+            {postedDate && <span>Posted: <strong>{postedDate}</strong></span>}
+            {closeDate && <span>Closes: <strong>{closeDate}</strong></span>}
+            <span>Salary: <strong>{salaryDisplay}</strong></span>
+          </div>
+        </div>
+        <div class="jd-hero-right">
+          {isExpired ? (
+            <button class="jd-apply-btn" disabled>This job has closed</button>
+          ) : (
+            <button type="button" class="jd-apply-btn open-quick-apply" data-job-id={job.id} data-has-form={job.apply_email ? '1' : '0'} data-apply-url={job.apply_url || ''}>
+              Apply Now →
+            </button>
+          )}
+        </div>
       </section>
 
-      <div class="apply-top">
-        {isExpired ? (
-          <button disabled>This job has closed</button>
-        ) : (
-          <button type="button" class="open-quick-apply" data-job-id={job.id} data-has-form={job.apply_email ? '1' : '0'} data-apply-url={job.apply_url || ''}>Apply Now</button>
-        )}
-      </div>
+      {enrichedBadge && (
+        <div class="jd-enriched-banner">
+          ℹ️ Some sections have been enhanced for readability using job category templates. Core facts are from the original listing.
+        </div>
+      )}
 
-      <div class="share-blocks">
-        <span class="share-label">Share:</span>
-        <a href={`https://wa.me/?text=${encodeURIComponent(`${job.title} at ${job.company} - ${pageUrl}`)}`} target="_blank" rel="noopener" class="share-btn share-wa" data-share={job.id}>WhatsApp</a>
-        <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`} target="_blank" rel="noopener" class="share-btn share-li" data-share={job.id}>LinkedIn</a>
-        <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${job.title} at ${job.company}`)}&url=${encodeURIComponent(pageUrl)}`} target="_blank" rel="noopener" class="share-btn share-x" data-share={job.id}>X</a>
-        <button type="button" class="share-btn share-copy" data-copy={pageUrl} data-share={job.id}>Copy link</button>
-        <button type="button" class="share-btn share-save" data-save={job.id} id="save-job-btn">&#9825; Save</button>
-      </div>
-
-      <section class="panel description">
-        <h2>Job description</h2>
-        <div set:html={sanitizeHtml(job.description)} />
-      </section>
+      {/* ─── CONTENT SECTIONS ─── */}
+      {contentSections.map((section: ContentSection, i: number) => (
+        <section class="jd-section">
+          <h2 class="jd-section-title">{section.title}</h2>
+          <div class="jd-section-body" set:html={section.content} />
+        </section>
+      ))}
 
       <MonetizationSlot zone="infeed" category={job.category} />
 
+      {/* ─── SHARE ─── */}
+      <div class="jd-share">
+        <span class="jd-share-label">Share this job:</span>
+        <a href={`https://wa.me/?text=${encodeURIComponent(`${job.title} at ${job.company} - ${pageUrl}`)}`} target="_blank" rel="noopener" class="jd-share-btn jd-share-wa" data-share={job.id}>WhatsApp</a>
+        <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`} target="_blank" rel="noopener" class="jd-share-btn jd-share-li" data-share={job.id}>LinkedIn</a>
+        <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${job.title} at ${job.company}`)}&url=${encodeURIComponent(pageUrl)}`} target="_blank" rel="noopener" class="jd-share-btn jd-share-x" data-share={job.id}>X (Twitter)</a>
+        <button type="button" class="jd-share-btn jd-share-copy" data-copy={pageUrl} data-share={job.id}>Copy link</button>
+        <button type="button" class="jd-share-btn jd-share-save" data-save={job.id} id="save-job-btn">♡ Save</button>
+      </div>
+
+      {/* ─── APPLY FORM ─── */}
       {!isExpired && job.apply_email && (
-        <section id="apply-section" class="panel apply-form">
-          <h2>Apply for this job</h2>
+        <section id="apply-section" class="jd-section jd-apply-section">
+          <h2 class="jd-section-title">Apply for this job</h2>
           <form id="apply-form" enctype="multipart/form-data">
             <input type="hidden" name="_csrf" value={csrfToken} />
             <input type="hidden" name="job_id" value={job.id} />
-            <label>Name <input class="form-field" type="text" name="name" required /></label>
-            <label>Email <input class="form-field" type="email" name="email" required /></label>
-            <label>Phone <input class="form-field" type="tel" name="phone" /></label>
-            <label>Cover letter <textarea class="form-field" name="cover_letter" rows="5"></textarea></label>
-            <label>CV (PDF, max 5MB) <input class="form-field" type="file" name="cv_file" accept="application/pdf" /></label>
+            <div class="jd-form-grid">
+              <label>Name <input type="text" name="name" required /></label>
+              <label>Email <input type="email" name="email" required /></label>
+              <label>Phone <input type="tel" name="phone" /></label>
+              <label>CV (PDF, max 5MB) <input type="file" name="cv_file" accept="application/pdf" /></label>
+            </div>
+            <label>Cover letter <textarea name="cover_letter" rows="5"></textarea></label>
             <p id="apply-error" hidden></p>
             <button type="submit" id="apply-btn">Submit Application</button>
           </form>
@@ -190,34 +181,36 @@ const breadcrumbLd = {
       )}
 
       {!isExpired && !job.apply_email && job.apply_url && (
-        <section class="panel external-apply">
-          <a href={job.apply_url} target="_blank" rel="noopener">Apply on company website -></a>
-        </section>
+        <div class="jd-external-apply">
+          <a href={job.apply_url} target="_blank" rel="noopener" class="jd-apply-btn jd-apply-external">Apply on company website →</a>
+        </div>
       )}
-    </main>
+    </div>
 
-    <aside>
+    {/* ─── SIDEBAR ─── */}
+    <aside class="jd-sidebar">
       <Sidebar category={job.category} />
       {similarJobs.length > 0 && (
-        <section class="similar-card">
-          <h2>Similar jobs</h2>
+        <section class="jd-similar">
+          <h3>Similar jobs</h3>
           {similarJobs.map((similar) => <JobCard job={similar} compact />)}
         </section>
       )}
     </aside>
   </div>
 
+  {/* ─── QUICK APPLY MODAL ─── */}
   {!isExpired && (
-    <div id="quick-apply-overlay" class="quick-apply-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="qa-title">
-      <div class="quick-apply-modal" role="document">
+    <div id="quick-apply-overlay" class="qa-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="qa-title">
+      <div class="qa-modal" role="document">
         <button type="button" class="qa-close" aria-label="Close">&times;</button>
         <h3 id="qa-title">Quick Apply</h3>
         <p class="qa-subtitle">Leave your info to proceed with your application to <strong>{job.company}</strong>.</p>
         <form id="quick-apply-form">
           <input type="hidden" name="_csrf" value={csrfToken} />
           <input type="hidden" name="job_id" value={job.id} />
-          <label>Name <input class="form-field" type="text" name="name" required /></label>
-          <label>Email <input class="form-field" type="email" name="email" required /></label>
+          <label>Name <input type="text" name="name" required /></label>
+          <label>Email <input type="email" name="email" required /></label>
           <p id="qa-error" hidden aria-live="polite"></p>
           <button type="submit" id="qa-btn">Continue</button>
         </form>
@@ -232,386 +225,460 @@ const breadcrumbLd = {
   const qaBtn = document.getElementById('qa-btn');
   const qaErr = document.getElementById('qa-error');
   let targetApplyUrl = '';
+  let lastFocused: HTMLElement | null = null;
 
-  let lastFocused = null;
-
-  function openQuickApply(url, hasForm) {
+  function openQuickApply(url: string, _hasForm: boolean) {
     targetApplyUrl = url;
-    lastFocused = document.activeElement;
-    overlay.hidden = false;
-    qaErr.hidden = true;
-    qaForm.reset();
-    qaBtn.disabled = false;
-    qaBtn.textContent = 'Continue';
+    lastFocused = document.activeElement as HTMLElement | null;
+    overlay!.hidden = false;
+    qaErr!.hidden = true;
+    qaForm!.reset();
+    qaBtn!.disabled = false;
+    qaBtn!.textContent = 'Continue';
     setTimeout(() => {
-      const firstInput = qaForm?.querySelector('input:not([type=hidden])');
-      if (firstInput) (firstInput as HTMLElement).focus();
+      const firstInput = qaForm?.querySelector('input:not([type=hidden])') as HTMLElement | null;
+      if (firstInput) firstInput.focus();
     }, 10);
   }
 
   function closeQuickApply() {
-    overlay.hidden = true;
-    if (lastFocused) (lastFocused as HTMLElement).focus();
+    overlay!.hidden = true;
+    if (lastFocused) lastFocused.focus();
   }
 
-  document.querySelector('.open-quick-apply')?.addEventListener('click', function() {
-    const hasForm = this.dataset.hasForm === '1';
-    openQuickApply(this.dataset.applyUrl || '', hasForm);
+  document.querySelector('.open-quick-apply')?.addEventListener('click', function(this: HTMLElement) {
+    openQuickApply(this.dataset.applyUrl || '', this.dataset.hasForm === '1');
   });
-
   document.querySelector('.qa-close')?.addEventListener('click', closeQuickApply);
-  overlay?.addEventListener('click', function(e) {
+  overlay?.addEventListener('click', function(e: Event) {
     if (e.target === overlay) closeQuickApply();
   });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && !overlay.hidden) closeQuickApply();
-    if (e.key === 'Tab' && !overlay.hidden) {
-      const focusable = overlay.querySelectorAll('button, input, select, textarea, a[href]');
+  document.addEventListener('keydown', function(e: KeyboardEvent) {
+    if (e.key === 'Escape' && !overlay!.hidden) closeQuickApply();
+    if (e.key === 'Tab' && !overlay!.hidden) {
+      const focusable = overlay!.querySelectorAll('button, input, select, textarea, a[href]');
       const first = focusable[0] as HTMLElement;
       const last = focusable[focusable.length - 1] as HTMLElement;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
   });
 
-  qaForm?.addEventListener('submit', async function(e) {
+  qaForm?.addEventListener('submit', async function(e: Event) {
     e.preventDefault();
-    qaBtn.disabled = true;
-    qaBtn.textContent = 'Saving\u2026';
-    qaErr.hidden = true;
-
-    const fd = new FormData(qaForm);
+    qaBtn!.disabled = true; qaBtn!.textContent = 'Saving…'; qaErr!.hidden = true;
+    const fd = new FormData(qaForm!);
     const res = await fetch('/api/apply-quick', { method: 'POST', body: fd });
     const d = await res.json();
-
     if (d.success) {
-      const name = fd.get('name');
-      const email = fd.get('email');
-      overlay.hidden = true;
-
+      const name = fd.get('name'); const email = fd.get('email');
+      overlay!.hidden = true;
       const applyForm = document.getElementById('apply-form');
       if (applyForm) {
-        const nameInput = applyForm.querySelector('input[name="name"]');
-        const emailInput = applyForm.querySelector('input[name="email"]');
-        if (nameInput) (nameInput as HTMLInputElement).value = name as string;
-        if (emailInput) (emailInput as HTMLInputElement).value = email as string;
+        const nameInput = applyForm.querySelector('input[name="name"]') as HTMLInputElement | null;
+        const emailInput = applyForm.querySelector('input[name="email"]') as HTMLInputElement | null;
+        if (nameInput) nameInput.value = name as string;
+        if (emailInput) emailInput.value = email as string;
         applyForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else if (targetApplyUrl) {
         window.open(targetApplyUrl, '_blank', 'noopener');
       }
     } else {
-      qaErr.textContent = d.error;
-      qaErr.hidden = false;
-      qaBtn.disabled = false;
-      qaBtn.textContent = 'Continue';
+      qaErr!.textContent = d.error; qaErr!.hidden = false;
+      qaBtn!.disabled = false; qaBtn!.textContent = 'Continue';
     }
   });
 
-  const applyFormEl = document.getElementById('apply-form');
-  if (applyFormEl) {
-    applyFormEl.addEventListener('submit', async e => {
-      e.preventDefault();
-      const btn = document.getElementById('apply-btn');
-      const err = document.getElementById('apply-error');
-      btn.disabled = true; btn.textContent = 'Submitting\u2026'; err.hidden = true;
-      const res = await fetch('/api/apply', { method: 'POST', body: new FormData(e.target) });
-      const d = await res.json();
-      if (d.success) {
-        applyFormEl.innerHTML = '<p class="text-green-800 font-medium py-4">Application submitted. Good luck!</p>';
-        fetch('/api/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jobId: '{job.id}', event: 'job_applied' }),
-          keepalive: true,
-        }).catch(() => {});
-      } else {
-        err.textContent = d.error; err.hidden = false;
-        btn.disabled = false; btn.textContent = 'Submit Application';
-      }
-    });
-  }
+  const applyFormEl = document.getElementById('apply-form') as HTMLFormElement | null;
+  applyFormEl?.addEventListener('submit', async (e: SubmitEvent) => {
+    e.preventDefault();
+    const btn = document.getElementById('apply-btn') as HTMLButtonElement | null;
+    const err = document.getElementById('apply-error') as HTMLElement | null;
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+    if (err) err.hidden = true;
+    const res = await fetch('/api/apply', { method: 'POST', body: new FormData(applyFormEl) });
+    const d = await res.json();
+    if (d.success) {
+      applyFormEl.innerHTML = '<p class="jd-success">✅ Application submitted. Good luck!</p>';
+      fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId: '${job.id}', event: 'job_applied' }), keepalive: true }).catch(() => {});
+    } else {
+      if (err) { err.textContent = d.error; err.hidden = false; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Submit Application'; }
+    }
+  });
 
-  document.querySelectorAll('[data-share]').forEach((element) => {
-    element.addEventListener('click', () => {
-      fetch('/api/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId: (element as HTMLElement).dataset.share, event: 'job_shared' }),
-        keepalive: true,
-      }).catch(() => {});
+  document.querySelectorAll('[data-share]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const jobId = (el as HTMLElement).dataset.share;
+      fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId, event: 'job_shared' }), keepalive: true }).catch(() => {});
     });
   });
 
-  document.querySelectorAll('[data-copy]').forEach((button) => {
-    button.addEventListener('click', async () => {
-      const el = button as HTMLButtonElement;
+  document.querySelectorAll('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const el = btn as HTMLButtonElement;
       await navigator.clipboard.writeText(el.dataset.copy || '');
       el.textContent = 'Copied!';
+      setTimeout(() => { el.textContent = 'Copy link'; }, 2000);
     });
   });
 
-  // ── Save Job Toggle ──
   const saveBtn = document.getElementById('save-job-btn');
   saveBtn?.addEventListener('click', async () => {
     const jobId = saveBtn.dataset.save;
     if (!jobId) return;
     try {
-      const res = await fetch('/api/save-job', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId, action: 'toggle' }),
-      });
+      const res = await fetch('/api/save-job', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId, action: 'toggle' }) });
       const data = await res.json();
       if (data.success) {
         const isSaved = data.data?.saved ?? false;
         saveBtn.classList.toggle('saved', isSaved);
-        saveBtn.innerHTML = isSaved ? '&#10003; Saved' : '&#9825; Save';
-        fetch('/api/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jobId, event: 'job_saved' }),
-          keepalive: true,
-        }).catch(() => {});
+        saveBtn.innerHTML = isSaved ? '✓ Saved' : '♡ Save';
+        fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId, event: 'job_saved' }), keepalive: true }).catch(() => {});
       }
     } catch {}
   });
-
-  // ── Growth Funnel Tracking ──
-  // Tracking is handled via /api/track (job_viewed) emitted by server-side trackEvent.
 </script>
 
 <style>
-  .detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 240px;
-    gap: 16px;
+  /* ─── LAYOUT: Fixed sidebar, natural main column ─── */
+  .jd-container {
     max-width: 1100px;
     margin: 1.5rem auto;
     padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 24px;
+    align-items: start;
   }
 
-  .job-main {
-    display: grid;
+  .jd-main {
+    display: flex;
+    flex-direction: column;
     gap: 0;
   }
 
-  /* Tightened spacing per spec: jobs-top → breadcrumb (1rem max), then 0.75rem to 1rem between key sections */
-  .job-main > :global(.smart-ad--jobs-top) { margin: 0 0 1rem; }
-  .breadcrumbs-wrap { margin-bottom: 1rem; }
-  .job-header { margin: 0; padding: 12px 14px; }
-  .apply-top { margin: 0.75rem 0 0; padding: 10px 0; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
-  .share-blocks { margin: 0.75rem 0 0; padding: 10px 0; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
-  .description { margin: 1rem 0 0; padding: 14px 16px; }
-  .job-main > :global(.smart-ad--infeed) { margin: 1rem 0 0; }
-  .apply-form { margin: 1.5rem 0 0; padding: 14px 16px; }
-  .external-apply { margin: 1rem 0 0; padding: 12px 14px; }
+  .jd-sidebar {
+    position: sticky;
+    top: 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
 
-  .job-header h1 {
+  @media (max-width: 860px) {
+    .jd-container {
+      grid-template-columns: 1fr;
+      padding: 0 1rem;
+      margin: 1rem auto;
+    }
+    .jd-sidebar { position: static; }
+  }
+
+  /* ─── HERO ─── */
+  .jd-hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 16px;
+  }
+
+  .jd-hero-left { flex: 1; min-width: 0; }
+
+  .jd-title {
     margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 700;
     color: #111827;
-    font-size: 20px;
-    font-weight: 600;
     line-height: 1.3;
+    letter-spacing: -0.01em;
   }
 
-  .company-line,
-  .meta-line {
-    margin: 0;
-    color: #6b7280;
-    font-size: 13px;
-  }
-
-  .meta-line {
-    margin-top: 4px;
-    color: #374151;
-  }
-
-  .closed-banner {
-    background: #fffbeb;
-    border: 1px solid #fcd34d;
-    border-radius: 6px;
-    color: #92400e;
-    padding: 10px 14px;
-    font-size: 13px;
+  .jd-company {
+    margin: 0 0 10px;
+    font-size: 16px;
+    color: #166534;
     font-weight: 500;
   }
 
-  .apply-top {
-    border-top: 1px solid #e5e7eb;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 10px 0;
+  .jd-meta-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
   }
 
-  .share-blocks {
+  .jd-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .jd-tag-location { background: #eff6ff; color: #1e40af; }
+  .jd-tag-type { background: #f0fdf4; color: #166534; }
+  .jd-tag-category { background: #f5f3ff; color: #6d28d9; }
+  .jd-tag-featured { background: #fef3c7; color: #92400e; }
+
+  .jd-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .jd-dates strong { color: #374151; }
+
+  .jd-hero-right {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 160px;
+  }
+
+  @media (max-width: 600px) {
+    .jd-hero { flex-direction: column; }
+    .jd-hero-right { width: 100%; min-width: 0; }
+  }
+
+  /* ─── APPLY BUTTON ─── */
+  .jd-apply-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 12px 24px;
+    background: #166534;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+
+  .jd-apply-btn:hover { background: #14532d; transform: translateY(-1px); }
+  .jd-apply-btn:active { transform: translateY(0); }
+  .jd-apply-btn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
+  .jd-apply-external { background: #0891b2; }
+  .jd-apply-external:hover { background: #0e7490; }
+
+  .jd-external-apply { margin: 16px 0 0; }
+
+  /* ─── ENRICHED BANNER ─── */
+  .jd-enriched-banner {
+    padding: 8px 14px;
+    margin-bottom: 16px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #166534;
+    line-height: 1.5;
+  }
+
+  /* ─── CONTENT SECTIONS ─── */
+  .jd-section {
+    padding: 16px 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .jd-section:last-of-type { border-bottom: none; }
+
+  .jd-section-title {
+    margin: 0 0 10px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #111827;
+    letter-spacing: -0.01em;
+  }
+
+  .jd-section-body {
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .jd-section-body :global(p) {
+    margin: 0 0 10px;
+  }
+
+  .jd-section-body :global(p:last-child) { margin-bottom: 0; }
+
+  .jd-section-body :global(ul), .jd-section-body :global(ol) {
+    margin: 0 0 10px;
+    padding-left: 1.25rem;
+  }
+
+  .jd-section-body :global(li) {
+    margin-bottom: 6px;
+  }
+
+  .jd-section-body :global(li:last-child) { margin-bottom: 0; }
+
+  .jd-section-body :global(strong) { color: #111827; }
+
+  /* ─── SHARE ─── */
+  .jd-share {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    padding: 10px 0;
+    padding: 12px 0;
+    margin-top: 4px;
     border-top: 1px solid #e5e7eb;
-    border-bottom: 1px solid #e5e7eb;
   }
 
-  .share-label {
+  .jd-share-label {
     color: #9ca3af;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-right: 4px;
   }
 
-  .share-btn {
+  .jd-share-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 72px;
-    padding: 7px 12px;
+    padding: 6px 14px;
     border-radius: 4px;
     font-size: 12px;
     font-weight: 500;
-    transition: opacity 0.15s ease;
     border: 0;
     cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
   }
 
-  .share-btn:hover {
-    opacity: 0.85;
-  }
+  .jd-share-btn:hover { opacity: 0.85; }
 
-  .share-wa {
-    background: #25D366;
-    color: #fff;
-  }
+  .jd-share-wa { background: #25D366; color: #fff; }
+  .jd-share-li { background: #0A66C2; color: #fff; }
+  .jd-share-x { background: #000; color: #fff; }
+  .jd-share-copy { background: #fff; color: #6b7280; border: 1px solid #e5e7eb; }
+  .jd-share-copy:hover { background: #f9fafb; opacity: 1; }
+  .jd-share-save { background: #fff; color: #dc2626; border: 1px solid #fecaca; margin-left: auto; }
+  .jd-share-save:hover { background: #fef2f2; opacity: 1; }
+  .jd-share-save.saved { background: #dc2626; color: #fff; border-color: #dc2626; }
 
-  .share-li {
-    background: #0A66C2;
-    color: #fff;
-  }
-
-  .share-x {
-    background: #000;
-    color: #fff;
-  }
-
-  .share-copy {
-    background: #fff;
-    color: #6b7280;
-    border: 1px solid #e5e7eb;
-  }
-
-  .share-copy:hover {
+  /* ─── APPLY FORM ─── */
+  .jd-apply-section {
+    margin-top: 8px;
+    padding: 20px;
     background: #f9fafb;
-    opacity: 1;
-  }
-
-  .share-save {
-    background: #fff;
-    color: #dc2626;
-    border: 1px solid #fecaca;
-    margin-left: auto;
-  }
-
-  .share-save:hover {
-    background: #fef2f2;
-    opacity: 1;
-  }
-
-  .share-save.saved {
-    background: #dc2626;
-    color: #fff;
-    border-color: #dc2626;
-  }
-
-  .apply-top a,
-  .apply-top button,
-  .apply-form button,
-  .external-apply a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 44px;
-    border: 1px solid #166534;
-    border-radius: 4px;
-    background: #166534;
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  .apply-top a:hover,
-  .apply-form button:hover,
-  .external-apply a:hover {
-    background: #14532d;
-    border-color: #14532d;
-  }
-
-  .apply-top button:disabled {
-    background: #9ca3af;
-    border-color: #9ca3af;
-  }
-
-  .description h2,
-  .apply-form h2,
-  .similar-card h2 {
-    margin: 0 0 10px;
-    color: #111827;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .description :global(p),
-  .description :global(li) {
-    color: #374151;
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  .description :global(ul) {
-    padding-left: 1.2rem;
-  }
-
-  .apply-form form {
-    display: grid;
-    gap: 10px;
-  }
-
-  .apply-form label {
-    display: grid;
-    gap: 4px;
-    color: #374151;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  #apply-message {
-    margin: 0;
-    color: #166534;
-    font-size: 13px;
-  }
-
-  .similar-card {
-    margin-top: 16px;
-    background: #ffffff;
     border: 1px solid #e5e7eb;
+    border-radius: 8px;
+  }
+
+  .jd-apply-section .jd-section-title {
+    margin-bottom: 16px;
+  }
+
+  #apply-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .jd-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 500px) {
+    .jd-form-grid { grid-template-columns: 1fr; }
+  }
+
+  #apply-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  #apply-form input,
+  #apply-form textarea,
+  #apply-form select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
     border-radius: 6px;
-    padding: 1rem 1.25rem;
+    font-size: 14px;
+    background: #fff;
+    color: #111827;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
-  @media (max-width: 820px) {
-    .detail-grid {
-      grid-template-columns: 1fr;
-      padding: 0 1rem;
-    }
+  #apply-form input:focus,
+  #apply-form textarea:focus {
+    outline: none;
+    border-color: #166534;
+    box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
   }
 
-  .quick-apply-overlay {
+  #apply-btn {
+    padding: 12px 24px;
+    background: #166534;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  #apply-btn:hover { background: #14532d; }
+  #apply-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  #apply-error {
+    color: #dc2626;
+    font-size: 13px;
+    margin: 0;
+  }
+
+  .jd-success {
+    color: #166534;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 16px 0;
+    text-align: center;
+  }
+
+  /* ─── SIMILAR JOBS ─── */
+  .jd-similar {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .jd-similar h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  /* ─── QUICK APPLY MODAL ─── */
+  .qa-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
@@ -621,84 +688,33 @@ const breadcrumbLd = {
     z-index: 9999;
   }
 
-  .quick-apply-overlay[hidden] {
-    display: none;
-  }
+  .qa-overlay[hidden] { display: none; }
 
-  .quick-apply-modal {
+  .qa-modal {
     background: #fff;
     border-radius: 8px;
     padding: 24px;
     width: 90%;
-    max-width: 400px;
+    max-width: 420px;
     position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   }
 
-  .quick-apply-modal h3 {
-    margin: 0 0 4px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #111827;
-  }
+  .qa-modal h3 { margin: 0 0 4px; font-size: 17px; font-weight: 600; color: #111827; }
+  .qa-subtitle { margin: 0 0 16px; font-size: 13px; color: #6b7280; line-height: 1.4; }
+  .qa-close { position: absolute; top: 10px; right: 14px; background: none; border: 0; font-size: 22px; color: #9ca3af; padding: 0; line-height: 1; cursor: pointer; }
+  .qa-close:hover { color: #374151; }
 
-  .qa-subtitle {
-    margin: 0 0 16px;
-    font-size: 13px;
-    color: #6b7280;
-    line-height: 1.4;
-  }
-
-  .qa-close {
-    position: absolute;
-    top: 10px;
-    right: 14px;
-    background: none;
-    border: 0;
-    font-size: 20px;
-    color: #9ca3af;
-    padding: 0;
-    line-height: 1;
-  }
-
-  .qa-close:hover {
-    color: #374151;
-  }
-
-  #quick-apply-form {
-    display: grid;
-    gap: 10px;
-  }
-
-  #quick-apply-form label {
-    display: grid;
-    gap: 4px;
-    color: #374151;
-    font-size: 12px;
-    font-weight: 500;
-  }
+  #quick-apply-form { display: flex; flex-direction: column; gap: 12px; }
+  #quick-apply-form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 500; color: #374151; }
+  #quick-apply-form input { padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+  #quick-apply-form input:focus { outline: none; border-color: #166534; box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1); }
 
   #qa-btn {
-    min-height: 40px;
-    border: 1px solid #166534;
-    border-radius: 4px;
-    background: #166534;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
+    padding: 12px 24px; background: #166534; color: #fff; border: none;
+    border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s ease;
   }
-
-  #qa-btn:hover {
-    background: #14532d;
-    border-color: #14532d;
-  }
-
-  #qa-btn:disabled {
-    opacity: 0.6;
-  }
-
-  #qa-error {
-    color: #dc2626;
-    font-size: 12px;
-    margin: 0;
-  }
+  #qa-btn:hover { background: #14532d; }
+  #qa-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  #qa-error { color: #dc2626; font-size: 13px; margin: 0; }
 </style>

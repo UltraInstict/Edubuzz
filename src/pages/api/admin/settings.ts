@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getAdminPB, requireAdmin, auditLog } from '../../../lib/auth';
+import { getAdminPB, requireAdminApi, auditLog } from '../../../lib/auth';
 import { cleanString, ok, fail } from '../../../lib/api';
 
 const COLLECTION_MISSING_MSG =
@@ -22,8 +22,8 @@ function isCollectionMissing(err: any): boolean {
  * actionable error message so the UI can surface the exact problem.
  */
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect, user } = await requireAdmin(request);
-  if (redirect) return redirect;
+  const { error, user } = await requireAdminApi(request);
+  if (error) return error;
 
   let data: Record<string, unknown> = {};
   try {

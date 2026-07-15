@@ -192,6 +192,28 @@ export async function requireAdmin(request: Request) {
   return requireRole(request, 'admin');
 }
 
+/**
+ * API-route variant. Returns a 401 JSON Response on auth failure
+ * instead of an Astro 302 redirect (which breaks fetch() callers).
+ */
+export async function requireRoleApi(request: Request, requiredRole: Role) {
+  const { redirect, user } = await requireRole(request, requiredRole);
+  if (redirect) {
+    return {
+      error: new Response(
+        JSON.stringify({ success: false, error: 'Authentication required. Please log in again.' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      ),
+      user: null,
+    };
+  }
+  return { error: null, user };
+}
+
+export async function requireAdminApi(request: Request) {
+  return requireRoleApi(request, 'admin');
+}
+
 export async function requireEmployer(request: Request) {
   return requireRole(request, 'employer');
 }

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getAdminPB, requireAdmin, auditLog } from '../../../lib/auth';
+import { getAdminPB, requireAdminApi, auditLog } from '../../../lib/auth';
 import { cleanString, ok, fail } from '../../../lib/api';
 
 const VALID_FORMATS = new Set(['xml', 'json', 'rss', 'indeed_xml', 'generic_rss', 'jobsora']);
@@ -9,8 +9,8 @@ function isAcceptableUrl(value: string): boolean {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect, user } = await requireAdmin(request);
-  if (redirect) return redirect;
+  const { error, user } = await requireAdminApi(request);
+  if (error) return error;
 
   try {
     const data = await request.json();

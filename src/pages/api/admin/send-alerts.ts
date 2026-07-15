@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
-import { getAdminPB, requireAdmin } from '../../../lib/auth';
+import { getAdminPB, requireAdminApi } from '../../../lib/auth';
 import { json } from '../../../lib/api';
 import { sendMail } from '../../../lib/mailer';
 
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect } = await requireAdmin(request);
-  if (redirect) return redirect;
+  const { error } = await requireAdminApi(request);
+  if (error) return error;
   const pb = await getAdminPB();
   const alerts = await pb.collection('alerts').getFullList().catch(() => []);
   const jobs = await pb.collection('jobs').getList(1, 10, { filter: 'active=true', sort: '-created', fields: 'title,company,slug' }).catch(() => ({ items: [] }));

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getAdminPB, requireAdmin, auditLog } from '../../../lib/auth';
+import { getAdminPB, requireAdminApi, auditLog } from '../../../lib/auth';
 import { ok, fail } from '../../../lib/api';
 
 const COLLECTION_MISSING_MSG =
@@ -83,8 +83,8 @@ function parseNumber(value: unknown): number | null {
  *   delete  — remove the record
  */
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect, user } = await requireAdmin(request);
-  if (redirect) return redirect;
+  const { error, user } = await requireAdminApi(request);
+  if (error) return error;
 
   const contentType = request.headers.get('content-type') || '';
   let body: Record<string, any> = {};

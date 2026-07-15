@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
-import { getAdminPB, requireAdmin, auditLog } from '../../../lib/auth';
+import { getAdminPB, requireAdminApi, auditLog } from '../../../lib/auth';
 import { cleanString, ok, fail } from '../../../lib/api';
 import { pingJobCreated, pingJobUpdated, pingJobDeleted } from '../../../lib/indexnow';
 
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect, user } = await requireAdmin(request);
-  if (redirect) return redirect;
+  const { error, user } = await requireAdminApi(request);
+  if (error) return error;
 
   try {
     const data = await request.json();
@@ -55,7 +55,11 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     return ok({ jobId: id, action });
-  } catch {
-    return fail('Could not update job.', 500);
+  } catch (err: any) {
+    const pbStatus = err?.status ?? err?.response?.status ?? 'unknown';
+    const pbMessage = err?.message ?? String(err);
+    const pbData = err?.data?.data ? JSON.stringify(err.data.data) : '';
+    console.error(`[job-action] action=${action} jobId=${id} pbStatus=${pbStatus} message=${pbMessage} data=${pbData}`);
+    return fail(`Could not update job. (${pbMessage.slice(0, 120)})`, 500);
   }
 };

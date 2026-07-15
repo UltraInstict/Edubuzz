@@ -4,3 +4,5 @@ dist/
 .astro/
 dev-server.log
 __pycache__/
+scripts/archive/
+*.tar.gz

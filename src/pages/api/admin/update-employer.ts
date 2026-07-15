@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getAdminPB, requireAdmin } from '../../../lib/auth';
+import { getAdminPB, requireAdminApi } from '../../../lib/auth';
 import { cleanString, json } from '../../../lib/api';
 
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect } = await requireAdmin(request);
-  if (redirect) return redirect;
+  const { error } = await requireAdminApi(request);
+  if (error) return error;
   try {
     const data = await request.json();
     const id = cleanString(data.id, 80);

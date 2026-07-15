@@ -1,11 +1,17 @@
 import type { APIRoute } from 'astro';
-import { requireAdmin, getAdminPB, auditLog } from '../../../lib/auth';
+import { requireAdminApi, getAdminPB, auditLog } from '../../../lib/auth';
 import { ok, fail } from '../../../lib/api';
 import { crawlAllFeeds, updateSourceAfterCrawl, crawlFeedSource } from '../../../lib/feedCrawler';
+import { getAdminSettings } from '../../../services/jobService';
 
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect, user } = await requireAdmin(request);
-  if (redirect) return redirect;
+  const { error, user } = await requireAdminApi(request);
+  if (error) return error;
+
+  const settings = await getAdminSettings(['import_enabled']);
+  if (settings.import_enabled !== 'true') {
+    return fail('Job import is disabled. Enable it in Settings.', 403);
+  }
 
   try {
     const data = await request.json().catch(() => ({}));

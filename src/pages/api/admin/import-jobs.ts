@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
-import { getAdminPB, requireAdmin } from '../../../lib/auth';
+import { getAdminPB, requireAdminApi } from '../../../lib/auth';
 import { cleanString, isHttpsUrl, json } from '../../../lib/api';
 import { parseXmlFeed, type RawJob } from '../../../lib/xmlParser';
 import { PROVINCES, provinceName } from '../../../lib/slugify';
+import { getAdminSettings } from '../../../services/jobService';
 
 type ImportResult = { imported: number; skipped: number; errors: number };
 
@@ -104,8 +105,13 @@ function parseCsv(data: string): RawJob[] {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const { redirect } = await requireAdmin(request);
-  if (redirect) return redirect;
+  const { error } = await requireAdminApi(request);
+  if (error) return error;
+
+  const settings = await getAdminSettings(['import_enabled']);
+  if (settings.import_enabled !== 'true') {
+    return json({ message: 'Job import is disabled. Enable it in Settings.', success: false }, { status: 403 });
+  }
 
   try {
     const body = await request.json();
