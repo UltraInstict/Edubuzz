@@ -47,8 +47,25 @@ const getVal = (key: string) => records.find((s: any) => s.key === key)?.value ?
       </div>
 
       <div class="border-t border-gray-200 pt-4 mt-2">
-        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-2">Ad Configuration</h2>
-        <p class="text-xs text-gray-500 mb-4">Monetization Engine uses these. AdSense is preferred when configured; otherwise affiliate campaigns or house ads are shown.</p>
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-2">Monetization</h2>
+        <p class="text-xs text-gray-500 mb-4">Master controls for all advertising and monetization across the site.</p>
+      </div>
+
+      <div>
+        <label class="flex items-center gap-2.5 cursor-pointer">
+          <span class="relative inline-flex items-center">
+            <input type="checkbox" name="monetization_enabled" checked={getVal('monetization_enabled') !== 'false'} class="peer sr-only" />
+            <span class="w-[38px] h-5 bg-gray-300 rounded-full peer-checked:bg-green-800 transition-colors block"></span>
+            <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm peer-checked:translate-x-[18px] transition-transform block"></span>
+          </span>
+          <span class="text-sm font-medium text-gray-700 select-none">Monetization enabled (site-wide master switch)</span>
+        </label>
+        <p class="text-xs text-gray-500 mt-1 ml-12">Disable to remove ALL ads — sponsored jobs, affiliate banners, house ads, and AdSense.</p>
+      </div>
+
+      <div class="border-t border-gray-200 pt-4 mt-2">
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-2">AdSense</h2>
+        <p class="text-xs text-gray-500 mb-4">AdSense is preferred when configured; otherwise affiliate campaigns or house ads are shown.</p>
       </div>
 
       <div>

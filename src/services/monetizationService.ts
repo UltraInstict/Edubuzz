@@ -1,16 +1,19 @@
 /**
- * Monetization Engine — unified campaign resolution layer.
+ * Monetization Engine — unified campaign resolution with tiered priority.
  *
- * All monetization decisions flow through this module. Pages call
- * resolveSlot() and receive a renderable result. The engine handles
- * campaign priority, zone matching, scheduling, category targeting,
- * and content resolution from existing collections (affiliate_links,
- * jobs, employers, admin_settings).
+ * Tier chain (fixed order):
+ *   1. Sponsored Job
+ *   2. Sponsored Employer
+ *   3. AdSense
+ *   4. Affiliate (image, html, text — display_type controls rendering)
+ *   5. House Ad
+ *   6. Empty (render nothing)
  *
- * Existing PocketBase collections (affiliate_links, affiliate_clicks,
- * admin_settings) remain unchanged. monetization_campaigns is the
- * orchestration layer — a thin wrapper with priority, scheduling,
- * and zone metadata. Content stays in source collections.
+ * Within each tier: sort by priority DESC, random rotation at equal priority.
+ *
+ * 60-second in-memory cache for active campaigns, settings, house ads.
+ * Never caches writes.
+ * 3-consecutive-failure deactivation with audit logging.
  */
 
 import { getAdminPB } from '../lib/auth';
@@ -24,32 +27,59 @@ import { getAdminSettings } from './jobService';
 
 const PB_URL = import.meta.env.PB_URL || 'http://127.0.0.1:8090';
 
-/** Direct HTTP fetch to PocketBase REST API — bypasses SDK entirely for SSR reliability. */
-async function pbFetch(collection: string, opts?: { filter?: string; sort?: string }): Promise<any[]> {
-  const params = new URLSearchParams();
-  params.set('perPage', '500');
-  // Drop sort — PB 400s on sort=priority,+created. We filter in JS anyway.
-  let urlStr = `${PB_URL}/api/collections/${collection}/records?${params.toString()}`;
-  const res = await fetch(urlStr);
-  if (!res.ok) throw new Error(`PB ${res.status}: ${res.statusText}`);
-  const data = await res.json();
-  return data.items || [];
+// ─── Cache ──────────────────────────────────────────────────────────────────
+
+interface CacheEntry<T> { data: T; ts: number; }
+const cache = new Map<string, CacheEntry<any>>();
+const CACHE_TTL_MS = 60_000;
+
+function cacheGet<T>(key: string): T | null {
+  const entry = cache.get(key);
+  if (entry && (Date.now() - entry.ts) < CACHE_TTL_MS) return entry.data;
+  cache.delete(key);
+  return null;
 }
 
-/** Get a single record by ID. */
-async function pbFetchOne(collection: string, id: string): Promise<any | null> {
-  const url = `${PB_URL}/api/collections/${collection}/records/${encodeURIComponent(id)}`;
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  return res.json();
+function cacheSet<T>(key: string, data: T): void {
+  cache.set(key, { data, ts: Date.now() });
 }
 
-/** Plain client for admin writes (CRUD, seed). */
-function getPB(): PocketBase {
-  return new PocketBase(PB_URL);
+function cacheClear(prefix?: string): void {
+  if (prefix) {
+    for (const k of cache.keys()) { if (k.startsWith(prefix)) cache.delete(k); }
+  } else {
+    cache.clear();
+  }
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────
+// ─── Broken campaign tracking ───────────────────────────────────────────────
+
+const brokenFailures = new Map<string, number>();
+const MAX_CONSECUTIVE_FAILURES = 3;
+
+async function recordContentFailure(campaign: Campaign): Promise<void> {
+  const count = (brokenFailures.get(campaign.id) || 0) + 1;
+  brokenFailures.set(campaign.id, count);
+  console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: content resolution failed (${count}/${MAX_CONSECUTIVE_FAILURES})`);
+
+  if (count >= MAX_CONSECUTIVE_FAILURES) {
+    try {
+      const pb = await getAdminPB();
+      await pb.collection('monetization_campaigns').update(campaign.id, { active: false });
+      console.error(`[monetization] campaign ${campaign.id.slice(0,8)}: auto-deactivated after ${count} consecutive content failures`);
+      cacheClear('campaigns:');
+    } catch (err: any) {
+      console.error(`[monetization] failed to auto-deactivate campaign ${campaign.id.slice(0,8)}: ${err?.message || err}`);
+    }
+    brokenFailures.delete(campaign.id);
+  }
+}
+
+function clearFailureCount(campaignId: string): void {
+  brokenFailures.delete(campaignId);
+}
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 export type CampaignType =
   | 'affiliate_image'
@@ -147,45 +177,73 @@ export interface SlotContext {
   jobId?: string;
 }
 
-// ─── Zone Expansion ───────────────────────────────────────────────────────
+// ─── Tier ordering (higher index = lower priority) ──────────────────────────
 
-function expandZoneVariants(zone: string): string[] {
+const TYPE_TIER: Record<string, number> = {
+  'sponsored_job':       0,
+  'sponsored_employer':  0,
+  'adsense_manual':      1,
+  'affiliate_image':     2,
+  'affiliate_html':      2,
+  'affiliate_text':      2,
+  'house_ad':            3,
+};
+
+// ─── Zone expansion (PocketBase filter-friendly) ────────────────────────────
+
+function zoneFilterVariants(zone: string): string {
   const lower = zone.toLowerCase().trim();
   const map: Record<string, string[]> = {
-    'sidebar':      ['sidebar', 'Sidebar'],
-    'strip':        ['strip', 'Strip'],
-    'infeed':       ['infeed', 'In-feed'],
-    'jobs-top':     ['jobs-top', 'jobs_top', 'Jobs Page Top', 'Jobs-Top', 'jobsTop'],
-    'homepage-hero':['homepage-hero', 'homepage_hero', 'Homepage Hero'],
+    'sidebar':      ['sidebar', 'Sidebar', 'all', 'All', 'ALL'],
+    'strip':        ['strip', 'Strip', 'Strip (full-width banner)', 'all', 'All', 'ALL'],
+    'infeed':       ['infeed', 'In-feed', 'In-feed (between job cards)', 'all', 'All', 'ALL'],
+    'jobs-top':     ['jobs-top', 'jobs_top', 'Jobs Page Top', 'Jobs-Top', 'jobsTop', 'all', 'All', 'ALL'],
+    'homepage-hero':['homepage-hero', 'homepage_hero', 'Homepage Hero', 'all', 'All', 'ALL'],
   };
-  const variants = map[lower] || [zone];
-  return Array.from(new Set([...variants, 'all', 'All', 'ALL']));
+  const variants = map[lower] || [zone, 'all', 'All', 'ALL'];
+  return variants.map(v => `zone="${v.replace(/"/g, '\\"')}"`).join('||');
 }
 
-// ─── Date Helpers ─────────────────────────────────────────────────────────
+// ─── Date helpers ────────────────────────────────────────────────────────────
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function esc(v: string): string {
-  return v.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+// ─── Filtered PocketBase fetch (filter at query level, not JS) ──────────────
+
+async function pbQuery(collection: string, filter: string): Promise<any[]> {
+  const params = new URLSearchParams();
+  params.set('perPage', '500');
+  params.set('filter', filter);
+  const url = `${PB_URL}/api/collections/${collection}/records?${params.toString()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`PB ${res.status} on ${collection}`);
+  const data = await res.json();
+  return data.items || [];
 }
 
-// ─── Campaign Resolution ──────────────────────────────────────────────────
+async function pbFetchOne(collection: string, id: string): Promise<any | null> {
+  const url = `${PB_URL}/api/collections/${collection}/records/${encodeURIComponent(id)}`;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  return res.json();
+}
 
-/**
- * Resolve which campaign (if any) should render in a given zone.
- *
- * 1. Fetches active campaigns for the zone, ordered by priority.
- * 2. Tries contextual category match first, then wildcard, then fallback.
- * 3. Resolves the campaign's reference_id to actual content from source collection.
- * 4. Returns null if nothing matches.
- */
+function getPB(): PocketBase { return new PocketBase(PB_URL); }
+
+// ─── Campaign Resolution ────────────────────────────────────────────────────
+
 export async function resolveSlot(
   zone: string,
   context?: SlotContext,
 ): Promise<ResolvedSlot> {
+  // Master switch — respects the "monetization_enabled" admin setting
+  const settings = await getAdminSettings(['monetization_enabled']).catch(() => ({ monetization_enabled: 'true' } as Record<string, string>));
+  if (settings.monetization_enabled === 'false') {
+    return { type: 'empty', content: null };
+  }
+
   const campaigns = await getActiveCampaigns(zone);
 
   if (campaigns.length === 0) {
@@ -195,62 +253,104 @@ export async function resolveSlot(
   const category = context?.category;
   const matchCategory = category ? getCategoryForAffiliate(category) : undefined;
 
-  // Step 1: Try exact category match
-  if (matchCategory && matchCategory !== 'general') {
-    for (const campaign of campaigns) {
-      const target = (campaign.category_target || '').toLowerCase();
-      if (target === matchCategory) {
-        const resolved = await resolveCampaignContent(campaign);
-        if (resolved) return resolved;
-      }
-    }
+  // Group by tier
+  const byTier = new Map<number, Campaign[]>();
+  for (const c of campaigns) {
+    const tier = TYPE_TIER[c.campaign_type] ?? 99;
+    if (!byTier.has(tier)) byTier.set(tier, []);
+    byTier.get(tier)!.push(c);
   }
+  const tiers = [...byTier.keys()].sort((a, b) => a - b);
 
-  // Step 2: Try wildcard category (general, empty, null)
-  for (const campaign of campaigns) {
-    const target = (campaign.category_target || '').toLowerCase();
-    if (target === '' || target === 'general' || target === 'null') {
-      const resolved = await resolveCampaignContent(campaign);
+  for (const tier of tiers) {
+    const tierCampaigns = byTier.get(tier)!;
+    // Sort by priority DESC
+    tierCampaigns.sort((a, b) => b.priority - a.priority);
+
+    // Collect highest-priority group
+    const topPriority = tierCampaigns[0].priority;
+    const candidates = tierCampaigns.filter(c => c.priority === topPriority);
+
+    // Try category match first within candidates
+    let match = tryCategoryMatch(candidates, matchCategory);
+    if (match) {
+      const resolved = await resolveCampaignContent(match);
+      if (resolved) return resolved;
+    }
+
+    // Try wildcard/general within all tier campaigns
+    match = tryWildcardMatch(tierCampaigns);
+    if (match) {
+      const resolved = await resolveCampaignContent(match);
+      if (resolved) return resolved;
+    }
+
+    // Try any remaining (random rotation within top-priority group)
+    const unresolved = candidates.filter(c => !tierCampaigns.includes(c) || c === candidates[0]);
+    // Shuffle candidates for rotation
+    const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+    for (const c of shuffled) {
+      const resolved = await resolveCampaignContent(c);
+      if (resolved) return resolved;
+    }
+
+    // Fall through to try ALL tier campaigns (not just top-priority)
+    const remaining = tierCampaigns.filter(c => c.priority !== topPriority);
+    for (const c of remaining.sort(() => Math.random() - 0.5)) {
+      const resolved = await resolveCampaignContent(c);
       if (resolved) return resolved;
     }
   }
 
-  // Step 3: Try any remaining campaign in priority order
-  for (const campaign of campaigns) {
-    const resolved = await resolveCampaignContent(campaign);
-    if (resolved) return resolved;
-  }
-
-  console.error(`[monetization] zone=${zone}: ${campaigns.length} active campaigns found but none resolved to valid content`);
   return { type: 'empty', content: null };
 }
 
+function tryCategoryMatch(campaigns: Campaign[], matchCategory?: string): Campaign | null {
+  if (!matchCategory || matchCategory === 'general') return null;
+  return campaigns.find(c => {
+    const target = (c.category_target || '').toLowerCase();
+    return target === matchCategory;
+  }) || null;
+}
+
+function tryWildcardMatch(campaigns: Campaign[]): Campaign | null {
+  return campaigns.find(c => {
+    const target = (c.category_target || '').toLowerCase();
+    return target === '' || target === 'general' || target === 'null';
+  }) || null;
+}
+
+// ─── Active campaigns with cache and PB-level filtering ─────────────────────
+
 async function getActiveCampaigns(zone: string): Promise<Campaign[]> {
-  const variants = expandZoneVariants(zone);
+  const cacheKey = `campaigns:${zone}`;
+  const cached = cacheGet<Campaign[]>(cacheKey);
+  if (cached) return cached;
 
   try {
-    const result = await pbFetch('monetization_campaigns', {
-      sort: 'priority,+created',
-    });
-    // Filter by active status, zone, and schedule in JS
+    const zoneFilter = zoneFilterVariants(zone);
     const now = todayIso();
-    const filtered = (result as unknown as Campaign[]).filter((c) => {
-      if (!c.active) return false;
-      if (!variants.includes(c.zone)) return false;
+
+    // Filter active + zone + schedule at PocketBase level
+    const filter = `active=true&&(${zoneFilter})`;
+    const items = await pbQuery('monetization_campaigns', filter);
+
+    // Post-filter dates in JS (PocketBase date comparison is brittle across formats)
+    const campaigns = (items as unknown as Campaign[]).filter((c) => {
       if (c.start_date && c.start_date > now) return false;
       if (c.end_date && c.end_date < now) return false;
       return true;
     });
-    return filtered;
+
+    cacheSet(cacheKey, campaigns);
+    return campaigns;
   } catch (err: any) {
-    console.error('[monetization] getActiveCampaigns failed for zone', zone);
-    console.error('[monetization] status:', err?.status);
-    console.error('[monetization] message:', err?.message);
-    console.error('[monetization] data:', JSON.stringify(err?.data || {}));
-    console.error('[monetization] response:', JSON.stringify(err?.response || {}));
+    console.error('[monetization] getActiveCampaigns failed for zone', zone, err?.message);
     return [];
   }
 }
+
+// ─── Content resolvers ──────────────────────────────────────────────────────
 
 async function resolveCampaignContent(campaign: Campaign): Promise<ResolvedSlot | null> {
   const base = { campaignId: campaign.id, ad_width: campaign.ad_width, ad_height: campaign.ad_height };
@@ -264,45 +364,50 @@ async function resolveCampaignContent(campaign: Campaign): Promise<ResolvedSlot 
       case 'affiliate_text': {
         const content = await resolveAffiliateContent(refId);
         if (!content) {
-          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: affiliate link ${refId.slice(0,8)} not found or has no content`);
+          await recordContentFailure(campaign);
           return null;
         }
+        clearFailureCount(campaign.id);
         return { ...base, type, content };
       }
 
       case 'adsense_manual': {
         const content = await resolveAdSenseContent(refId);
         if (!content) {
-          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: AdSense slot ${refId} not configured`);
+          await recordContentFailure(campaign);
           return null;
         }
+        clearFailureCount(campaign.id);
         return { ...base, type, content };
       }
 
       case 'house_ad': {
         const content = await resolveHouseAdContent(refId);
         if (!content) {
-          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: house ad ${refId.slice(0,8)} not found`);
+          await recordContentFailure(campaign);
           return null;
         }
+        clearFailureCount(campaign.id);
         return { ...base, type, content };
       }
 
       case 'sponsored_job': {
         const content = await resolveSponsoredJobContent(refId);
         if (!content) {
-          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: sponsored job ${refId.slice(0,8)} not found`);
+          await recordContentFailure(campaign);
           return null;
         }
+        clearFailureCount(campaign.id);
         return { ...base, type, content };
       }
 
       case 'sponsored_employer': {
         const content = await resolveSponsoredEmployerContent(refId);
         if (!content) {
-          console.error(`[monetization] campaign ${campaign.id.slice(0,8)} zone=${campaign.zone}: sponsored employer ${refId.slice(0,8)} not found`);
+          await recordContentFailure(campaign);
           return null;
         }
+        clearFailureCount(campaign.id);
         return { ...base, type, content };
       }
 
@@ -310,14 +415,17 @@ async function resolveCampaignContent(campaign: Campaign): Promise<ResolvedSlot 
         return null;
     }
   } catch {
+    await recordContentFailure(campaign);
     return null;
   }
 }
 
-// ─── Content Resolvers ────────────────────────────────────────────────────
-
 async function resolveAffiliateContent(linkId: string): Promise<AffiliateContent | null> {
   try {
+    const cacheKey = `affiliate:${linkId}`;
+    const cached = cacheGet<AffiliateContent>(cacheKey);
+    if (cached) return cached;
+
     const record = await pbFetchOne('affiliate_links', linkId);
     if (!record) return null;
 
@@ -333,7 +441,7 @@ async function resolveAffiliateContent(linkId: string): Promise<AffiliateContent
       }
     }
 
-    return {
+    const result: AffiliateContent = {
       id: l.id,
       name: l.name,
       description: l.description,
@@ -347,12 +455,18 @@ async function resolveAffiliateContent(linkId: string): Promise<AffiliateContent
       bannerFileUrl,
       collectionId: l.collectionId,
     };
+    cacheSet(cacheKey, result);
+    return result;
   } catch {
     return null;
   }
 }
 
 async function resolveAdSenseContent(slotKey: string): Promise<AdSenseContent | null> {
+  const cacheKey = `adsense:${slotKey}`;
+  const cached = cacheGet<AdSenseContent>(cacheKey);
+  if (cached) return cached;
+
   try {
     const settings = await getAdminSettings([
       'adsense_enabled',
@@ -375,17 +489,23 @@ async function resolveAdSenseContent(slotKey: string): Promise<AdSenseContent | 
       all: 'horizontal',
     };
 
-    return {
+    const result: AdSenseContent = {
       publisher_id: publisherId,
       slot_id: slotId,
       format: formatMap[slotKey] || 'horizontal',
     };
+    cacheSet(cacheKey, result);
+    return result;
   } catch {
     return null;
   }
 }
 
 async function resolveHouseAdContent(adId: string): Promise<HouseAdContent | null> {
+  const cacheKey = `housead:${adId}`;
+  const cached = cacheGet<HouseAdContent>(cacheKey);
+  if (cached) return cached;
+
   try {
     const pb = getPB();
     const record = await pb.collection('house_ads').getOne(adId);
@@ -400,7 +520,7 @@ async function resolveHouseAdContent(adId: string): Promise<HouseAdContent | nul
       }
     }
 
-    return {
+    const result: HouseAdContent = {
       id: ad.id,
       title: ad.title,
       description: ad.description || '',
@@ -408,12 +528,18 @@ async function resolveHouseAdContent(adId: string): Promise<HouseAdContent | nul
       image_url: imageUrl,
       link_url: ad.link_url,
     };
+    cacheSet(cacheKey, result);
+    return result;
   } catch {
     return null;
   }
 }
 
 async function resolveSponsoredJobContent(jobId: string): Promise<SponsoredJobContent | null> {
+  const cacheKey = `spjob:${jobId}`;
+  const cached = cacheGet<SponsoredJobContent>(cacheKey);
+  if (cached) return cached;
+
   try {
     const pb = getPB();
     const today = todayIso();
@@ -423,7 +549,7 @@ async function resolveSponsoredJobContent(jobId: string): Promise<SponsoredJobCo
     const job = record as any;
     if (!job.active || (job.expires && job.expires < today)) return null;
 
-    return {
+    const result: SponsoredJobContent = {
       id: job.id,
       title: job.title,
       company: job.company,
@@ -431,37 +557,45 @@ async function resolveSponsoredJobContent(jobId: string): Promise<SponsoredJobCo
       city: job.city,
       province: job.province,
     };
+    cacheSet(cacheKey, result);
+    return result;
   } catch {
     return null;
   }
 }
 
 async function resolveSponsoredEmployerContent(employerId: string): Promise<SponsoredEmployerContent | null> {
+  const cacheKey = `spemp:${employerId}`;
+  const cached = cacheGet<SponsoredEmployerContent>(cacheKey);
+  if (cached) return cached;
+
   try {
     const pb = getPB();
     const record = await pb.collection('employers').getOne(employerId);
     if (!record) return null;
 
     const emp = record as any;
-    return {
+    const result: SponsoredEmployerContent = {
       id: emp.id,
       company_name: emp.company_name,
       company_slug: emp.company_slug,
       logo: emp.logo,
       description: emp.description,
     };
+    cacheSet(cacheKey, result);
+    return result;
   } catch {
     return null;
   }
 }
 
-// ─── Campaign CRUD ────────────────────────────────────────────────────────
+// ─── Campaign CRUD (admin, no cache) ────────────────────────────────────────
 
 export async function listCampaigns(): Promise<Campaign[]> {
   try {
     const pb = getPB();
     const result = await pb.collection('monetization_campaigns').getFullList({
-      sort: 'priority,zone,-created',
+      sort: 'priority,-created',
     });
     return result as unknown as Campaign[];
   } catch {
@@ -491,6 +625,7 @@ export async function createCampaign(data: {
       impressions: 0,
       clicks: 0,
     });
+    cacheClear('campaigns:');
     return record as unknown as Campaign;
   } catch {
     return null;
@@ -514,6 +649,7 @@ export async function updateCampaign(
   try {
     const pb = await getAdminPB();
     const record = await pb.collection('monetization_campaigns').update(id, data);
+    cacheClear('campaigns:');
     return record as unknown as Campaign;
   } catch {
     return null;
@@ -524,6 +660,7 @@ export async function deleteCampaign(id: string): Promise<boolean> {
   try {
     const pb = await getAdminPB();
     await pb.collection('monetization_campaigns').delete(id);
+    cacheClear('campaigns:');
     return true;
   } catch {
     return false;
@@ -537,76 +674,34 @@ export async function toggleCampaign(id: string): Promise<Campaign | null> {
     const updated = await pb.collection('monetization_campaigns').update(id, {
       active: !record.active,
     });
+    cacheClear('campaigns:');
     return updated as unknown as Campaign;
   } catch {
     return null;
   }
 }
 
-// ─── House Ad CRUD ────────────────────────────────────────────────────────
+// ─── House Ad CRUD ──────────────────────────────────────────────────────────
 
 export async function listHouseAds(): Promise<HouseAdContent[]> {
   try {
     const pb = await getAdminPB();
-    const result = await pb.collection('house_ads').getFullList({
-      sort: '-created',
-    });
+    const result = await pb.collection('house_ads').getFullList({ sort: '-created' });
     return result.map((r: any) => ({
-      id: r.id,
-      title: r.title,
-      description: r.description || '',
-      cta_text: r.cta_text || 'Learn more',
-      image_url: '',
-      link_url: r.link_url,
+      id: r.id, title: r.title, description: r.description || '',
+      cta_text: r.cta_text || 'Learn more', image_url: '', link_url: r.link_url,
     }));
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 export async function createHouseAd(data: {
-  title: string;
-  description?: string;
-  cta_text?: string;
-  link_url: string;
+  title: string; description?: string; cta_text?: string; link_url: string;
 }): Promise<HouseAdContent | null> {
   try {
     const pb = await getAdminPB();
-    const record = await pb.collection('house_ads').create({
-      ...data,
-      active: true,
-    });
-    return {
-      id: record.id,
-      title: (record as any).title,
-      description: (record as any).description || '',
-      cta_text: (record as any).cta_text || 'Learn more',
-      image_url: '',
-      link_url: (record as any).link_url,
-    };
-  } catch {
-    return null;
-  }
-}
-
-export async function updateHouseAd(
-  id: string,
-  data: Partial<{ title: string; description: string; cta_text: string; link_url: string; active: boolean }>,
-): Promise<HouseAdContent | null> {
-  try {
-    const pb = await getAdminPB();
-    const record = await pb.collection('house_ads').update(id, data);
-    return {
-      id: record.id,
-      title: (record as any).title,
-      description: (record as any).description || '',
-      cta_text: (record as any).cta_text || 'Learn more',
-      image_url: '',
-      link_url: (record as any).link_url,
-    };
-  } catch {
-    return null;
-  }
+    const record = await pb.collection('house_ads').create({ ...data, active: true });
+    return { id: record.id, title: (record as any).title, description: (record as any).description || '', cta_text: (record as any).cta_text || 'Learn more', image_url: '', link_url: (record as any).link_url };
+  } catch { return null; }
 }
 
 export async function deleteHouseAd(id: string): Promise<boolean> {
@@ -614,74 +709,53 @@ export async function deleteHouseAd(id: string): Promise<boolean> {
     const pb = await getAdminPB();
     await pb.collection('house_ads').delete(id);
     return true;
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 }
 
-// ─── Click Tracking ───────────────────────────────────────────────────────
+// ─── Click Tracking ──────────────────────────────────────────────────────────
 
 export async function trackCampaignClick(campaignId: string, linkId?: string): Promise<void> {
   try {
     const pb = await getAdminPB();
-    await pb.collection('monetization_campaigns').update(campaignId, {
-      'clicks+': 1,
-    });
+    await pb.collection('monetization_campaigns').update(campaignId, { 'clicks+': 1 });
     if (linkId) {
-      await pb.collection('affiliate_links').update(linkId, {
-        'clicks+': 1,
-      });
+      await pb.collection('affiliate_links').update(linkId, { 'clicks+': 1 });
     }
+    cacheClear('campaigns:');
   } catch {}
 }
 
-// ─── Seed Migration ───────────────────────────────────────────────────────
-
-export async function seedCampaignsFromAffiliates(): Promise<{ created: number; skipped: number; total: number }> {
-  let created = 0;
-  let skipped = 0;
-
+export async function trackCampaignImpression(campaignId: string): Promise<void> {
   try {
     const pb = await getAdminPB();
+    await pb.collection('monetization_campaigns').update(campaignId, { 'impressions+': 1 });
+  } catch {}
+}
 
+// ─── Seed Migration ─────────────────────────────────────────────────────────
+
+export async function seedCampaignsFromAffiliates(): Promise<{ created: number; skipped: number; total: number }> {
+  let created = 0, skipped = 0;
+  try {
+    const pb = await getAdminPB();
     const [existingLinks, existingCampaigns] = await Promise.all([
       pb.collection('affiliate_links').getFullList().catch(() => [] as any[]),
-      pb.collection('monetization_campaigns').getFullList({
-        fields: 'reference_id,campaign_type',
-      }).catch(() => [] as any[]),
+      pb.collection('monetization_campaigns').getFullList({ fields: 'reference_id,campaign_type' }).catch(() => [] as any[]),
     ]);
-
-    const campaignRefs = new Set(
-      (existingCampaigns as any[]).map((c) => `${c.reference_id}|${c.campaign_type}`),
-    );
-
+    const campaignRefs = new Set((existingCampaigns as any[]).map((c: any) => `${c.reference_id}|${c.campaign_type}`));
     for (const link of existingLinks as any[]) {
       const displayType = link.display_type || 'text';
       const campaignType = `affiliate_${['text', 'image', 'html'].includes(displayType) ? displayType : 'text'}`;
-
-      const existingKey = `${link.id}|${campaignType}`;
-      if (campaignRefs.has(existingKey)) {
-        skipped++;
-        continue;
-      }
-
+      if (campaignRefs.has(`${link.id}|${campaignType}`)) { skipped++; continue; }
       await pb.collection('monetization_campaigns').create({
-        name: link.name || 'Affiliate Link',
-        campaign_type: campaignType,
-        zone: link.zone || 'all',
-        priority: 80,
-        active: link.active ?? true,
-        category_target: link.category || '',
-        reference_id: link.id,
-        impressions: 0,
-        clicks: link.clicks || 0,
+        name: link.name || 'Affiliate Link', campaign_type: campaignType,
+        zone: link.zone || 'all', priority: 80, active: link.active ?? true,
+        category_target: link.category || '', reference_id: link.id,
+        impressions: 0, clicks: link.clicks || 0,
       });
-
       created++;
     }
-
+    cacheClear('campaigns:');
     return { created, skipped, total: (existingLinks as any[]).length };
-  } catch {
-    return { created, skipped, total: 0 };
-  }
+  } catch { return { created, skipped, total: 0 }; }
 }

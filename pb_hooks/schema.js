@@ -30,7 +30,10 @@
 //   active          Bool     default: true
 //   expires         Date
 //   xml_export      Bool     default: true
+//   sponsored       Bool     default: false          ← MONETIZATION: mark job as eligible for sponsored campaigns
+//   promotion_type  Text     default: ""             ← MONETIZATION: organic|featured|sponsored|premium
 // API Rules: List/View = "" (public), Create/Update/Delete = @request.auth.id != ""
+//   sponsored + promotion_type fields restricted to admin-only updates
 
 // ── 2. categories ────────────────────────────────────────────
 // Fields:
@@ -93,6 +96,7 @@
 //   plan           Text
 //   plan_expires   Date
 //   contact_email  Email
+//   sponsored      Bool  default: false         ← MONETIZATION
 // API Rules: List/View = "" (public, only verified), all others = admin only
 
 // ── 7. analytics_events ──────────────────────────────────────
@@ -155,12 +159,19 @@
 
 // ── 13. affiliate_links ──────────────────────────────────────
 // Fields:
-//   name      Text   required
-//   url       URL    required
-//   category  Text   (or "all" / "general")
-//   zone      Select strip,sidebar,infeed,all
-//   active    Bool   default: true
-//   clicks    Number default: 0
+//   name          Text   required
+//   url           URL    required
+//   category      Text   (or "all" / "general")
+//   zone          Select strip,sidebar,infeed,jobs-top,all
+//   display_type  Select text,image,html  default: text
+//   active        Bool   default: false  (default inactive for new links)
+//   clicks        Number default: 0
+//   description   Text
+//   banner_html   Text   (HTML snippet for display_type=html)
+//   image_url     URL    (external image for display_type=image)
+//   banner_file   File   (uploaded image for display_type=image)
+//   banner_width  Number
+//   banner_height Number
 // API Rules: List/View = "" (public), all others = admin only
 
 // ── 14. affiliate_clicks ─────────────────────────────────────
@@ -170,6 +181,34 @@
 //   device   Text
 //   created  Date
 // API Rules: List/View = admin only, Create = "" (public)
+
+// ── 15. monetization_campaigns ───────────────────────────────
+// Type: Base collection
+// Fields:
+//   name            Text     required
+//   campaign_type   Select   affiliate_image|affiliate_html|affiliate_text|adsense_manual|house_ad|sponsored_job|sponsored_employer
+//   zone            Select   strip|sidebar|infeed|jobs-top|homepage-hero|all
+//   priority        Number   default: 80
+//   active          Bool     default: true
+//   start_date      Date     (optional schedule start)
+//   end_date        Date     (optional schedule end)
+//   category_target Text     (optional contextual category)
+//   reference_id    Text     required (source record id: affiliate link, house ad, job, employer, or AdSense slot key)
+//   impressions     Number   default: 0
+//   clicks          Number   default: 0
+//   ad_width        Number   (optional, overrides natural image size for affiliate_image)
+//   ad_height       Number   (optional)
+// API Rules: admin only
+
+// ── 16. house_ads ─────────────────────────────────────────────
+// Fields:
+//   title       Text     required
+//   description Text
+//   cta_text    Text     default: "Learn more"
+//   image_file  File
+//   link_url    Text     required
+//   active      Bool     default: true
+// API Rules: admin only
 
 // ============================================================
 //  SEED CATEGORIES

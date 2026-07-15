@@ -52,7 +52,12 @@ const summaryText = `Find ${totalItems.toLocaleString('en-ZA')} internships acro
             </div>
           </section>
           <div class="space-y-3">
-            {jobs.map(job => <JobCard job={job} />)}
+            {jobs.map((job, i) => (
+              <>
+                <JobCard job={job} />
+                {(i + 1) % 5 === 0 && i < jobs.length - 1 && <MonetizationSlot zone="infeed" />}
+              </>
+            ))}
           </div>
         </>
       ) : (

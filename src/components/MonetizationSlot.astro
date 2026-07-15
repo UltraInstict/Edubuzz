@@ -1,14 +1,12 @@
 ---
 /**
- * MonetizationSlot — unified ad slot driven by the Monetization Engine.
+ * MonetizationSlot — unified ad slot. Zero monetization logic in pages.
  *
- * Zones: strip, sidebar, infeed, jobs-top, homepage-hero
+ * Usage: <MonetizationSlot zone="sidebar" category={job.category} />
  *
- * Pages render this component with ZERO monetization logic:
- *   <MonetizationSlot zone="sidebar" category={job.category} />
- *
- * The engine resolves priority, scheduling, category targeting, and
- * content. AdSense and affiliate rendering rules are fully separated.
+ * Renders: sponsored job → sponsored employer → AdSense → affiliate → house ad → empty.
+ * Impressions tracked client-side via navigator.sendBeacon() or fetch keepalive.
+ * Empty returns nothing — no wrapper, no spacer, no DOM.
  */
 import { resolveSlot } from '../services/monetizationService';
 import type { ResolvedSlot, AffiliateContent, HouseAdContent, SponsoredJobContent, SponsoredEmployerContent, AdSenseContent } from '../services/monetizationService';
@@ -22,7 +20,6 @@ const { zone, category } = Astro.props;
 
 const result: ResolvedSlot = await resolveSlot(zone, { category }).catch(() => ({ type: 'empty' as const, content: null }));
 
-// ── Extract content by type ───────────────────────────────────────────────
 const affiliate = result.type.startsWith('affiliate_') ? (result.content as AffiliateContent | null) : null;
 const houseAd = result.type === 'house_ad' ? (result.content as HouseAdContent | null) : null;
 const sponsoredJob = result.type === 'sponsored_job' ? (result.content as SponsoredJobContent | null) : null;
@@ -30,49 +27,39 @@ const sponsoredEmployer = result.type === 'sponsored_employer' ? (result.content
 const adsense = result.type === 'adsense_manual' ? (result.content as AdSenseContent | null) : null;
 
 const campaignId = result.campaignId ?? '';
-
-// Affiliate display flags
 const affImage = affiliate && affiliate.display_type === 'image' && (affiliate.bannerFileUrl || affiliate.image_url);
 const affHtml  = affiliate && affiliate.display_type === 'html' && !!affiliate.banner_html;
 const affText  = affiliate && !affImage && !affHtml;
 
-// Text ad subtitle
 let textSubtitle = '';
 if (affText && affiliate) {
   const desc = (affiliate.description || '').trim();
-  if (desc) {
-    textSubtitle = desc;
-  } else if (affiliate.name && affiliate.name.length > 40) {
-    textSubtitle = affiliate.name.length > 80 ? affiliate.name.slice(0, 80).trim() + '\u2026' : affiliate.name;
-  }
+  textSubtitle = desc || (affiliate.name && affiliate.name.length > 40 ? (affiliate.name.length > 80 ? affiliate.name.slice(0, 80).trim() + '\u2026' : affiliate.name) : '');
 }
 
-const ctaLabel = zone === 'jobs-top' ? 'Claim offer' : 'Learn more';
-
-// Container dimensions — campaign-configured, not zone-based.
-// Fall back to affiliate link's natural image dimensions if no campaign size set.
 const cw = result.ad_width;
 const ch = result.ad_height;
-const containerStyle = cw || ch
-  ? `width:${cw || 'auto'};height:${ch || 'auto'};${cw ? 'max-width:100%' : ''}`
-  : '';
 
-// Image respects container via object-fit: contain — no cropping.
-// When no container size: center the image within the full-width parent.
-const imgStyle = containerStyle
-  ? 'width:100%;height:100%;object-fit:contain;display:block'
-  : 'display:block;margin:0 auto;max-width:100%';
-
-// AdSense dimensions (NEVER force width/height — responsive only)
-const dims: Record<string, { format: string; style: string }> = {
-  strip:          { format: 'horizontal', style: 'display:block;width:100%;min-height:90px' },
-  sidebar:        { format: 'rectangle',  style: 'display:block;width:100%;min-height:250px' },
-  infeed:         { format: 'fluid',      style: 'display:block;width:100%;min-height:90px' },
-  'jobs-top':     { format: 'horizontal', style: 'display:block;width:100%;min-height:90px' },
-  'homepage-hero':{ format: 'horizontal', style: 'display:block;width:100%;min-height:90px' },
+// CLS protection: reserve heights per zone
+const ZONE_MIN_HEIGHTS: Record<string, string> = {
+  'strip':          '90px',
+  'sidebar':        '250px',
+  'infeed':         '80px',
+  'jobs-top':       '90px',
+  'homepage-hero':  '90px',
 };
-const dim = dims[zone];
+
+const affContainerStyle = cw || ch
+  ? `width:${cw || 'auto'};height:${ch || 'auto'};${cw ? 'max-width:100%' : ''}`
+  : 'display:block;text-align:center;background:transparent;max-width:100%';
+
+const affImgStyle = cw || ch
+  ? 'width:100%;height:100%;object-fit:contain;display:block'
+  : 'display:inline-block;max-width:100%;vertical-align:top';
 ---
+
+{/* ─── EMPTY ─── render absolutely nothing */}
+{result.type === 'empty' && null}
 
 {/* ─── SPONSORED JOB ──────────────────────────────────── */}
 {sponsoredJob && (
@@ -102,17 +89,21 @@ const dim = dims[zone];
   </div>
 )}
 
-{/* ─── HOUSE AD ────────────────────────────────────────── */}
-{houseAd && (
-  <div class={`smart-ad smart-ad--${zone}`} data-ad-type="house-ad" data-campaign-id={campaignId}>
-    <span class="smart-ad__label">EDUBUZZ</span>
-    <a href={houseAd.link_url} class="text-ad text-ad--house" data-campaign-id={campaignId}>
-      <div class="text-ad__body">
-        <span class="text-ad__title">{houseAd.title}</span>
-        {houseAd.description && <span class="text-ad__subtitle">{houseAd.description}</span>}
-      </div>
-      <span class="text-ad__cta">{houseAd.cta_text}</span>
-    </a>
+{/* ─── ADSENSE ─────────────────────────────────────────── */}
+{adsense && (
+  <div class={`smart-ad smart-ad--${zone}`} data-ad-type="adsense" style={`min-height:${ZONE_MIN_HEIGHTS[zone] || '90px'}`}>
+    <span class="smart-ad__label">SPONSORED</span>
+    <ins
+      class="adsbygoogle"
+      style={`display:block;width:100%;min-height:${ZONE_MIN_HEIGHTS[zone] || '90px'}`}
+      data-ad-client={adsense.publisher_id}
+      data-ad-slot={adsense.slot_id}
+      data-ad-format={adsense.format}
+      data-full-width-responsive="true"
+    ></ins>
+    <script>
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
   </div>
 )}
 
@@ -125,16 +116,18 @@ const dim = dims[zone];
       target="_blank"
       rel="nofollow sponsored noopener noreferrer"
       class="smart-ad__frame"
-      style={containerStyle}
+      style={affContainerStyle}
       data-campaign-id={campaignId}
       data-affiliate-id={affiliate.id}
     >
       <img
         src={affiliate.bannerFileUrl || affiliate.image_url}
         alt={affiliate.name}
-        style={imgStyle}
+        style={affImgStyle}
         loading="lazy"
         decoding="async"
+        width={cw || undefined}
+        height={ch || undefined}
       />
     </a>
   </div>
@@ -164,29 +157,38 @@ const dim = dims[zone];
       <span class="text-ad__title">{affiliate.name}</span>
       {textSubtitle && <span class="text-ad__subtitle">{textSubtitle}</span>}
     </div>
-    <span class="text-ad__cta">{ctaLabel}</span>
+    <span class="text-ad__cta">{zone === 'jobs-top' ? 'Claim offer' : 'Learn more'}</span>
   </a>
 )}
 
-{/* ─── ADSENSE ─────────────────────────────────────────── */}
-{adsense && (
-  <div class={`smart-ad smart-ad--${zone}`} data-ad-type="adsense">
-    <span class="smart-ad__label">SPONSORED</span>
-    <ins
-      class="adsbygoogle"
-      style={dim.style}
-      data-ad-client={adsense.publisher_id}
-      data-ad-slot={adsense.slot_id}
-      data-ad-format={adsense.format}
-      data-full-width-responsive="true"
-    ></ins>
-    <script>
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+{/* ─── HOUSE AD ────────────────────────────────────────── */}
+{houseAd && (
+  <div class={`smart-ad smart-ad--${zone}`} data-ad-type="house-ad" data-campaign-id={campaignId}>
+    <span class="smart-ad__label">EDUBUZZ</span>
+    <a href={houseAd.link_url} class="text-ad text-ad--house" data-campaign-id={campaignId}>
+      <div class="text-ad__body">
+        <span class="text-ad__title">{houseAd.title}</span>
+        {houseAd.description && <span class="text-ad__subtitle">{houseAd.description}</span>}
+      </div>
+      <span class="text-ad__cta">{houseAd.cta_text}</span>
+    </a>
   </div>
 )}
 
 <script>
+  // Impression tracking — client-side only, never during SSR
+  document.querySelectorAll('.smart-ad[data-campaign-id]').forEach((el) => {
+    const cid = (el as HTMLElement).dataset.campaignId;
+    if (!cid) return;
+    const payload = JSON.stringify({ campaignId: cid });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/track-impression', payload);
+    } else {
+      fetch('/api/track-impression', { method: 'POST', body: payload, keepalive: true, headers: { 'Content-Type': 'application/json' } }).catch(() => {});
+    }
+  });
+
+  // Click tracking for affiliate links
   document.querySelectorAll('[data-affiliate-id]').forEach((el) => {
     el.addEventListener('click', () => {
       const linkId = (el as HTMLElement).dataset.affiliateId;
@@ -203,10 +205,7 @@ const dim = dims[zone];
 </script>
 
 <style>
-  .smart-ad {
-    display: block;
-    margin: 0 0 12px;
-  }
+  .smart-ad { display: block; margin: 0 0 12px; }
   .smart-ad--infeed { margin: 0 0 12px; }
   .smart-ad--sidebar { max-width: 300px; margin-top: 0; }
   .smart-ad--jobs-top { width: 100%; }
@@ -222,7 +221,6 @@ const dim = dims[zone];
     margin-bottom: 4px;
   }
 
-  /* ─── AFFILIATE IMAGE FRAME ────────────────────────── */
   .smart-ad__frame {
     display: flex;
     align-items: center;
@@ -232,7 +230,6 @@ const dim = dims[zone];
     border-radius: 4px;
   }
   .smart-ad__frame:not([style*="width"]):not([style*="height"]) {
-    /* No campaign size set — fill parent width, center image, transparent bg */
     display: block;
     text-align: center;
     background: transparent;
@@ -243,7 +240,7 @@ const dim = dims[zone];
     max-width: 100%;
     vertical-align: top;
   }
-  /* ─── TEXT AD (shared by affiliate text, sponsored job, house ad) ─── */
+
   .text-ad {
     display: flex;
     align-items: center;
@@ -259,138 +256,59 @@ const dim = dims[zone];
     transition: box-shadow 150ms ease, transform 150ms ease;
     margin: 0 0 12px;
   }
-  .text-ad:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    transform: translateY(-1px);
-  }
+  .text-ad:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); transform: translateY(-1px); }
   .text-ad--sponsored { border-left-color: #d97706; }
   .text-ad--house { border-left-color: #166534; }
 
-  .text-ad__body {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-    min-width: 0;
-  }
-  .text-ad__title {
-    font-size: 15px;
-    font-weight: 700;
-    color: #111827;
-    line-height: 1.3;
-  }
-  .text-ad__subtitle {
-    font-size: 13px;
-    color: #6b7280;
-    line-height: 1.4;
-  }
+  .text-ad__body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .text-ad__title { font-size: 15px; font-weight: 700; color: #111827; line-height: 1.3; }
+  .text-ad__subtitle { font-size: 13px; color: #6b7280; line-height: 1.4; }
+  .text-ad__label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; }
   .text-ad__cta {
-    flex-shrink: 0;
-    background: #166534;
-    color: #ffffff;
-    border-radius: 20px;
-    padding: 0.4rem 1rem;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    transition: background 150ms ease;
+    flex-shrink: 0; background: #166534; color: #ffffff; border-radius: 20px;
+    padding: 0.4rem 1rem; font-size: 13px; font-weight: 600; white-space: nowrap; transition: background 150ms ease;
   }
-  .text-ad:hover .text-ad__cta {
-    background: #14532d;
-  }
+  .text-ad:hover .text-ad__cta { background: #14532d; }
   .text-ad--sponsored .text-ad__cta { background: #d97706; }
   .text-ad--sponsored:hover .text-ad__cta { background: #b45309; }
 
-  .text-ad--strip { width: 100%; }
-  .text-ad--homepage-hero { width: 100%; }
+  .text-ad--strip, .text-ad--homepage-hero { width: 100%; }
 
   .text-ad--sidebar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    max-width: 100%;
+    flex-direction: column; align-items: stretch; gap: 10px; max-width: 100%;
   }
   .text-ad--sidebar .text-ad__title { font-size: 14px; }
   .text-ad--sidebar .text-ad__subtitle { font-size: 12px; }
-  .text-ad--sidebar .text-ad__cta {
-    text-align: center;
-    width: 100%;
-    padding: 0.5rem 1rem;
-  }
+  .text-ad--sidebar .text-ad__cta { text-align: center; width: 100%; padding: 0.5rem 1rem; }
 
   .text-ad--infeed {
-    padding: 0.6rem 1rem;
-    border-top: 1px solid #e5e7eb;
-    border-bottom: 1px solid #e5e7eb;
-    border-left: 3px solid #166534;
-    border-radius: 6px;
+    padding: 0.6rem 1rem; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;
+    border-left: 3px solid #166534; border-radius: 6px;
   }
   .text-ad--infeed .text-ad__title { font-size: 14px; }
-
   .text-ad--jobs-top { background: #f0fdf4; }
 
-  /* ─── EMPLOYER AD ─── */
   .employer-ad {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    background: #ffffff;
-    border-left: 3px solid #0891b2;
-    border-radius: 6px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    padding: 0.75rem 1rem;
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow 150ms ease, transform 150ms ease;
-    margin: 0 0 12px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    background: #ffffff; border-left: 3px solid #0891b2; border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); padding: 0.75rem 1rem;
+    text-decoration: none; color: inherit; transition: box-shadow 150ms ease, transform 150ms ease; margin: 0 0 12px;
   }
-  .employer-ad:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    transform: translateY(-1px);
-  }
-  .employer-ad__body {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-    min-width: 0;
-  }
-  .employer-ad__name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #111827;
-    line-height: 1.3;
-  }
-  .employer-ad__desc {
-    font-size: 13px;
-    color: #6b7280;
-    line-height: 1.4;
-  }
+  .employer-ad:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); transform: translateY(-1px); }
+  .employer-ad__body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .employer-ad__name { font-size: 15px; font-weight: 700; color: #111827; line-height: 1.3; }
+  .employer-ad__desc { font-size: 13px; color: #6b7280; line-height: 1.4; }
+
+  .smart-ad__banner { display: block; max-width: 100%; }
+  .smart-ad__banner :global(iframe), .smart-ad__banner :global(img) { max-width: 100%; height: auto; }
 
   @media (max-width: 560px) {
-    .text-ad--strip,
-    .text-ad--jobs-top,
-    .text-ad--infeed,
-    .text-ad--homepage-hero,
-    .employer-ad {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
+    .text-ad--strip, .text-ad--jobs-top, .text-ad--infeed, .text-ad--homepage-hero, .employer-ad {
+      flex-direction: column; align-items: stretch; gap: 10px;
     }
-    .text-ad--strip .text-ad__cta,
-    .text-ad--jobs-top .text-ad__cta,
-    .text-ad--infeed .text-ad__cta,
-    .text-ad--homepage-hero .text-ad__cta,
-    .employer-ad .text-ad__cta {
-      text-align: center;
-      width: 100%;
-      padding: 0.5rem 1rem;
+    .text-ad--strip .text-ad__cta, .text-ad--jobs-top .text-ad__cta, .text-ad--infeed .text-ad__cta,
+    .text-ad--homepage-hero .text-ad__cta, .employer-ad .text-ad__cta {
+      text-align: center; width: 100%; padding: 0.5rem 1rem;
     }
   }
-
-  /* ─── HTML ad ─── */
-  .smart-ad__banner { display: block; max-width: 100%; }
-  .smart-ad__banner :global(iframe),
-  .smart-ad__banner :global(img) { max-width: 100%; height: auto; }
 </style>

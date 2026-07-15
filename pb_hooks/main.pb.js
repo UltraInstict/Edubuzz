@@ -12,7 +12,6 @@ onRecordCreate((e) => {
     .replace(/^-+|-+$/g, '')
     .slice(0, 80);
 
-  // Ensure uniqueness
   let unique = slug;
   let i = 1;
   while (true) {
@@ -20,10 +19,30 @@ onRecordCreate((e) => {
       $app.dao().findFirstRecordByFilter('jobs', `slug = "${unique}"`);
       unique = `${slug}-${i++}`;
     } catch {
-      break; // slug is unique
+      break;
     }
   }
   e.record.set('slug', unique);
+}, 'jobs');
+
+// ─── Set default 30-day expiry on job create ──────────────────────────────
+onRecordCreate((e) => {
+  if (e.record.collection().name !== 'jobs') return;
+  if (!e.record.get('expires')) {
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 30);
+    e.record.set('expires', expires.toISOString());
+  }
+}, 'jobs');
+
+// ─── Auto-deactivate expired jobs on update ─────────────────────────────
+onRecordUpdate((e) => {
+  if (e.record.collection().name !== 'jobs') return;
+  const expires = e.record.get('expires');
+  if (expires && new Date(expires).getTime() <= Date.now()) {
+    e.record.set('active', false);
+    $app.logger().info('Auto-deactivated expired job', 'slug', e.record.get('slug'));
+  }
 }, 'jobs');
 
 // ─── Auto-approve pending jobs → copy to live jobs ──────────────────────────
@@ -58,129 +77,6 @@ onRecordAfterUpdateSuccess((e) => {
     $app.logger().error('Failed to copy approved job', 'error', err);
   }
 }, 'pending_jobs');
-
-// ─── Send confirmation email when application received ──────────────────────
-onRecordAfterCreateSuccess((e) => {
-  if (e.record.collection().name !== 'applications') return;
-
-  try {
-    const email  = e.record.get('email');
-    const name   = e.record.get('name');
-    const jobId  = e.record.get('job');
-
-    let jobTitle = 'the position';
-    try {
-      const job = $app.dao().findRecordById('jobs', jobId);
-      jobTitle = job.get('title');
-    } catch {}
-
-    $app.newMailClient().send({
-      from: { address: $app.settings().smtp.username, name: 'Edubuzz' },
-      to: [{ address: email, name }],
-      subject: `Application received — ${jobTitle}`,
-      html: `<p>Hi ${name},</p>
-<p>Thank you for applying for <strong>${jobTitle}</strong> via Edubuzz. Your application has been received and forwarded to the employer.</p>
-<p>Good luck! The Edubuzz team.</p>
-<p style="color:#888;font-size:12px">Edubuzz.co.za — Find jobs in South Africa</p>`,
-    });
-  } catch (err) {
-    $app.logger().error('Failed to send application confirmation', 'error', err);
-  }
-}, 'applications');
-
-// ─── Send job alert emails when new job is created ──────────────────────────
-onRecordAfterCreateSuccess((e) => {
-  if (e.record.collection().name !== 'jobs') return;
-  if (!e.record.get('active')) return;
-
-  try {
-    const title    = e.record.get('title');
-    const company  = e.record.get('company');
-    const province = e.record.get('province');
-    const slug     = e.record.get('slug');
-    const jobUrl   = `https://edubuzz.co.za/job/${slug}`;
-
-    const alerts = $app.dao().findRecordsByFilter(
-      'job_alerts',
-      `keyword = "" || title ~ keyword`,
-      '-created', 500, 0
-    );
-
-    for (const alert of alerts) {
-      const alertProvince = alert.get('province');
-      if (alertProvince && alertProvince !== province) continue;
-
-      try {
-        $app.newMailClient().send({
-          from: { address: $app.settings().smtp.username, name: 'Edubuzz Job Alert' },
-          to: [{ address: alert.get('email') }],
-          subject: `New job: ${title} at ${company}`,
-          html: `<p>A new job matching your alert has been posted:</p>
-<p><strong>${title}</strong> at ${company}<br>${province}</p>
-<p><a href="${jobUrl}" style="background:#1D6FEB;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block;margin-top:8px">View job</a></p>
-<p style="color:#888;font-size:12px">You're receiving this because you set up a job alert on Edubuzz.co.za</p>`,
-        });
-      } catch {}
-    }
-  } catch (err) {
-    $app.logger().error('Failed to send job alerts', 'error', err);
-  }
-}, 'jobs');
-
-// ─── Set default 30-day expiry on job create ──────────────────────────────
-onRecordCreate((e) => {
-  if (e.record.collection().name !== 'jobs') return;
-  if (!e.record.get('expires')) {
-    const expires = new Date();
-    expires.setDate(expires.getDate() + 30);
-    e.record.set('expires', expires.toISOString());
-  }
-}, 'jobs');
-
-// ─── Auto-deactivate expired jobs on update ─────────────────────────────
-onRecordUpdate((e) => {
-  if (e.record.collection().name !== 'jobs') return;
-  const expires = e.record.get('expires');
-  if (expires && new Date(expires).getTime() <= Date.now()) {
-    e.record.set('active', false);
-    $app.logger().info('Auto-deactivated expired job', 'slug', e.record.get('slug'));
-  }
-}, 'jobs');
-
-// ─── Audit logging ─────────────────────────────────────────────────────────
-function auditLog(event, details) {
-  try {
-    const auditCol = $app.dao().findCollectionByNameOrId('audit_logs');
-    const log = new Record(auditCol);
-    log.set('event', event);
-    log.set('details', JSON.stringify(details));
-    log.set('created', new Date().toISOString());
-    $app.dao().saveRecord(log);
-  } catch {
-    // Audit collection may not exist yet — skip silently
-  }
-}
-
-onRecordAfterCreateSuccess((e) => {
-  auditLog('record_created', {
-    collection: e.record.collection().name,
-    id: e.record.id,
-  });
-});
-
-onRecordAfterUpdateSuccess((e) => {
-  auditLog('record_updated', {
-    collection: e.record.collection().name,
-    id: e.record.id,
-  });
-});
-
-onRecordAfterDeleteSuccess((e) => {
-  auditLog('record_deleted', {
-    collection: e.record.collection().name,
-    id: e.record.id,
-  });
-});
 
 // ─── Job expiry reminder (daily at 09:00 SAST = 07:00 UTC) ──────────────────
 $app.cron().add('send-expiry-reminders', '0 7 * * *', () => {
