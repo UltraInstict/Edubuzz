@@ -1,11 +1,13 @@
 import type { APIRoute } from 'astro';
 import { getPB } from '../../lib/pocketbase';
+import { siteBase } from '../../lib/constants';
 
 function esc(value: unknown) {
   return String(value ?? '').replace(/[<>&'"]/g, (char) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[char]!));
 }
 
 export const GET: APIRoute = async () => {
+  const base = siteBase();
   const today = new Date().toISOString().slice(0, 10);
   const jobs = await getPB().collection('jobs').getFullList({
     filter: `active=true&&expires>"${today}"`,
@@ -17,19 +19,19 @@ export const GET: APIRoute = async () => {
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Edubuzz — Latest Jobs in South Africa</title>
-    <link>https://edubuzz.co.za</link>
+    <link>${base}</link>
     <description>Latest job listings across South Africa</description>
     <language>en-za</language>
-    <atom:link href="https://edubuzz.co.za/feeds/rss.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="${base}/feeds/rss.xml" rel="self" type="application/rss+xml"/>
     ${(jobs as any[]).map((job) => `<item>
       <title>${esc(job.title)} at ${esc(job.company)}</title>
-      <link>https://edubuzz.co.za/job/${esc(job.slug)}</link>
-      <guid isPermaLink="true">https://edubuzz.co.za/job/${esc(job.slug)}</guid>
+      <link>${base}/job/${esc(job.slug)}</link>
+      <guid isPermaLink="true">${base}/job/${esc(job.slug)}</guid>
       <description>${esc(job.description)}</description>
-      <category domain="https://edubuzz.co.za/category/${esc((job.category || '').toLowerCase().replace(/\s+/g, '-'))}">${esc(job.category)}</category>
-      <category domain="https://edubuzz.co.za/province/${esc((job.province || '').toLowerCase().replace(/\s+/g, '-'))}">${esc(job.province)}</category>
+      <category domain="${base}/category/${esc((job.category || '').toLowerCase().replace(/\s+/g, '-'))}">${esc(job.category)}</category>
+      <category domain="${base}/province/${esc((job.province || '').toLowerCase().replace(/\s+/g, '-'))}">${esc(job.province)}</category>
       <pubDate>${new Date(job.created).toUTCString()}</pubDate>
-      <source url="https://edubuzz.co.za/feeds/rss.xml">Edubuzz</source>
+      <source url="${base}/feeds/rss.xml">Edubuzz</source>
     </item>`).join('')}
   </channel>
 </rss>`;

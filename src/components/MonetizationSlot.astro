@@ -176,6 +176,26 @@ const affImgStyle = cw || ch
 )}
 
 <script>
+  // ─── Collapse unfilled AdSense units ───────────────────────────────
+  // Google sets data-ad-status="unfilled" on <ins> when no ad is served.
+  // Reserved min-height (kept for CLS during load) would otherwise leave a
+  // visible white gap. Collapse the whole slot once we know it's unfilled.
+  (function collapseUnfilledAds() {
+    const collapse = (ins: Element) => {
+      if (ins.getAttribute('data-ad-status') === 'unfilled') {
+        const slot = ins.closest('.smart-ad') as HTMLElement | null;
+        if (slot) slot.style.display = 'none';
+      }
+    };
+    document.querySelectorAll('ins.adsbygoogle').forEach((ins) => {
+      collapse(ins);
+      const obs = new MutationObserver(() => collapse(ins));
+      obs.observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
+      // Safety timeout: stop observing after 10s to avoid leaks
+      setTimeout(() => obs.disconnect(), 10000);
+    });
+  })();
+
   // Impression tracking — client-side only, never during SSR
   document.querySelectorAll('.smart-ad[data-campaign-id]').forEach((el) => {
     const cid = (el as HTMLElement).dataset.campaignId;

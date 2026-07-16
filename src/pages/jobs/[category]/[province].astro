@@ -19,7 +19,8 @@ if (!jobs.length) {
   jobs = all.items.filter((job) => slugify(job.city || '') === locationSlug);
   title = `${categoryName} Jobs in ${titleFromSlug(locationSlug)}`;
 }
-const breadcrumb = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: 'https://edubuzz.co.za' }, { '@type': 'ListItem', position: 2, name: 'Jobs', item: 'https://edubuzz.co.za/jobs' }, { '@type': 'ListItem', position: 3, name: categoryName, item: `https://edubuzz.co.za/jobs/${categorySlug}` }, { '@type': 'ListItem', position: 4, name: locationName, item: Astro.url.href }] };
+const origin = Astro.url.origin;
+const breadcrumb = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: origin }, { '@type': 'ListItem', position: 2, name: 'Jobs', item: `${origin}/jobs` }, { '@type': 'ListItem', position: 3, name: categoryName, item: `${origin}/jobs/${categorySlug}` }, { '@type': 'ListItem', position: 4, name: locationName, item: Astro.url.href }] };
 ---
 <Layout title={title} description={`Browse ${jobs.length} ${categoryName} jobs in ${locationName}. Apply today on Edubuzz.`} canonicalUrl={Astro.url.href}>
 <Fragment slot="head"><script type="application/ld+json" set:html={JSON.stringify(breadcrumb)} /></Fragment>

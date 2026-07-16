@@ -3,6 +3,7 @@ import { getAdminPB, getEmployerSession, auditLog } from '../../../lib/auth';
 import { cleanString, isEmail, isHttpsUrl, ok, fail } from '../../../lib/api';
 import { validateToken } from '../../../lib/csrf';
 import { pingIndexNow } from '../../../lib/indexnow';
+import { siteBase } from '../../../lib/constants';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getEmployerSession(request);
@@ -61,13 +62,13 @@ export const POST: APIRoute = async ({ request }) => {
       if (existing.employer_id !== session.employer.id) return fail('Forbidden.', 403);
       const updated = await pb.collection('jobs').update(id, payload) as any;
       auditLog('employer_job_updated', { employerId: session.employer.id, jobId: id });
-      pingIndexNow([`https://edubuzz.co.za/job/${updated.slug}`]).catch(() => {});
+      pingIndexNow([`${siteBase()}/job/${updated.slug}`]).catch(() => {});
       return ok({ id });
     }
 
     const job: any = await pb.collection('jobs').create(payload);
     auditLog('employer_job_created', { employerId: session.employer.id, jobId: job.id });
-    pingIndexNow([`https://edubuzz.co.za/job/${job.slug}`]).catch(() => {});
+    pingIndexNow([`${siteBase()}/job/${job.slug}`]).catch(() => {});
     return ok({ id: job.id });
   } catch {
     return fail('Could not save job.', 500);

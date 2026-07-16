@@ -286,7 +286,6 @@ export async function resolveSlot(
     }
 
     // Try any remaining (random rotation within top-priority group)
-    const unresolved = candidates.filter(c => !tierCampaigns.includes(c) || c === candidates[0]);
     // Shuffle candidates for rotation
     const shuffled = [...candidates].sort(() => Math.random() - 0.5);
     for (const c of shuffled) {

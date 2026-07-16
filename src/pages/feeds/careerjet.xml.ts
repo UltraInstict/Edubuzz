@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getPB } from '../../lib/pocketbase';
+import { siteBase } from '../../lib/constants';
 
 function cdata(value: unknown) {
   return `<![CDATA[${String(value ?? '').replaceAll(']]>', ']]]]><![CDATA[>')}]]>`;
@@ -10,6 +11,7 @@ function esc(value: unknown) {
 }
 
 export const GET: APIRoute = async () => {
+  const base = siteBase();
   const today = new Date().toISOString().slice(0, 10);
   const jobs = await getPB().collection('jobs').getFullList({
     filter: `active=true&&expires>"${today}"`,
@@ -18,10 +20,10 @@ export const GET: APIRoute = async () => {
   }).catch(() => []);
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<source publisher="Edubuzz" publisherurl="https://edubuzz.co.za">
+<source publisher="Edubuzz" publisherurl="${base}">
   <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
   ${(jobs as any[]).map((job) => `<job>
-    <url>${esc(`https://edubuzz.co.za/job/${job.slug}`)}</url>
+    <url>${esc(`${base}/job/${job.slug}`)}</url>
     <title>${cdata(job.title)}</title>
     <description>${cdata((job.description || '').replace(/<[^>]+>/g, '').trim().slice(0, 8000))}</description>
     <salary>${cdata(job.salary_min || job.salary_max ? `R${job.salary_min || ''} - R${job.salary_max || ''}` : '')}</salary>

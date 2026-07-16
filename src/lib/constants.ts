@@ -12,6 +12,18 @@ export const SITE_LANG = 'en-ZA';
 
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
 
+/**
+ * Resolve the canonical site base URL from env (falls back to the constant).
+ * Use in feeds, sitemaps, robots, and any server route that emits absolute URLs
+ * so staging never leaks production URLs to crawlers/aggregators.
+ */
+export function siteBase(): string {
+  const fromEnv = (import.meta as any)?.env?.SITE_URL
+    || (typeof process !== 'undefined' ? process.env.SITE_URL : '')
+    || SITE_URL;
+  return String(fromEnv).replace(/\/$/, '');
+}
+
 export const CONTACT_EMAIL = 'hello@edubuzz.co.za';
 export const ADVERTISE_EMAIL = 'advertise@edubuzz.co.za';
 

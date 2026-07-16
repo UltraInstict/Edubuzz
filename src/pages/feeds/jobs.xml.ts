@@ -1,11 +1,13 @@
 import type { APIRoute } from 'astro';
 import { getPB } from '../../lib/pocketbase';
+import { siteBase } from '../../lib/constants';
 
 function cdata(value: unknown) {
   return `<![CDATA[${String(value ?? '').replaceAll(']]>', ']]]]><![CDATA[>')}]]>`;
 }
 
 export const GET: APIRoute = async () => {
+  const base = siteBase();
   const pb = getPB();
   const today = new Date().toISOString().slice(0, 10);
   const jobs = await pb.collection('jobs').getFullList({
@@ -16,13 +18,13 @@ export const GET: APIRoute = async () => {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <source>
   <publisher>Edubuzz</publisher>
-  <publisherurl>https://edubuzz.co.za</publisherurl>
+  <publisherurl>${base}</publisherurl>
   <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
   ${jobs.map((j: any) => `<job>
     <title>${cdata(j.title)}</title>
     <date>${cdata(j.created)}</date>
     <referencenumber>${cdata(j.id)}</referencenumber>
-    <url>${cdata(`https://edubuzz.co.za/job/${j.slug}`)}</url>
+    <url>${cdata(`${base}/job/${j.slug}`)}</url>
     <company>${cdata(j.company)}</company>
     <city>${cdata(j.city)}</city>
     <state>${cdata(j.province)}</state>

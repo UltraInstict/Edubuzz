@@ -1,4 +1,7 @@
+import { SITE_URL } from '../lib/constants';
+
 export async function GET() {
+  const base = (import.meta.env.SITE_URL || process.env.SITE_URL || SITE_URL).replace(/\/$/, '');
   return new Response(
     `User-agent: *
 Allow: /
@@ -36,10 +39,10 @@ User-agent: CCBot
 Allow: /
 Disallow: /api/
 
-Sitemap: https://edubuzz.co.za/sitemap.xml
+Sitemap: ${base}/sitemap.xml
 
 # AI crawler discovery
-LLMs: https://edubuzz.co.za/llms.txt`,
+LLMs: ${base}/llms.txt`,
     {
       headers: {
         'Content-Type': 'text/plain',
