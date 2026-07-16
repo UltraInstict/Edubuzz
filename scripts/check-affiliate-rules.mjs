@@ -1,5 +1,5 @@
 const PB = 'http://127.0.0.1:8090';
-const CREDS = JSON.stringify({ identity: 'praiseleeto@gmail.com', password: 'PbCFfkcMOhL9CvgGjB9Fs23Q!9X' });
+const CREDS = JSON.stringify({ identity: process.env.PB_ADMIN_EMAIL, password: process.env.PB_ADMIN_PASSWORD });
 
 async function main() {
   const authRes = await fetch(PB + '/api/collections/_superusers/auth-with-password', {

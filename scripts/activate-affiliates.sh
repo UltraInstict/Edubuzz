@@ -2,7 +2,7 @@
 # Activate all affiliate links and monetization campaigns.
 PB="http://127.0.0.1:8090"
 EMAIL="praiseleeto@gmail.com"
-PASS="PbCFfkcMOhL9CvgGjB9Fs23Q!9X"
+PASS="${PB_ADMIN_PASSWORD:?set PB_ADMIN_PASSWORD in env}"
 
 TOKEN=$(curl -s -X POST "${PB}/api/admins/auth-with-password" \
   -H 'Content-Type: application/json' \

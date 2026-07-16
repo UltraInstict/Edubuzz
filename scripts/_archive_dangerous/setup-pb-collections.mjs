@@ -3,8 +3,8 @@ import { config } from 'dotenv';
 config({ override: true });
 
 const pb = new PocketBase('http://127.0.0.1:8090');
-const email = process.env.PB_ADMIN_EMAIL || 'praiseleeto@gmail.com';
-const pass = process.env.PB_ADMIN_PASSWORD || 'PbCFfkcMOhL9CvgGjB9Fs23Q!9X';
+const email = process.env.PB_ADMIN_EMAIL;
+const pass = process.env.PB_ADMIN_PASSWORD;
 
 await pb.collection('_superusers').authWithPassword(email, pass);
 console.log('Auth OK');

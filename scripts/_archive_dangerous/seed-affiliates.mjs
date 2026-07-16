@@ -5,7 +5,7 @@ async function main() {
   const authRes = await fetch(`${PB}/api/collections/_superusers/auth-with-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ identity: 'praiseleeto@gmail.com', password: 'PbCFfkcMOhL9CvgGjB9Fs23Q!9X' }),
+    body: JSON.stringify({ identity: process.env.PB_ADMIN_EMAIL, password: process.env.PB_ADMIN_PASSWORD }),
   });
   const auth = await authRes.json();
   if (!auth.token) { console.error('Auth failed:', JSON.stringify(auth)); process.exit(1); }

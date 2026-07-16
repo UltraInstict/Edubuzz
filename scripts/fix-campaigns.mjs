@@ -3,7 +3,7 @@ const PB = 'http://127.0.0.1:8090';
 
 const ADMIN = {
   identity: 'praiseleeto@gmail.com',
-  password: 'PbCFfkcMOhL9CvgGjB9Fs23Q!9X',
+  password: process.env.PB_ADMIN_PASSWORD,
 };
 
 async function main() {

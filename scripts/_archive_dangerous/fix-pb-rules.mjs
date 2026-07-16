@@ -4,8 +4,8 @@ config({ override: true });
 
 const pb = new PocketBase('http://127.0.0.1:8090');
 await pb.collection('_superusers').authWithPassword(
-  process.env.PB_ADMIN_EMAIL || 'praiseleeto@gmail.com',
-  process.env.PB_ADMIN_PASSWORD || 'PbCFfkcMOhL9CvgGjB9Fs23Q!9X'
+  process.env.PB_ADMIN_EMAIL,
+  process.env.PB_ADMIN_PASSWORD
 );
 
 const cols = await pb.collections.getFullList();
