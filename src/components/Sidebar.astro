@@ -78,7 +78,8 @@ const MOST_SEARCHED = ['General Worker','Admin','Security','Cashier','Driver','C
           {PROVINCES.map(p => <option value={p}>{p}</option>)}
         </select>
       </div>
-      <button type="submit" class="w-full bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Create alert</button>
+      <button type="submit" class="w-full bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors disabled:opacity-60">Create alert</button>
+      <p id="alert-msg" role="status" aria-live="polite" hidden class="text-sm mt-1"></p>
     </form>
   </div>
 </div>
@@ -87,8 +88,31 @@ const MOST_SEARCHED = ['General Worker','Admin','Security','Cashier','Driver','C
   document.getElementById('alert-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;
-    const res = await fetch('/api/alerts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
-    const body = await res.json().catch(() => ({}));
-    if (body.success) form.reset();
+    const msg = document.getElementById('alert-msg') as HTMLParagraphElement | null;
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+    if (btn) btn.disabled = true;
+    try {
+      const res = await fetch('/api/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+      });
+      const body = await res.json().catch(() => ({} as any));
+      if (msg) {
+        msg.hidden = false;
+        if (res.ok && body.success) {
+          msg.textContent = 'Job alert created.';
+          msg.className = 'text-sm mt-1 text-green-800';
+          form.reset();
+        } else {
+          msg.textContent = body.error || 'Could not create your alert. Please try again.';
+          msg.className = 'text-sm mt-1 text-red-600';
+        }
+      }
+    } catch {
+      if (msg) { msg.hidden = false; msg.textContent = 'Network error. Please try again.'; msg.className = 'text-sm mt-1 text-red-600'; }
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   });
 </script>

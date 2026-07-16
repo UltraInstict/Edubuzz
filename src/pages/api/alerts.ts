@@ -1,42 +1,28 @@
 import type { APIRoute } from 'astro';
 import { getPB } from '../../lib/pocketbase';
-import { checkRateLimit, cleanString, isEmail, json } from '../../lib/api';
+import { checkRateLimit, cleanString, isEmail, ok, fail } from '../../lib/api';
 import { validateToken } from '../../lib/csrf';
-
-function escapeFilter(value: string) {
-  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-}
 
 export const POST: APIRoute = async ({ request }) => {
   if (!checkRateLimit(request)) {
-    return json({ message: 'Too many submissions. Please try again later.' }, { status: 429 });
+    return fail('Too many submissions. Please try again later.', 429);
   }
 
   try {
     const data = await request.json();
-    if (!validateToken(data._csrf as string))
-      return json({ message: 'Invalid request.' }, { status: 403 });
+    if (!validateToken(data._csrf as string)) return fail('Invalid request.', 403);
     const email = cleanString(data.email, 120).toLowerCase();
     const keyword = cleanString(data.keyword, 120);
     const province = cleanString(data.province, 80);
     const category = cleanString(data.category, 80);
 
-    if (!email) {
-      return json({ message: 'Email is required.' }, { status: 400 });
-    }
-    if (!isEmail(email)) {
-      return json({ message: 'Enter a valid email address.' }, { status: 400 });
-    }
+    if (!email) return fail('Email is required.', 400);
+    if (!isEmail(email)) return fail('Enter a valid email address.', 400);
 
     const pb = getPB();
-    try {
-      await pb.collection('job_alerts').getFirstListItem(`email="${escapeFilter(email)}"&&keyword="${escapeFilter(keyword)}"`);
-      return json({ message: 'Alert already exists for this email and keyword.' }, { status: 409 });
-    } catch {
-      await pb.collection('job_alerts').create({ email, keyword, province, category });
-      return json({ ok: true });
-    }
+    await pb.collection('job_alerts').create({ email, keyword, province, category });
+    return ok();
   } catch {
-    return json({ message: 'Failed to create alert.' }, { status: 500 });
+    return fail('Could not create your alert. Please try again.', 500);
   }
 };
