@@ -1,4 +1,5 @@
 export type RawJob = {
+  // Core fields
   id?: string;
   title?: string;
   company?: string;
@@ -14,6 +15,24 @@ export type RawJob = {
   salary_max?: number | null;
   expires?: string;
   source?: string;
+  
+  // Enhanced fields (Firecrawl + AI normalization)
+  salary_period?: 'monthly' | 'annual' | 'hourly';
+  experience_level?: 'entry' | 'mid' | 'senior' | 'executive';
+  education_required?: string;
+  responsibilities?: string;
+  requirements?: string;
+  benefits?: string;
+  skills?: string[];
+  closing_date?: string;
+  company_description?: string;
+  company_website?: string;
+  company_logo?: string;
+  ai_summary?: string;
+  ai_confidence?: number;
+  enrichment_source?: 'firecrawl' | 'xml_feed' | 'manual' | 'employer';
+  source_url?: string;
+  last_scraped?: string;
 };
 
 function text(xml: string, tag: string) {

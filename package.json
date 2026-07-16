@@ -9,7 +9,9 @@
     "start": "node dist/server/entry.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.111.0",
     "@astrojs/node": "^10.1.4",
+    "@mendable/firecrawl-js": "^4.30.0",
     "@tailwindcss/vite": "^4.3.2",
     "astro": "^6.4.6",
     "dotenv": "^17.4.2",

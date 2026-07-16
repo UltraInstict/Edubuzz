@@ -7,7 +7,6 @@ import MonetizationSlot from '../../components/MonetizationSlot.astro';
 import { formatSalary, getJobBySlug, getRelatedJobs, isSalaryDisclosed } from '../../lib/pocketbase';
 import { trackEvent } from '../../lib/analytics';
 import { generateToken } from '../../lib/csrf';
-import { enrichJobContent, type ContentSection } from '../../lib/contentEnricher';
 
 const { slug } = Astro.params;
 const job = await getJobBySlug(slug || '');
@@ -32,7 +31,64 @@ const validThrough = job.expires || new Date(Date.now() + 30 * 24 * 60 * 60 * 10
 const closeDate = job.expires ? new Date(job.expires).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 const postedDate = job.created ? new Date(job.created).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 const salaryDisplay = isSalaryDisclosed(job.salary_min, job.salary_max) ? formatSalary(job.salary_min, job.salary_max) : 'Not disclosed';
-const contentSections = enrichJobContent(job);
+
+// Build content sections from structured fields
+const contentSections = [];
+
+// AI Summary (if available)
+if (job.ai_summary) {
+  contentSections.push({
+    title: 'Job Summary',
+    content: `<p>${job.ai_summary}</p>`,
+    isAI: true,
+  });
+}
+
+// Overview (from description)
+if (job.description) {
+  contentSections.push({
+    title: 'Overview',
+    content: job.description,
+    isAI: false,
+  });
+}
+
+// Responsibilities
+if (job.responsibilities) {
+  contentSections.push({
+    title: 'Responsibilities',
+    content: job.responsibilities,
+    isAI: false,
+  });
+}
+
+// Requirements
+if (job.requirements) {
+  contentSections.push({
+    title: 'Requirements',
+    content: job.requirements,
+    isAI: false,
+  });
+}
+
+// Skills
+if (job.skills && job.skills.length > 0) {
+  const skillsHtml = `<ul>${job.skills.map(s => `<li>${s}</li>`).join('')}</ul>`;
+  contentSections.push({
+    title: 'Skills',
+    content: skillsHtml,
+    isAI: false,
+  });
+}
+
+// Benefits
+if (job.benefits) {
+  contentSections.push({
+    title: 'Benefits',
+    content: job.benefits,
+    isAI: false,
+  });
+}
 
 const EMPLOYMENT_TYPE_MAP: Record<string, string> = {
   'full-time': 'FULL_TIME', 'part-time': 'PART_TIME', 'contract': 'CONTRACTOR',
@@ -50,7 +106,7 @@ const jsonLd: Record<string, any> = {
   directApply: Boolean(job.apply_email || job.apply_url),
   hiringOrganization: {
     '@type': 'Organization', name: job.company,
-    sameAs: job.employer_website || job.apply_url || undefined,
+    sameAs: job.company_website || job.apply_url || undefined,
     logo: job.company_logo || `${Astro.url.origin}/favicon.svg`,
   },
   jobLocation: {
@@ -76,8 +132,6 @@ const breadcrumbLd = {
     { '@type': 'ListItem', position: (job.category ? 4 : 3), name: `${job.title} at ${job.company}`, item: pageUrl },
   ],
 };
-
-const enrichedBadge = contentSections.some(s => s.enriched);
 ---
 
 <Layout
@@ -134,14 +188,8 @@ const enrichedBadge = contentSections.some(s => s.enriched);
         </div>
       </section>
 
-      {enrichedBadge && (
-        <div class="jd-enriched-banner">
-          ℹ️ Some sections have been enhanced for readability using job category templates. Core facts are from the original listing.
-        </div>
-      )}
-
       {/* ─── CONTENT SECTIONS ─── */}
-      {contentSections.map((section: ContentSection, i: number) => (
+      {contentSections.map((section) => (
         <section class="jd-section">
           <h2 class="jd-section-title">{section.title}</h2>
           <div class="jd-section-body" set:html={section.content} />

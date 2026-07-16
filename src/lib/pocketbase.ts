@@ -41,9 +41,33 @@ export interface Job {
   salary_min?: number;
   salary_max?: number;
   salary_currency?: string;
+  salary_period?: 'monthly' | 'annual' | 'hourly';
   job_type: string;
+  experience_level?: 'entry' | 'mid' | 'senior' | 'executive';
+  education_required?: string;
+  
+  // Structured content (from Firecrawl + AI normalization)
+  responsibilities?: string;
+  requirements?: string;
+  benefits?: string;
+  skills?: string[];
+  
+  // AI-generated data
+  ai_summary?: string;
+  ai_confidence?: number;
+  enrichment_source?: 'firecrawl' | 'xml_feed' | 'manual' | 'employer';
+  
+  // Company info
+  company_description?: string;
+  company_website?: string;
+  
+  // Tracking
   source: string;
   source_ref?: string;
+  source_url?: string;
+  closing_date?: string;
+  last_scraped?: string;
+  
   employer_id?: string;
   views?: number;
   clicks?: number;
