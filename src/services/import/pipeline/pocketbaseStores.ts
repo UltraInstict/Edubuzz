@@ -148,7 +148,9 @@ export class PocketBaseEmployerStore implements EmployerStore {
       website: data.website,
       province: data.province,
       city: data.city,
-      contact_email: data.contact_email || '',
+      // contact_email is a required field on employers; auto-created stubs use
+      // a clearly non-deliverable placeholder (not fabricated job data).
+      contact_email: data.contact_email || 'no-reply@edubuzz.local',
     });
     return {
       id: rec.id,
