@@ -277,7 +277,7 @@ const affImgStyle = cw || ch
     margin: 0 0 12px;
   }
   .text-ad:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); transform: translateY(-1px); }
-  .text-ad--sponsored { border-left-color: #d97706; }
+  .text-ad--sponsored { border-left-color: var(--color-muted); background: var(--color-surface); }
   .text-ad--house { border-left-color: #166534; }
 
   .text-ad__body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
@@ -289,8 +289,8 @@ const affImgStyle = cw || ch
     padding: 0.4rem 1rem; font-size: 13px; font-weight: 600; white-space: nowrap; transition: background 150ms ease;
   }
   .text-ad:hover .text-ad__cta { background: #14532d; }
-  .text-ad--sponsored .text-ad__cta { background: #d97706; }
-  .text-ad--sponsored:hover .text-ad__cta { background: #b45309; }
+  .text-ad--sponsored .text-ad__cta { background: var(--color-ink-soft); }
+  .text-ad--sponsored:hover .text-ad__cta { background: var(--color-ink); }
 
   .text-ad--strip, .text-ad--homepage-hero { width: 100%; }
 
@@ -310,7 +310,7 @@ const affImgStyle = cw || ch
 
   .employer-ad {
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    background: #ffffff; border-left: 3px solid #0891b2; border-radius: 6px;
+    background: #ffffff; border-left: 3px solid var(--color-muted); border-radius: 6px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); padding: 0.75rem 1rem;
     text-decoration: none; color: inherit; transition: box-shadow 150ms ease, transform 150ms ease; margin: 0 0 12px;
   }
@@ -318,6 +318,8 @@ const affImgStyle = cw || ch
   .employer-ad__body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
   .employer-ad__name { font-size: 15px; font-weight: 700; color: #111827; line-height: 1.3; }
   .employer-ad__desc { font-size: 13px; color: #6b7280; line-height: 1.4; }
+  .employer-ad .text-ad__cta { background: var(--color-ink-soft); }
+  .employer-ad:hover .text-ad__cta { background: var(--color-ink); }
 
   .smart-ad__banner { display: block; max-width: 100%; }
   .smart-ad__banner :global(iframe), .smart-ad__banner :global(img) { max-width: 100%; height: auto; }

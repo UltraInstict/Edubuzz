@@ -13,18 +13,9 @@ const {
   icon = 'none',
 } = Astro.props;
 
-const icons: Record<string, string> = {
-  search: '🔍',
-  job: '💼',
-  application: '📋',
-  general: '📭',
-};
-
-const iconChar = icon && icon !== 'none' ? icons[icon] : '';
 ---
 
 <div class="flex flex-col items-center justify-center py-12 px-6 text-center bg-white border border-gray-200 rounded-md">
-  {iconChar && <span class="text-4xl mb-3" aria-hidden="true">{iconChar}</span>}
   <h2 class="text-base font-semibold text-gray-900 mb-1">{title}</h2>
   <p class="text-sm text-gray-600 max-w-sm leading-relaxed mb-4">{description}</p>
   {action && (

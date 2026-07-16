@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* ─── Brand palette — single source of truth ──────────────────────────────
+   Derived from the live homepage/job pages. Reference these tokens (via
+   Tailwind utilities like bg-brand, or var(--color-*) in scoped styles)
+   instead of hardcoding hex, so colors don't drift again.
+   Neutral tokens mirror the Tailwind gray scale already in use (no visual shift). */
+@theme {
+  --color-brand: #166534;        /* primary green (was green-800) */
+  --color-brand-hover: #14532d;  /* hover (green-900) */
+  --color-brand-tint: #f0fdf4;   /* light green surface (green-50) */
+
+  --color-surface: #f9fafb;      /* gray-50  */
+  --color-surface-alt: #f3f4f6;  /* gray-100 */
+  --color-border: #e5e7eb;       /* gray-200 */
+  --color-muted: #6b7280;        /* gray-500 */
+  --color-ink-soft: #374151;     /* gray-700 */
+  --color-ink: #111827;          /* gray-900 */
+}
+
 * { box-sizing: border-box; }
 
 html {
