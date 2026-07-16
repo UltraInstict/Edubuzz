@@ -1,25 +1,16 @@
 import PocketBase from 'pocketbase';
+import { cleanHtml, slugify as coreSlugify } from '../services/import/normalize';
 
 const PB_URL = import.meta.env.PB_URL || 'http://127.0.0.1:8090';
 export const pb = new PocketBase(PB_URL);
 
-/** Strip unsafe HTML. Allow only whitelisted tags; strip all attributes except href on <a>. */
+/**
+ * Strip unsafe HTML. Delegates to the shared import-pipeline sanitizer
+ * (src/services/import/normalize#cleanHtml) so there is ONE source of truth
+ * for HTML cleaning across the app and the ingestion pipeline.
+ */
 export function sanitizeHtml(raw: string | undefined): string {
-  if (!raw) return '';
-  const ALLOWED = /^(b|i|em|strong|p|br|ul|ol|li|a|h[1-6]|div|span)$/i;
-  return raw
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<(\/?)(\w+)([^>]*)>/g, (_match: string, slash: string, tag: string, attrs: string) => {
-      if (!ALLOWED.test(tag)) return '';
-      const cleanTag = tag.toLowerCase();
-      if (cleanTag === 'br') return '<br>';
-      if (cleanTag === 'a' && !slash) {
-        const href = attrs.match(/href\s*=\s*["']([^"']+)["']/i);
-        const safe = href ? ` href="${href[1].replace(/"/g, '&quot;')}"` : '';
-        return `<a${safe}>`;
-      }
-      return `<${slash}${cleanTag}>`;
-    });
+  return cleanHtml(raw);
 }
 
 export function getPB(): PocketBase {
@@ -223,12 +214,9 @@ function activeFilter() {
   return `active=true&&expires>"${todayIso()}"`;
 }
 
+/** Slug helper — delegates to the shared import-pipeline slugify (single source of truth). */
 export function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  return coreSlugify(value);
 }
 
 export function escapePbFilter(value: string) {

@@ -6,6 +6,10 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import {
+  normalizeProvince as coreNormalizeProvince,
+  normalizeEmploymentType as coreNormalizeEmploymentType,
+} from './import/normalize';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const AI_MODEL = process.env.AI_MODEL || 'claude-3-5-sonnet-20241022';
@@ -241,89 +245,22 @@ function validateAndNormalize(
 }
 
 /**
- * Normalize province to standard South African province names
+ * Normalize province to standard South African province names.
+ * Delegates to the shared import-pipeline normalizer (single source of truth,
+ * with a much larger alias/city map). Falls back to the original string when
+ * the value can't be mapped, preserving prior behaviour for non-SA locations.
  */
 function normalizeProvince(province: string | null | undefined): string {
   if (!province) return '';
-  
-  const lower = province.toLowerCase().trim();
-  const provinceMap: Record<string, string> = {
-    'gauteng': 'Gauteng',
-    'gp': 'Gauteng',
-    'johannesburg': 'Gauteng',
-    'pretoria': 'Gauteng',
-    
-    'western cape': 'Western Cape',
-    'wc': 'Western Cape',
-    'cape town': 'Western Cape',
-    
-    'kwazulu-natal': 'KwaZulu-Natal',
-    'kwa-zulu natal': 'KwaZulu-Natal',
-    'kzn': 'KwaZulu-Natal',
-    'durban': 'KwaZulu-Natal',
-    
-    'eastern cape': 'Eastern Cape',
-    'ec': 'Eastern Cape',
-    
-    'free state': 'Free State',
-    'fs': 'Free State',
-    
-    'limpopo': 'Limpopo',
-    'lp': 'Limpopo',
-    
-    'mpumalanga': 'Mpumalanga',
-    'mp': 'Mpumalanga',
-    
-    'north west': 'North West',
-    'nw': 'North West',
-    
-    'northern cape': 'Northern Cape',
-    'nc': 'Northern Cape',
-  };
-  
-  return provinceMap[lower] || province;
+  return coreNormalizeProvince(province) || province;
 }
 
 /**
- * Normalize job type to standard values
+ * Normalize job type to standard values.
+ * Delegates to the shared import-pipeline employment-type normalizer.
  */
 function normalizeJobType(jobType: string | null | undefined): string {
-  if (!jobType) return 'Full-time';
-  
-  const lower = jobType.toLowerCase().trim();
-  const typeMap: Record<string, string> = {
-    'full-time': 'Full-time',
-    'full time': 'Full-time',
-    'ft': 'Full-time',
-    'permanent': 'Full-time',
-    
-    'part-time': 'Part-time',
-    'part time': 'Part-time',
-    'pt': 'Part-time',
-    
-    'contract': 'Contract',
-    'contractor': 'Contract',
-    'fixed-term': 'Contract',
-    
-    'internship': 'Internship',
-    'intern': 'Internship',
-    
-    'learnership': 'Learnership',
-    'learnership programme': 'Learnership',
-    
-    'graduate programme': 'Graduate Programme',
-    'graduate program': 'Graduate Programme',
-    'grad program': 'Graduate Programme',
-    
-    'temporary': 'Temporary',
-    'temp': 'Temporary',
-    
-    'remote': 'Remote',
-    'work from home': 'Remote',
-    'wfh': 'Remote',
-  };
-  
-  return typeMap[lower] || 'Full-time';
+  return coreNormalizeEmploymentType(jobType);
 }
 
 /**
