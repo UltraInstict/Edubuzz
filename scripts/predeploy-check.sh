@@ -20,7 +20,7 @@ cd "${APP_DIR}" || { echo "GUARD FAIL: app dir '${APP_DIR}' not found"; exit 2; 
 
 git fetch origin --quiet 2>/dev/null || { echo "GUARD FAIL: git fetch failed"; exit 2; }
 
-DIRTY=$(git status --porcelain)
+DIRTY=$(git status --porcelain --untracked-files=no)
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/main)
