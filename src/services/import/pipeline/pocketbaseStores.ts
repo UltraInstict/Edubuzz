@@ -98,11 +98,25 @@ export class PocketBaseJobStore implements JobStore {
   async create(
     core: CanonicalCore & { employer_id?: string; fingerprint?: string; content_hash?: string }
   ): Promise<{ id: string }> {
-    const rec = await this.pb.collection('jobs').create({
-      ...this.toRecord(core),
-      active: true,
-    });
-    return { id: (rec as any).id };
+    const base = this.toRecord(core);
+    const baseSlug = (core.slug || '').toString();
+    // Retry on unique-slug conflict with deterministic suffixes (-2, -3, ...).
+    for (let attempt = 0; attempt < 6; attempt++) {
+      const slug = attempt === 0 || !baseSlug ? baseSlug : `${baseSlug}-${attempt + 1}`;
+      try {
+        const rec = await this.pb.collection('jobs').create({
+          ...base,
+          ...(slug ? { slug } : {}),
+          active: true,
+        });
+        return { id: (rec as any).id };
+      } catch (err: any) {
+        const isSlugConflict =
+          err?.status === 400 && JSON.stringify(err?.data?.data || {}).includes('slug');
+        if (!isSlugConflict || attempt === 5) throw err;
+      }
+    }
+    throw new Error('failed to create job after slug-conflict retries');
   }
 
   async update(

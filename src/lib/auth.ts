@@ -100,6 +100,22 @@ export async function getAdminPB() {
   return pb;
 }
 
+/**
+ * Service-account PocketBase client for automated backend operations (imports,
+ * feed automation). Runs with the least-privilege `service_accounts` identity
+ * rather than the superuser — the superuser is reserved for maintenance.
+ */
+export async function getServicePB() {
+  const email = process.env.SERVICE_EMAIL;
+  const password = process.env.SERVICE_PASSWORD;
+  if (!email || !password) {
+    throw new Error('SERVICE_EMAIL and SERVICE_PASSWORD environment variables must be set');
+  }
+  const pb = getPb();
+  await pb.collection('service_accounts').authWithPassword(email, password);
+  return pb;
+}
+
 export async function getEmployerSession(request: Request) {
   const user = await getUser(request);
   if (!user) return null;

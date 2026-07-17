@@ -11,4 +11,5 @@ export * from './jsonFeed';
 export * from './csv';
 export * from './structuredHtml';
 export * from './firecrawl';
+export * from './adzuna';
 export * from './registry';
