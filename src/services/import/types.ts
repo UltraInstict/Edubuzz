@@ -119,6 +119,11 @@ export interface CanonicalEnrichment {
   company_website?: string;
   ai_summary?: string;
   ai_confidence?: number;
+  /** Official-source policy metadata (see services/import/ats.ts). */
+  official_careers_url?: string;
+  source_domain?: string;
+  source_type?: string;
+  ats_type?: string;
 }
 
 export interface CanonicalJob {
@@ -150,7 +155,8 @@ export type RejectionReason =
   | 'thin_description'
   | 'missing_source'
   | 'low_confidence'
-  | 'expired';
+  | 'expired'
+  | 'job_board_apply';
 
 export interface ValidationResult {
   ok: boolean;

@@ -14,6 +14,7 @@ export * from './types';
 export * from './normalize';
 export * from './validate';
 export * from './dedupe';
+export * from './ats';
 
 import type {
   CanonicalEnrichment,
@@ -30,6 +31,7 @@ import {
   toPlainText,
 } from './normalize';
 import { buildDedupeSignals } from './dedupe';
+import { detectAts, sourceDomain, classifySource } from './ats';
 
 export interface SourceMeta {
   /** Adapter key, stored as jobs.source (e.g. 'rss:gov-vacancies'). */
@@ -91,12 +93,19 @@ export function toCanonicalJob(raw: RawJob, meta: SourceMeta): CanonicalJob {
   const applyEmail = (raw.applyEmail || '').trim();
   const sourceRef = (raw.externalId || raw.sourceUrl || '').trim();
 
+  // Official-source apply policy: apply URL is the employer's official page.
+  const applyTarget = applyUrl || raw.sourceUrl || '';
   const enrichment: CanonicalEnrichment = {
     country: location.country,
     remote: location.remote || jobType === 'Remote',
     salary_currency: raw.salaryCurrency || parsed.currency,
     salary_period: period,
     closing_date: raw.closingDate || undefined,
+    official_careers_url:
+      (raw.extra?.companyWebsite as string) || undefined,
+    source_domain: sourceDomain(applyTarget) || undefined,
+    source_type: applyTarget ? classifySource(applyTarget) : undefined,
+    ats_type: applyTarget ? detectAts(applyTarget) : undefined,
     ...(meta.enrichment || {}),
   };
 

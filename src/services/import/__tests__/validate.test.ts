@@ -97,6 +97,12 @@ describe('validateJob', () => {
     expect(r.rejections).toContain('expired');
   });
 
+  it('rejects apply URLs that point to competing job boards (official-source policy)', () => {
+    const r = validateJob(makeJob({ apply_url: 'https://za.indeed.com/viewjob?jk=abc' }));
+    expect(r.ok).toBe(false);
+    expect(r.rejections).toContain('job_board_apply');
+  });
+
   it('does not reject future closing dates', () => {
     const r = validateJob(makeJob({ expires: '2999-01-01' }));
     expect(r.rejections).not.toContain('expired');

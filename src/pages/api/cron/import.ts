@@ -4,8 +4,8 @@ import { getAdminSettings } from '../../../services/jobService';
 import { runImports } from '../../../services/import/pipeline/orchestrator';
 import { PocketBaseJobStore, PocketBaseEmployerStore } from '../../../services/import/pipeline/pocketbaseStores';
 import { EmployerResolver } from '../../../services/import/pipeline/employerResolver';
-import { AdzunaAdapter } from '../../../services/import/adapters/adzuna';
 import { RssAdapter } from '../../../services/import/adapters/rss';
+import { StructuredHtmlAdapter } from '../../../services/import/adapters/structuredHtml';
 import type { SourceAdapter } from '../../../services/import/types';
 
 /**
@@ -17,8 +17,13 @@ import type { SourceAdapter } from '../../../services/import/types';
  * Reuses the full ingestion pipeline (acquire → normalize → validate → dedupe →
  * employer resolution → persist) authenticated as the least-privilege service
  * account. Sources:
- *   - Adzuna API  (if ADZUNA_APP_ID + ADZUNA_APP_KEY are set)  ← primary volume
- *   - active RSS feeds configured in the xml_sources collection
+ * OFFICIAL SOURCES ONLY (no third-party job boards). Sources are configured in
+ * the xml_sources collection and mapped to connectors:
+ *   - format 'rss'             → RssAdapter (official employer/government feeds)
+ *   - format 'structured_html' → StructuredHtmlAdapter (schema.org JobPosting)
+ * Firecrawl/Playwright connectors for dynamic career portals are added next.
+ * Every imported job's apply URL must be the employer's official page; the
+ * validation layer rejects any apply URL that points to a competing job board.
  */
 
 function authorized(url: URL, request: Request): boolean {
@@ -31,25 +36,8 @@ function authorized(url: URL, request: Request): boolean {
 async function buildAdapters(): Promise<SourceAdapter[]> {
   const adapters: SourceAdapter[] = [];
 
-  const appId = process.env.ADZUNA_APP_ID;
-  const appKey = process.env.ADZUNA_APP_KEY;
-  if (appId && appKey) {
-    adapters.push(
-      new AdzunaAdapter({
-        key: 'adzuna:za',
-        appId,
-        appKey,
-        country: process.env.ADZUNA_COUNTRY || 'za',
-        resultsPerPage: 50,
-        maxPages: Number(process.env.ADZUNA_MAX_PAGES || 20),
-        what: process.env.ADZUNA_WHAT || undefined,
-        where: process.env.ADZUNA_WHERE || undefined,
-        defaultCategory: 'General',
-      })
-    );
-  }
-
-  // Active RSS feeds from xml_sources (read via superuser; read-only).
+  // Official sources are configured as active records in xml_sources.
+  // Each maps to a connector by its `format`. No third-party job boards.
   try {
     const pb = await getAdminPB();
     const sources = await pb
@@ -57,9 +45,14 @@ async function buildAdapters(): Promise<SourceAdapter[]> {
       .getFullList({ filter: 'active=true' })
       .catch(() => []);
     for (const s of sources as any[]) {
-      if ((s.format || 'rss') === 'rss' && s.feed_url) {
-        adapters.push(new RssAdapter({ key: `feed:${s.id}`, url: s.feed_url }));
+      const format = (s.format || 'rss').toLowerCase();
+      if (!s.feed_url) continue;
+      if (format === 'rss' || format === 'xml') {
+        adapters.push(new RssAdapter({ key: `feed:${s.id}`, url: s.feed_url, defaultCompany: s.name }));
+      } else if (format === 'structured_html' || format === 'html') {
+        adapters.push(new StructuredHtmlAdapter({ key: `html:${s.id}`, urls: [s.feed_url] }));
       }
+      // json/csv official feeds require a per-source field map (added per connector).
     }
   } catch {
     /* xml_sources optional */
@@ -78,7 +71,7 @@ async function run(): Promise<Response> {
   if (!adapters.length) {
     return json({
       success: false,
-      error: 'No import sources configured. Set ADZUNA_APP_ID/ADZUNA_APP_KEY or add an active RSS xml_sources record.',
+      error: 'No official sources configured. Add an active xml_sources record (format rss/xml or structured_html) pointing at an employer/government careers feed.',
     });
   }
 

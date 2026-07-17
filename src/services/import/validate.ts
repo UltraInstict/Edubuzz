@@ -8,6 +8,7 @@
  */
 
 import type { CanonicalJob, RejectionReason, ValidationResult } from './types';
+import { isJobBoardUrl } from './ats';
 
 /** Minimum meaningful description length (plain-text chars). */
 export const MIN_DESCRIPTION_CHARS = 120;
@@ -62,6 +63,9 @@ export function validateJob(job: CanonicalJob): ValidationResult {
 
   if (!hasApplyMethod(job)) rejections.push('missing_apply_method');
 
+  // Official-source policy: never route applicants through a competing job board.
+  if (isJobBoardUrl(job.core.apply_url)) rejections.push('job_board_apply');
+
   const descLen = plainTextLength(job.core.description || '');
   if (descLen === 0) {
     rejections.push('missing_description');
@@ -97,6 +101,7 @@ export function describeReason(reason: RejectionReason): string {
     missing_source: 'No source identifier',
     low_confidence: 'Extraction confidence below threshold',
     expired: 'Closing date already passed',
+    job_board_apply: 'Apply URL is a competing job board (must be employer official page)',
   };
   return map[reason] || reason;
 }
