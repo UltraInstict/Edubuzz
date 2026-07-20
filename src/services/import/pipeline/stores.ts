@@ -33,6 +33,13 @@ export interface JobStore {
   findExisting(signals: DedupeSignals & { source: string }): Promise<ExistingJobRef | null>;
   create(core: CanonicalCore & { employer_id?: string; fingerprint?: string; content_hash?: string }): Promise<{ id: string }>;
   update(id: string, core: Partial<CanonicalCore> & { employer_id?: string; fingerprint?: string; content_hash?: string }): Promise<void>;
+  /**
+   * Deactivate jobs for `source` whose source_ref was NOT seen this run
+   * (i.e. the employer removed the listing). Returns the number expired.
+   * Optional: stores that can't enumerate may omit it; the orchestrator skips
+   * expiry when unavailable.
+   */
+  expireMissing?(source: string, seenRefs: Set<string>): Promise<number>;
 }
 
 export interface EmployerRef {

@@ -30,6 +30,8 @@ export interface ImportRunResult {
   duplicates: number;
   rejected: number;
   warnings: number;
+  /** Jobs deactivated because they disappeared from the source this run. */
+  expired: number;
   /** Rejection reason → count. */
   rejectionBreakdown: Partial<Record<RejectionReason, number>>;
   /** Non-fatal errors encountered while processing individual records. */
@@ -47,6 +49,7 @@ export class ImportLogger {
     duplicates: 0,
     rejected: 0,
     warnings: 0,
+    expired: 0,
   };
   readonly rejectionBreakdown: Partial<Record<RejectionReason, number>> = {};
   readonly errors: string[] = [];
@@ -95,6 +98,7 @@ export class ImportLogger {
       duplicates: this.counters.duplicates,
       rejected: this.counters.rejected,
       warnings: this.counters.warnings,
+      expired: this.counters.expired,
       rejectionBreakdown: { ...this.rejectionBreakdown },
       errors: [...this.errors],
       events: [...this.events],

@@ -11,4 +11,9 @@ export * from './jsonFeed';
 export * from './csv';
 export * from './structuredHtml';
 export * from './firecrawl';
+// ATS API connectors (keyless, official apply URLs): one connector per platform.
+export * from './greenhouse';
+export * from './lever';
+export * from './smartrecruiters';
+export * from './workday';
 export * from './registry';

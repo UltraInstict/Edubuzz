@@ -23,6 +23,13 @@ export interface OrchestratorOptions {
   employerResolver?: EmployerResolver;
   /** Attach resolved employer_id to stored jobs (requires M3 schema). */
   linkEmployers?: boolean;
+  /**
+   * After a successful run, deactivate jobs from this source that were NOT
+   * seen this run (employer removed the listing). Only runs when the store
+   * supports `expireMissing` AND the run acquired at least one job (so a
+   * transient empty fetch never mass-expires a source). Default false.
+   */
+  expireMissing?: boolean;
   /** Emit console output alongside the in-memory event buffer. */
   console?: boolean;
   /** Per-record meta passthrough (e.g. AI confidence override). */
@@ -67,6 +74,8 @@ export async function runImport(
 
   // Track fingerprints seen within THIS run for in-batch dedupe.
   const seen: CanonicalJob['dedupe'][] = [];
+  // Track every source_ref successfully processed this run (for expiry).
+  const seenRefs = new Set<string>();
 
   for (const r of raw) {
     let job: CanonicalJob;
@@ -119,6 +128,8 @@ export async function runImport(
     const link = opts.linkEmployers ? { employer_id: employerId } : {};
     const hash = contentHash(job);
     const fingerprint = job.dedupe.fingerprint;
+    // Mark as live this run so the expiry pass never deactivates it.
+    if (job.core.source_ref) seenRefs.add(job.core.source_ref);
 
     try {
       if (existing) {
@@ -150,12 +161,25 @@ export async function runImport(
     }
   }
 
+  // Expiry: deactivate listings the employer removed. Guarded so a transient
+  // empty/failed fetch can never mass-expire a source.
+  if (opts.expireMissing && typeof opts.jobStore.expireMissing === 'function' && seenRefs.size > 0) {
+    try {
+      const expired = await opts.jobStore.expireMissing(adapter.key, seenRefs);
+      log.counters.expired = expired;
+      if (expired > 0) log.info(`expired ${expired} removed listings`);
+    } catch (err) {
+      log.error(`expireMissing failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   const result = log.finalize();
   log.info('run complete', {
     imported: result.imported,
     updated: result.updated,
     duplicates: result.duplicates,
     rejected: result.rejected,
+    expired: result.expired,
   });
   return result;
 }

@@ -125,6 +125,35 @@ export class PocketBaseJobStore implements JobStore {
   ): Promise<void> {
     await this.pb.collection('jobs').update(id, this.toRecord(core));
   }
+
+  /**
+   * Deactivate active jobs for `source` whose source_ref was not seen this run.
+   * Sets active=false and expires=now so they drop out of listings/XML export
+   * immediately. Returns the number expired. Never deletes (audit-safe).
+   */
+  async expireMissing(source: string, seenRefs: Set<string>): Promise<number> {
+    const existing: any[] = await this.pb
+      .collection('jobs')
+      .getFullList({
+        filter: `source="${esc(source)}" && active=true`,
+        fields: 'id,source_ref',
+      })
+      .catch(() => []);
+
+    const nowIso = new Date().toISOString().replace('T', ' ').replace('Z', '');
+    let expired = 0;
+    for (const rec of existing) {
+      const ref = (rec.source_ref || '').toString();
+      if (ref && seenRefs.has(ref)) continue; // still live
+      try {
+        await this.pb.collection('jobs').update(rec.id, { active: false, expires: nowIso });
+        expired++;
+      } catch {
+        // skip individual failures; a bad row must not abort the sweep
+      }
+    }
+    return expired;
+  }
 }
 
 export class PocketBaseEmployerStore implements EmployerStore {
