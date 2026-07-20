@@ -445,29 +445,132 @@ export async function listRecentApplications(limit = 5): Promise<any[]> {
   return result.items;
 }
 
-/** Admin jobs list with filter support */
-export async function listAdminJobsFiltered(filters: {
-  status?: string;
-  province?: string;
-  source?: string;
+/** Escape a value for use inside a PocketBase filter double-quoted string. */
+function pbEsc(v: string): string {
+  return String(v ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+/** Sort shortcut → PocketBase sort expression (admin Jobs screen). */
+export const ADMIN_JOB_SORTS: Record<string, string> = {
+  newest: '-created',
+  oldest: 'created',
+  employer: 'company',
+  province: 'province',
+  source: 'source',
+  featured_first: '-featured,-created',
+  featured_last: 'featured,-created',
+};
+
+export interface AdminJobFilters {
+  status?: string;      // '', 'active', 'pending', 'expired'
+  province?: string;    // exact province
+  source?: string;      // exact source value
+  featured?: string;    // '', 'yes', 'no'
+  imported?: string;    // '', 'yes' (source!=manual), 'no' (source=manual)
+  company?: string;     // exact employer/company name
+  search?: string;      // matches title/company/slug/source
+  sort?: string;        // key of ADMIN_JOB_SORTS
   page?: number;
   perPage?: number;
-} = {}): Promise<{ items: any[]; totalItems: number; totalPages: number }> {
-  const { status, province, source, page = 1, perPage = 50 } = filters;
-  const pb = await getAdminPB();
-  const f: string[] = [];
+}
+
+/** Build the PocketBase filter string for the admin Jobs screen (server-side). */
+export function buildAdminJobFilter(f: AdminJobFilters): string {
+  const parts: string[] = [];
   const today = new Date().toISOString().slice(0, 10);
-  if (status === 'active') f.push('active=true');
-  if (status === 'pending') f.push('active=false');
-  if (status === 'expired') f.push(`expires<"${today}"`);
-  if (province) f.push(`province="${province.replace(/"/g, '\\"')}"`);
-  if (source) f.push(`source="${source.replace(/"/g, '\\"')}"`);
+  if (f.status === 'active') parts.push('active=true');
+  else if (f.status === 'pending') parts.push('active=false');
+  else if (f.status === 'expired') parts.push(`expires<"${today}"`);
+  if (f.province) parts.push(`province="${pbEsc(f.province)}"`);
+  if (f.source) parts.push(`source="${pbEsc(f.source)}"`);
+  if (f.featured === 'yes') parts.push('featured=true');
+  else if (f.featured === 'no') parts.push('featured=false');
+  if (f.imported === 'yes') parts.push('source!="manual"');
+  else if (f.imported === 'no') parts.push('source="manual"');
+  if (f.company) parts.push(`company="${pbEsc(f.company)}"`);
+  if (f.search && f.search.trim()) {
+    const q = pbEsc(f.search.trim());
+    parts.push(`(title~"${q}"||company~"${q}"||slug~"${q}"||source~"${q}")`);
+  }
+  return parts.join('&&');
+}
+
+/** Admin jobs list with full filter/search/sort support (server-side, paginated). */
+export async function listAdminJobsFiltered(filters: AdminJobFilters = {}): Promise<{
+  items: any[]; totalItems: number; totalPages: number; page: number; perPage: number;
+}> {
+  const page = Math.max(1, filters.page || 1);
+  const perPage = Math.min(200, Math.max(1, filters.perPage || 50));
+  const pb = await getAdminPB();
+  const filter = buildAdminJobFilter(filters);
+  const sort = ADMIN_JOB_SORTS[filters.sort || 'newest'] || '-created';
   const result = await pb.collection('jobs').getList(page, perPage, {
-    filter: f.length ? f.join('&&') : '',
-    sort: '-created',
-    fields: 'id,slug,title,company,province,active,source,featured,views,created,expires',
+    filter,
+    sort,
+    fields: 'id,slug,title,company,province,category,active,source,featured,views,created,updated,expires,employer_id',
   }).catch(() => ({ items: [] as any[], totalItems: 0, totalPages: 0 }));
-  return { items: result.items, totalItems: result.totalItems, totalPages: result.totalPages };
+  return { items: result.items, totalItems: result.totalItems, totalPages: result.totalPages, page, perPage };
+}
+
+/** Return matching job ids for the current filter (for "select all filtered"), capped. */
+export async function listAdminJobIds(filters: AdminJobFilters, maxIds = 1000): Promise<{ ids: string[]; totalItems: number; capped: boolean }> {
+  const pb = await getAdminPB();
+  const filter = buildAdminJobFilter(filters);
+  const ids: string[] = [];
+  let totalItems = 0;
+  const per = 500;
+  for (let page = 1; page <= Math.ceil(maxIds / per); page++) {
+    const res: any = await pb.collection('jobs').getList(page, per, { filter, sort: '-created', fields: 'id' }).catch(() => null);
+    if (!res) break;
+    totalItems = res.totalItems;
+    for (const it of res.items) { if (ids.length < maxIds) ids.push(it.id); }
+    if (page >= res.totalPages || ids.length >= maxIds) break;
+  }
+  return { ids, totalItems, capped: totalItems > ids.length };
+}
+
+/** Dynamic dataset counts for the admin Jobs summary bar. */
+export async function getAdminJobsSummary(): Promise<{
+  total: number; featured: number; active: number; expired: number; imported: number; manual: number;
+}> {
+  const pb = await getAdminPB();
+  const today = new Date().toISOString().slice(0, 10);
+  const count = (filter: string) =>
+    pb.collection('jobs').getList(1, 1, { filter, fields: 'id' }).then((r) => r.totalItems).catch(() => 0);
+  const [total, featured, active, expired, manual] = await Promise.all([
+    count(''),
+    count('featured=true'),
+    count('active=true'),
+    count(`expires<"${today}"`),
+    count('source="manual"'),
+  ]);
+  return { total, featured, active, expired, imported: total - manual, manual };
+}
+
+/** Distinct job `source` values for the admin Source filter (from existing data, capped scan). */
+export async function listJobSourceValues(): Promise<string[]> {
+  const pb = await getAdminPB();
+  const seen = new Set<string>();
+  const per = 500;
+  for (let page = 1; page <= 4; page++) {
+    const res: any = await pb.collection('jobs').getList(page, per, { sort: '-created', fields: 'source' }).catch(() => null);
+    if (!res) break;
+    for (const it of res.items) { if (it.source) seen.add(it.source); }
+    if (page >= res.totalPages) break;
+  }
+  return [...seen].sort((a, b) => a.localeCompare(b));
+}
+
+/** Distinct employer names for the admin Employer filter (from existing data). */
+export async function listEmployerNames(): Promise<string[]> {
+  const pb = await getAdminPB();
+  const rows = await pb.collection('employers').getFullList({ fields: 'company_name', sort: 'company_name' }).catch(() => [] as any[]);
+  const seen = new Set<string>();
+  for (const r of rows as any[]) {
+    const n = (r.company_name || '').trim();
+    if (n) seen.add(n);
+  }
+  return [...seen].sort((a, b) => a.localeCompare(b));
 }
 
 /** XML sources list with feed job counts */
