@@ -535,16 +535,21 @@ export async function getAdminJobsSummary(): Promise<{
 }> {
   const pb = await getAdminPB();
   const today = new Date().toISOString().slice(0, 10);
+  // Each metric is an INDEPENDENT server-side count. `total` uses an always-true
+  // predicate (id!="") instead of an empty filter to avoid SDK empty-filter edge
+  // cases, and `imported` is counted directly (never total-minus-manual, which
+  // could render negative if the total query transiently failed).
   const count = (filter: string) =>
     pb.collection('jobs').getList(1, 1, { filter, fields: 'id' }).then((r) => r.totalItems).catch(() => 0);
-  const [total, featured, active, expired, manual] = await Promise.all([
-    count(''),
+  const [total, featured, active, expired, manual, imported] = await Promise.all([
+    count('id!=""'),
     count('featured=true'),
     count('active=true'),
     count(`expires<"${today}"`),
     count('source="manual"'),
+    count('source!="manual"'),
   ]);
-  return { total, featured, active, expired, imported: total - manual, manual };
+  return { total, featured, active, expired, imported, manual };
 }
 
 /** Distinct job `source` values for the admin Source filter (from existing data, capped scan). */

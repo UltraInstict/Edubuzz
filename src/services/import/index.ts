@@ -32,6 +32,7 @@ import {
 } from './normalize';
 import { buildDedupeSignals } from './dedupe';
 import { detectAts, sourceDomain, classifySource } from './ats';
+import { mapCategory } from '../../lib/categoryMapper';
 
 export interface SourceMeta {
   /** Adapter key, stored as jobs.source (e.g. 'rss:gov-vacancies'). */
@@ -113,7 +114,9 @@ export function toCanonicalJob(raw: RawJob, meta: SourceMeta): CanonicalJob {
     title,
     company,
     slug: title && company ? slugify(`${title}-${company}`) : slugify(title || company),
-    category: (raw.category || '').trim(),
+    // Map the raw ATS department onto a canonical category (deterministic mapping
+    // layer). Falls back to the raw value when nothing matches (never fabricated).
+    category: mapCategory(raw.category, title) || (raw.category || '').trim(),
     province: location.province,
     city: location.city,
     description,

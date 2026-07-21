@@ -310,10 +310,11 @@ const employerChips = CHIP_EMPLOYER_PREF.filter((n) => employerNames.includes(n)
   }
 
   function renderSummary(sm: any) {
-    if (!sm) return;
-    $('sum-total').textContent = sm.total; $('sum-featured').textContent = sm.featured;
-    $('sum-active').textContent = sm.active; $('sum-expired').textContent = sm.expired;
-    $('sum-imported').textContent = sm.imported; $('sum-manual').textContent = sm.manual;
+    if (!sm) return; // keep authoritative SSR values if endpoint omitted summary
+    const set = (id: string, v: any) => { if (Number.isFinite(v)) $(id).textContent = String(v); };
+    set('sum-total', sm.total); set('sum-featured', sm.featured);
+    set('sum-active', sm.active); set('sum-expired', sm.expired);
+    set('sum-imported', sm.imported); set('sum-manual', sm.manual);
   }
 
   function renderPagination(page: number, totalPages: number, totalItems: number) {
