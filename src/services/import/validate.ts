@@ -9,6 +9,7 @@
 
 import type { CanonicalJob, RejectionReason, ValidationResult } from './types';
 import { isJobBoardUrl } from './ats';
+import { resolveSA } from '../../lib/saLocation';
 
 /** Minimum meaningful description length (plain-text chars). */
 export const MIN_DESCRIPTION_CHARS = 120;
@@ -66,6 +67,16 @@ export function validateJob(job: CanonicalJob): ValidationResult {
   // Official-source policy: never route applicants through a competing job board.
   if (isJobBoardUrl(job.core.apply_url)) rejections.push('job_board_apply');
 
+  // South-Africa-only policy: reject any job that is not resolvably South African
+  // (pan-African/global ATS tenants otherwise leak Nigeria/Angola/etc. jobs in).
+  const sa = resolveSA({
+    country: job.enrichment.country,
+    province: job.core.province,
+    city: job.core.city,
+    location: job.enrichment.remote ? 'remote' : job.core.city,
+  });
+  if (!sa.isSA) rejections.push('non_south_africa');
+
   const descLen = plainTextLength(job.core.description || '');
   if (descLen === 0) {
     rejections.push('missing_description');
@@ -102,6 +113,7 @@ export function describeReason(reason: RejectionReason): string {
     low_confidence: 'Extraction confidence below threshold',
     expired: 'Closing date already passed',
     job_board_apply: 'Apply URL is a competing job board (must be employer official page)',
+    non_south_africa: 'Location is not South African (SA-only policy)',
   };
   return map[reason] || reason;
 }

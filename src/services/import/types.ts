@@ -156,7 +156,8 @@ export type RejectionReason =
   | 'missing_source'
   | 'low_confidence'
   | 'expired'
-  | 'job_board_apply';
+  | 'job_board_apply'
+  | 'non_south_africa';
 
 export interface ValidationResult {
   ok: boolean;
