@@ -539,8 +539,12 @@ export async function getAdminJobsSummary(): Promise<{
   // predicate (id!="") instead of an empty filter to avoid SDK empty-filter edge
   // cases, and `imported` is counted directly (never total-minus-manual, which
   // could render negative if the total query transiently failed).
+  // requestKey:null disables the PocketBase SDK's auto-cancellation. Without it,
+  // these 6 concurrent getList calls hit the SAME collection endpoint, share one
+  // auto-cancel key, and cancel each other — only the last resolves while the rest
+  // throw and fall through to 0 (the true cause of the "0 / -25" summary bug).
   const count = (filter: string) =>
-    pb.collection('jobs').getList(1, 1, { filter, fields: 'id' }).then((r) => r.totalItems).catch(() => 0);
+    pb.collection('jobs').getList(1, 1, { filter, fields: 'id', requestKey: null }).then((r) => r.totalItems).catch(() => 0);
   const [total, featured, active, expired, manual, imported] = await Promise.all([
     count('id!=""'),
     count('featured=true'),
