@@ -33,6 +33,17 @@ const {
 } = Astro.props;
 
 const siteDomain = `${SITE_NAME}.co.za`;
+
+// Canonical + og:url MUST be the production https origin. nginx proxies to the
+// Node app over http, so Astro.url.href is http:// — never emit that as canonical.
+// Rebuild from the configured SITE_URL origin, preserving path + query.
+const SITE_ORIGIN = (import.meta.env.SITE_URL || process.env.SITE_URL || 'https://edubuzz.co.za').replace(/\/+$/, '');
+let canonicalHref = `${SITE_ORIGIN}/`;
+try {
+  const u = new URL(canonicalUrl, SITE_ORIGIN);
+  canonicalHref = `${SITE_ORIGIN}${u.pathname}${u.search}`;
+} catch { /* keep origin root */ }
+
 const paginationHead = [
   prevPage ? `<link rel="prev" href="${prevPage}" />` : '',
   nextPage ? `<link rel="next" href="${nextPage}" />` : '',
@@ -63,11 +74,11 @@ if (showAdsenseScript) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | {siteDomain}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalUrl} />
+    <link rel="canonical" href={canonicalHref} />
     <meta property="og:title" content={ogTitle} />
     <meta property="og:description" content={ogDescription} />
     <meta property="og:type" content={ogType} />
-    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:url" content={canonicalHref} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
