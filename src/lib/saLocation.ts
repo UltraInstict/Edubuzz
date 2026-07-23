@@ -32,13 +32,38 @@ const NON_SA_COUNTRY = new Set([
 ]);
 
 // Non-SA cities/regions observed in the data (fast-path rejection).
+// NOTE: matched with includes(), so tokens must be long enough not to collide
+// with SA place names. SA city tokens are checked BEFORE this list (see
+// resolveSA) so SA cities that contain a foreign substring — e.g. "East London"
+// vs "London" — are correctly kept as South African.
 const NON_SA_CITY_TOKENS = [
+  // Africa (pan-African ATS leakage)
   'abuja', 'lagos', 'imo', 'ibadan', 'fct', 'accra', 'luanda', 'gaborone',
-  'windhoek', 'nairobi', 'kampala', 'dar es salaam', 'jakarta', 'kuala lumpur',
-  'banjul', 'blantyre', 'lilongwe', 'saint-helier', 'douglas', 'ekajuk',
-  'nigeria', 'ghana', 'kenya', 'uganda', 'tanzania', 'angola', 'botswana',
-  'namibia', 'malawi', 'zambia', 'mauritius', 'gambia', 'spain', 'jersey',
-  'isle of man',
+  'windhoek', 'nairobi', 'kampala', 'dar es salaam', 'banjul', 'blantyre',
+  'lilongwe', 'ekajuk', 'nigeria', 'ghana', 'kenya', 'uganda', 'tanzania',
+  'angola', 'botswana', 'namibia', 'malawi', 'zambia', 'zimbabwe', 'mauritius',
+  'gambia', 'mozambique', 'rwanda', 'ethiopia', 'senegal', 'cameroon',
+  // UK & Ireland
+  'london', 'manchester', 'birmingham', 'leeds', 'glasgow', 'edinburgh',
+  'bristol', 'liverpool', 'sheffield', 'cardiff', 'belfast', 'dublin',
+  'saint-helier', 'jersey', 'guernsey', 'isle of man', 'douglas',
+  // Europe
+  'utrecht', 'amsterdam', 'rotterdam', 'the hague', 'berlin', 'munich',
+  'frankfurt', 'hamburg', 'paris', 'madrid', 'barcelona', 'lisbon', 'porto',
+  'warsaw', 'krakow', 'prague', 'vienna', 'zurich', 'geneva', 'milan', 'rome',
+  'brussels', 'stockholm', 'copenhagen', 'oslo', 'helsinki', 'spain',
+  // Middle East
+  'dubai', 'abu dhabi', 'doha', 'riyadh', 'tel aviv', 'istanbul',
+  // Asia-Pacific
+  'jakarta', 'kuala lumpur', 'malaysia', 'singapore', 'hong kong', 'shanghai',
+  'beijing', 'shenzhen', 'mumbai', 'bengaluru', 'bangalore', 'new delhi',
+  'delhi', 'hyderabad', 'pune', 'chennai', 'gurgaon', 'gurugram', 'noida',
+  'manila', 'bangkok', 'ho chi minh', 'hanoi', 'tokyo', 'sydney', 'melbourne',
+  'brisbane', 'perth', 'auckland',
+  // Americas
+  'new york', 'san francisco', 'los angeles', 'chicago', 'boston', 'austin',
+  'seattle', 'denver', 'atlanta', 'toronto', 'vancouver', 'montreal',
+  'sao paulo', 'são paulo', 'buenos aires', 'mexico city', 'bogota',
 ];
 
 // Known SA cities (positive signal when province didn't parse).
@@ -76,22 +101,24 @@ export function resolveSA(input: SAInput): SAResult {
   // 1. Explicit non-SA country wins (strongest signal; e.g. SmartRecruiters 'ng').
   if (country && NON_SA_COUNTRY.has(country)) return { isSA: false, reason: `country=${country}` };
 
-  // 2. Explicit non-SA city/region token.
+  // 2. Canonical SA province is a strong positive signal.
+  if (SA_PROVINCES.has(province)) return { isSA: true, reason: `province=${province}` };
+
+  // 3. Known SA city / "south africa" text — checked BEFORE the foreign-city
+  //    list so SA cities that contain a foreign substring (e.g. "East London",
+  //    which contains "London") are correctly kept as South African.
+  for (const t of SA_CITY_TOKENS) {
+    if (cityLoc.includes(t)) return { isSA: true, reason: `city~${t}` };
+  }
+
+  // 4. Explicit non-SA city/region token.
   for (const t of NON_SA_CITY_TOKENS) {
     if (t === 'south africa') continue;
     if (cityLoc.includes(t)) return { isSA: false, reason: `city~${t}` };
   }
 
-  // 3. Canonical SA province.
-  if (SA_PROVINCES.has(province)) return { isSA: true, reason: `province=${province}` };
-
-  // 4. Explicit SA country.
+  // 5. Explicit SA country.
   if (country && SA_COUNTRY.has(country)) return { isSA: true, reason: 'country=za' };
-
-  // 5. Known SA city / "south africa" text.
-  for (const t of SA_CITY_TOKENS) {
-    if (cityLoc.includes(t)) return { isSA: true, reason: `city~${t}` };
-  }
 
   // 6. Uncertain → reject (never import international).
   return { isSA: false, reason: 'uncertain' };
