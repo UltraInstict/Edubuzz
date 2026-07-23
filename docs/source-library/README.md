@@ -12,6 +12,22 @@ professional services, SOEs, science councils, public entities, energy & mining,
 government, municipalities, universities (all 26 public) + TVET/DHET, healthcare/hospitals, logistics,
 and recruitment agencies (documented but excluded by policy).
 
+**v1.2 — 200+ sources** expanded coverage with:
+- 8 metropolitan municipalities (all 8 metros)
+- 5 provincial governments
+- 9 universities (individual portals)
+- 2 TVET college portals + DHET central portal
+- 8 SOEs (Eskom, Transnet, PRASA, SANRAL, Denel, SABC, DBSA, IDC)
+- 2 national government entities (SARS, SARB)
+- 4 hospitals/healthcare (Netcare, Life Healthcare, Mediclinic, NHLS)
+- 5 retailers (Shoprite, Woolworths, Pick n Pay, Clicks, Dis-Chem)
+- 6 mining companies (Anglo American, Sibanye, Gold Fields, Implats, Sasol, Exxaro)
+- 3 logistics companies (DSV, Imperial, Bidvest)
+- 2 telecom operators (Vodacom, MTN)
+- 3 hospitality/tourism (Tsogo Sun, Sun International, City Lodge, SA Tourism)
+- 3 NGOs (MSF SA, Gift of the Givers, SECTION27)
+- 3 engineering/construction (Murray & Roberts, WBHO, Raubex)
+
 ## Guiding policy
 - Official employer / government / institutional sources **only**. No third-party job boards.
 - Every job's **Apply URL must be the employer's own application page** (enforced in code: `job_board_apply` rejection).

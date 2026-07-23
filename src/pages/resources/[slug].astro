@@ -1,0 +1,156 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import MonetizationSlot from '../../components/MonetizationSlot.astro';
+import JobCard from '../../components/JobCard.astro';
+import { ARTICLES, RESOURCE_CATEGORIES } from '../../content/resources';
+import { getJobs } from '../../lib/pocketbase';
+import { SITE_URL } from '../../lib/constants';
+
+const { slug } = Astro.params;
+const article = ARTICLES.find(a => a.slug === slug);
+if (!article) return Astro.redirect('/404');
+
+const categoryMeta = RESOURCE_CATEGORIES.find(c => c.id === article.category);
+
+// Fetch related jobs if the article maps to a job category
+let relatedJobs: any[] = [];
+if (article.categorySlug) {
+  const result = await getJobs({ category: article.categorySlug, perPage: 5 });
+  relatedJobs = result.items;
+}
+
+// Related articles in same category
+const relatedArticles = ARTICLES.filter(a => a.category === article.category && a.slug !== article.slug).slice(0, 4);
+
+// Breadcrumb schema
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Resources', item: `${SITE_URL}/resources` },
+    { '@type': 'ListItem', position: 3, name: categoryMeta?.label || article.category, item: `${SITE_URL}/resources?category=${article.category}` },
+    { '@type': 'ListItem', position: 4, name: article.h1 },
+  ],
+};
+
+// Article schema
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: article.h1,
+  description: article.description,
+  dateModified: article.updated,
+  datePublished: article.updated,
+  author: { '@type': 'Organization', name: 'Edubuzz', url: SITE_URL },
+  publisher: { '@type': 'Organization', name: 'Edubuzz', url: SITE_URL },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/resources/${article.slug}` },
+};
+
+// FAQ schema
+const faqSchema = article.faqs?.length ? {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: article.faqs.map(f => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+} : null;
+---
+
+<Layout
+  title={article.title}
+  description={article.description}
+  canonicalUrl={`${SITE_URL}/resources/${article.slug}`}
+  ogType="article"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} slot="head" />
+  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} slot="head" />
+  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />}
+
+  <div class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+    <main>
+      <!-- Breadcrumbs -->
+      <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
+        <a href="/" class="hover:text-gray-900">Home</a> &rsaquo;
+        <a href="/resources" class="hover:text-gray-900">Resources</a> &rsaquo;
+        <a href={`/resources?category=${article.category}`} class="hover:text-gray-900">{categoryMeta?.label}</a> &rsaquo;
+        <span class="text-gray-900 font-medium">{article.h1}</span>
+      </nav>
+
+      <!-- Article header -->
+      <header class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">{article.h1}</h1>
+        <div class="flex items-center gap-3 text-xs text-gray-500">
+          <span>Updated {article.updated}</span>
+          <span>&middot;</span>
+          <span>{article.readMins} min read</span>
+          <span>&middot;</span>
+          <a href={`/resources?category=${article.category}`} class="text-green-800 hover:underline">{categoryMeta?.label}</a>
+        </div>
+      </header>
+
+      <!-- Ad slot below title -->
+      <MonetizationSlot zone="content-top" />
+
+      <!-- Intro -->
+      <p class="text-gray-700 text-base leading-relaxed mb-6">{article.intro}</p>
+
+      <!-- Article body -->
+      <article class="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-green-800 prose-li:text-gray-700 mb-8" set:html={article.body} />
+
+      <!-- In-content ad for long articles -->
+      {article.readMins >= 7 && <MonetizationSlot zone="in-content" />}
+
+      <!-- FAQs -->
+      {article.faqs && article.faqs.length > 0 && (
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
+          <div class="space-y-4">
+            {article.faqs.map(faq => (
+              <details class="border border-gray-200 rounded-md p-4 group">
+                <summary class="font-medium text-sm text-gray-900 cursor-pointer group-open:mb-2">{faq.q}</summary>
+                <p class="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Related jobs -->
+      {relatedJobs.length > 0 && (
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Related Job Openings</h2>
+          <div class="space-y-3">
+            {relatedJobs.map(job => <JobCard job={job} />)}
+          </div>
+          <a href={`/category/${article.categorySlug}`} class="inline-block mt-3 text-sm text-green-800 hover:underline font-medium">View all {article.categorySlug} jobs &rarr;</a>
+        </section>
+      )}
+
+      <!-- Related articles -->
+      {relatedArticles.length > 0 && (
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">More in {categoryMeta?.label}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {relatedArticles.map(ra => (
+              <a href={`/resources/${ra.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors">
+                <h3 class="text-sm font-semibold text-gray-900 mb-1">{ra.h1}</h3>
+                <p class="text-xs text-gray-500">{ra.readMins} min read</p>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- End-of-article ad -->
+      <MonetizationSlot zone="content-bottom" />
+    </main>
+
+    <aside class="hidden lg:block">
+      <Sidebar category={article.categorySlug} />
+    </aside>
+  </div>
+</Layout>

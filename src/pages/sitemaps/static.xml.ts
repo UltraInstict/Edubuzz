@@ -15,6 +15,7 @@ export const GET: APIRoute = async ({ site }) => {
     { loc: `${base}/about`, priority: '0.5', changefreq: 'monthly' },
     { loc: `${base}/advertise`, priority: '0.5', changefreq: 'monthly' },
     { loc: `${base}/resources`, priority: '0.5', changefreq: 'monthly' },
+    { loc: `${base}/salary`, priority: '0.7', changefreq: 'weekly' },
     { loc: `${base}/pricing`, priority: '0.5', changefreq: 'monthly' },
     { loc: `${base}/privacy`, priority: '0.3', changefreq: 'yearly' },
     { loc: `${base}/terms`, priority: '0.3', changefreq: 'yearly' },

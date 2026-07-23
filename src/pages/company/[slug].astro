@@ -91,6 +91,30 @@ const totalPages = result.totalPages;
         />
       )}
     </section>
+
+    <!-- Internal linking: Career resources -->
+    <section class="panel internal-links">
+      <h3>Career Resources</h3>
+      <div class="link-grid">
+        <a href="/resources/cv-writing-guide-south-africa">CV Writing Guide</a>
+        <a href="/resources/common-interview-questions-and-answers">Interview Questions</a>
+        <a href="/resources/cover-letter-guide-south-africa">Cover Letter Guide</a>
+        <a href="/salary">Salary Guides</a>
+        <a href="/resources">All Resources</a>
+      </div>
+    </section>
+
+    <!-- Internal linking: Browse more -->
+    <section class="panel internal-links">
+      <h3>Explore More</h3>
+      <div class="link-grid">
+        <a href="/companies">All Companies</a>
+        <a href="/categories">Job Categories</a>
+        <a href="/provinces">Jobs by Province</a>
+        <a href="/learnerships">Learnerships</a>
+        <a href="/internships">Internships</a>
+      </div>
+    </section>
   </main>
 </Layout>
 
@@ -109,6 +133,10 @@ const totalPages = result.totalPages;
   .pagination { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
   .pagination a { border: 1px solid #e5e7eb; background: #fff; border-radius: 4px; padding: 5px 10px; font-size: 12px; color: #374151; }
   .pagination a.active { background: #166534; color: #fff; border-color: #166534; }
+  .internal-links h3 { font-size: 14px; font-weight: 600; color: #111827; margin: 0 0 8px; }
+  .link-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .link-grid a { font-size: 12px; color: #166534; border: 1px solid #e5e7eb; border-radius: 4px; padding: 4px 10px; }
+  .link-grid a:hover { border-color: #166534; background: #f0fdf4; }
   @media (max-width: 640px) {
     .header-card { flex-direction: column; align-items: flex-start; }
     .company-page { padding: 0 1rem; }

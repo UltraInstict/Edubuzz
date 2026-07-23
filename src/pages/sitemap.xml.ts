@@ -11,6 +11,7 @@ export const GET: APIRoute = async ({ site }) => {
     `${base}/sitemaps/provinces.xml`,
     `${base}/sitemaps/companies.xml`,
     `${base}/sitemaps/pseo.xml`,
+    `${base}/sitemaps/resources.xml`,
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
