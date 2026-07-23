@@ -420,4 +420,463 @@ export const SALARY_GUIDES: SalaryGuide[] = [
       { q: 'Which admin skills are most in demand?', a: 'Advanced Excel, SAP, bookkeeping, minute-taking, and proficiency in multiple South African languages are consistently in demand across both government and private sector admin roles.' },
     ],
   },
+  {
+    slug: 'traffic-officer-salary-south-africa',
+    title: 'Traffic Officer Salary in South Africa (2026) — Pay & Requirements',
+    h1: 'Traffic Officer Salary in South Africa',
+    description: 'What do traffic officers earn in South Africa? Salary ranges, the traffic officer training requirements, career path and where to find metro police and traffic jobs.',
+    occupation: 'Traffic Officer',
+    updated: '2026-07-01',
+    categorySlug: 'government',
+    averageSalary: 'R16,000 – R26,000 per month',
+    salaryRange: 'R12,000 – R38,000 per month',
+    entryLevel: 'R12,000 – R16,000 per month (Trainee / Junior)',
+    midLevel: 'R17,000 – R26,000 per month (Traffic Officer)',
+    seniorLevel: 'R27,000 – R38,000 per month (Senior / Supervisor / Chief)',
+    intro: 'Traffic officers keep South Africa\u2019s roads safe and enforce the National Road Traffic Act. It is a stable government career with structured pay, benefits and clear progression through the metro police and provincial traffic departments.',
+    body: `
+<h2>How traffic officer pay works</h2>
+<p>Traffic officers are employed by municipalities (metro police departments) and provincial traffic authorities. Pay follows the relevant government salary scales, with allowances for shift work, danger and overtime added to the base salary. Metro police officers in the big cities generally sit at the higher end.</p>
+
+<h2>Who employs traffic officers</h2>
+<ul>
+  <li><strong>Metro police departments</strong> — Johannesburg (JMPD), Cape Town, Tshwane, eThekwini and Ekurhuleni.</li>
+  <li><strong>Provincial traffic departments</strong> — each province runs its own traffic law enforcement.</li>
+  <li><strong>Municipal traffic units</strong> — smaller towns and district municipalities.</li>
+</ul>
+
+<h2>Allowances and benefits</h2>
+<p>On top of the base salary, traffic officers typically receive a government pension, medical aid subsidy, housing allowance, uniform allowance, and shift or standby allowances. These push the total package well above the base figure.</p>
+`,
+    careerPath: `
+<ul>
+  <li><strong>Trainee Traffic Officer</strong> — complete the Basic Traffic Officer\u2019s Diploma.</li>
+  <li><strong>Traffic Officer</strong> — operational road law enforcement.</li>
+  <li><strong>Senior Traffic Officer</strong> — more experience, higher notch.</li>
+  <li><strong>Traffic Supervisor / Inspector</strong> — team leadership.</li>
+  <li><strong>Chief Traffic Officer</strong> — department management.</li>
+</ul>
+`,
+    requirements: `
+<ul>
+  <li>South African citizenship.</li>
+  <li>Matric (Grade 12).</li>
+  <li>A valid Code B (or higher) driver\u2019s licence.</li>
+  <li>No criminal record.</li>
+  <li>Physically fit (fitness test).</li>
+  <li>Completion of the accredited Basic Traffic Officer\u2019s Diploma (about 12 months at a registered traffic college).</li>
+</ul>
+`,
+    faqs: [
+      { q: 'What is the starting salary for a traffic officer in South Africa?', a: 'A newly qualified traffic officer typically earns between R12,000 and R16,000 per month in base salary, plus allowances for shifts, danger and overtime that increase the total package.' },
+      { q: 'How do I become a traffic officer?', a: 'You need matric, a valid driver\u2019s licence and a clear criminal record, then you must complete the accredited Basic Traffic Officer\u2019s Diploma at a registered traffic training college, which takes about a year.' },
+      { q: 'Is a traffic officer a government job?', a: 'Yes. Traffic officers are employed by municipalities and provincial governments, so they receive government benefits including pension, medical aid subsidy and job security.' },
+    ],
+  },
+  {
+    slug: 'receptionist-salary-south-africa',
+    title: 'Receptionist Salary in South Africa (2026) — Front Office Pay Guide',
+    h1: 'Receptionist Salary in South Africa',
+    description: 'What do receptionists earn in South Africa? Average front-desk salaries, skills that increase pay, career path into office management and where to find jobs.',
+    occupation: 'Receptionist',
+    updated: '2026-07-01',
+    categorySlug: 'general',
+    averageSalary: 'R8,000 – R14,000 per month',
+    salaryRange: 'R6,500 – R20,000 per month',
+    entryLevel: 'R6,500 – R9,000 per month',
+    midLevel: 'R10,000 – R15,000 per month',
+    seniorLevel: 'R16,000 – R20,000 per month (Senior / Front Office Manager)',
+    intro: 'Receptionists are the first face of any organisation. It is a popular entry point into office work across South Africa, with clear paths into administration, HR and office management for those who build their skills.',
+    body: `
+<h2>What affects a receptionist\u2019s salary</h2>
+<ul>
+  <li><strong>Industry</strong> — corporate, medical, legal and hospitality reception roles pay differently.</li>
+  <li><strong>Company size</strong> — larger firms and head offices pay more.</li>
+  <li><strong>Location</strong> — Johannesburg and Cape Town rates are higher than smaller towns.</li>
+  <li><strong>Extra duties</strong> — switchboard, bookings, invoicing and admin add value and pay.</li>
+</ul>
+
+<h2>Skills that boost your pay</h2>
+<p>Strong computer skills (MS Office), a professional telephone manner, bilingualism, and experience with booking or practice-management systems all help you earn at the top of the range. Medical and legal receptionists who know the relevant systems are especially in demand.</p>
+`,
+    careerPath: `
+<ul>
+  <li><strong>Receptionist</strong> — front desk and switchboard.</li>
+  <li><strong>Senior Receptionist / Front Office Coordinator</strong> — manage the front-of-house.</li>
+  <li><strong>Administrator / Office Assistant</strong> — broader admin duties.</li>
+  <li><strong>Personal Assistant</strong> — support executives.</li>
+  <li><strong>Office Manager</strong> — run the whole office.</li>
+</ul>
+`,
+    requirements: `
+<ul>
+  <li>Matric (Grade 12).</li>
+  <li>Computer literacy (email, MS Office).</li>
+  <li>A friendly, professional manner.</li>
+  <li>Good spoken English; additional languages are an advantage.</li>
+  <li>A short reception or office administration course helps but is not essential.</li>
+</ul>
+`,
+    faqs: [
+      { q: 'What is the average receptionist salary in South Africa?', a: 'Most receptionists earn between R8,000 and R14,000 per month. Medical, legal and corporate head-office receptionists with specialised system skills can earn more.' },
+      { q: 'Do you need qualifications to be a receptionist?', a: 'Matric and good computer and communication skills are usually enough for an entry-level role. A short office administration or reception course can help you stand out.' },
+      { q: 'Can a receptionist become an office manager?', a: 'Yes. Reception is a common starting point. By taking on admin duties and building experience, many receptionists progress to PA, administrator and office manager roles.' },
+    ],
+  },
+  {
+    slug: 'engineer-salary-south-africa',
+    title: 'Engineer Salary in South Africa (2026) — By Discipline & Experience',
+    h1: 'Engineer Salary in South Africa',
+    description: 'What do engineers earn in South Africa? Salary ranges for civil, mechanical, electrical and mining engineers, the ECSA registration path, and where the jobs are.',
+    occupation: 'Engineer',
+    updated: '2026-07-01',
+    categorySlug: 'engineering',
+    averageSalary: 'R35,000 – R70,000 per month',
+    salaryRange: 'R25,000 – R120,000+ per month',
+    entryLevel: 'R25,000 – R38,000 per month (Graduate / Candidate Engineer)',
+    midLevel: 'R40,000 – R70,000 per month (Registered Professional Engineer)',
+    seniorLevel: 'R75,000 – R120,000+ per month (Principal / Engineering Manager)',
+    intro: 'Engineering is one of the highest-paying professions in South Africa, and registered professional engineers are on the scarce-skills list. Pay varies by discipline, sector and whether you are ECSA-registered.',
+    body: `
+<h2>Salary by discipline</h2>
+<ul>
+  <li><strong>Mining &amp; metallurgical</strong> — among the highest paid, especially on-site.</li>
+  <li><strong>Electrical &amp; electronic</strong> — strong demand in energy and manufacturing.</li>
+  <li><strong>Mechanical</strong> — broad demand across industry.</li>
+  <li><strong>Civil &amp; structural</strong> — infrastructure, construction and consulting.</li>
+  <li><strong>Chemical &amp; process</strong> — petrochemical, mining and manufacturing.</li>
+</ul>
+
+<h2>The ECSA registration effect</h2>
+<p>Registering with the Engineering Council of South Africa (ECSA) as a Professional Engineer (Pr Eng) or Professional Engineering Technologist significantly increases earning power. It usually requires a recognised degree plus about three years of supervised experience and a competency review.</p>
+
+<h2>Consulting vs industry</h2>
+<p>Consulting engineers who take on professional liability and sign off designs can charge premium rates, while in-house industry roles offer stability and benefits. On-site mining and construction roles often add living-out and site allowances.</p>
+`,
+    careerPath: `
+<ul>
+  <li><strong>Graduate / Candidate Engineer</strong> — degree plus in-training experience.</li>
+  <li><strong>Professional Engineer (Pr Eng)</strong> — ECSA-registered after ~3 years.</li>
+  <li><strong>Senior Engineer</strong> — leads projects and mentors juniors.</li>
+  <li><strong>Principal Engineer / Technical Lead</strong> — deep specialist authority.</li>
+  <li><strong>Engineering Manager / Director</strong> — leads teams and business units.</li>
+</ul>
+`,
+    requirements: `
+<ul>
+  <li>A recognised BEng / BSc Eng or BTech / Advanced Diploma in engineering.</li>
+  <li>ECSA registration for professional roles (Pr Eng, Pr Tech Eng).</li>
+  <li>Matric with strong Mathematics and Physical Science to enter the degree.</li>
+  <li>Continuing professional development (CPD) to maintain registration.</li>
+</ul>
+`,
+    faqs: [
+      { q: 'Which engineering discipline pays the most in South Africa?', a: 'Mining, metallurgical and chemical engineering tend to pay the most, especially on-site, followed by electrical and mechanical. Actual pay depends on sector, experience and ECSA registration.' },
+      { q: 'Do I need to register with ECSA?', a: 'You can work as a graduate or candidate engineer without registration, but registering with ECSA as a Professional Engineer significantly increases your salary and lets you sign off designs.' },
+      { q: 'How long does it take to become a professional engineer?', a: 'After a four-year engineering degree, you typically need around three years of supervised practical experience before you can apply for ECSA professional registration.' },
+    ],
+  },
+  {
+    slug: 'plumber-salary-south-africa',
+    title: 'Plumber Salary in South Africa (2026) — Qualified Artisan Pay',
+    h1: 'Plumber Salary in South Africa',
+    description: 'What do plumbers earn in South Africa? Salary ranges for apprentices and qualified plumbers, self-employment income, PIRB registration and where to find work.',
+    occupation: 'Plumber',
+    updated: '2026-07-01',
+    categorySlug: 'engineering',
+    averageSalary: 'R14,000 – R28,000 per month',
+    salaryRange: 'R9,000 – R45,000 per month',
+    entryLevel: 'R9,000 – R14,000 per month (Apprentice / Assistant)',
+    midLevel: 'R15,000 – R28,000 per month (Qualified Plumber)',
+    seniorLevel: 'R29,000 – R45,000 per month (Master Plumber / Contractor)',
+    intro: 'Plumbing is a sought-after trade in South Africa with strong demand and excellent self-employment potential. Qualified, PIRB-registered plumbers who issue Certificates of Compliance can earn well above a standard salary.',
+    body: `
+<h2>Employed vs self-employed</h2>
+<p>Employed plumbers earn a monthly salary, often set by the bargaining council for the sector. Self-employed plumbers charge per job or per hour (commonly R350–R650+ per hour for domestic call-outs), and established plumbing businesses can earn considerably more.</p>
+
+<h2>What increases a plumber\u2019s income</h2>
+<ul>
+  <li><strong>PIRB registration</strong> — allows you to issue Certificates of Compliance (CoCs).</li>
+  <li><strong>Gas installation qualification</strong> — LPG work is in high demand.</li>
+  <li><strong>Solar geyser and heat-pump skills</strong> — growing market.</li>
+  <li><strong>Running your own business</strong> — the biggest earnings lever.</li>
+</ul>
+`,
+    careerPath: `
+<ul>
+  <li><strong>Plumbing Assistant / Apprentice</strong> — learn on the job plus TVET N-courses.</li>
+  <li><strong>Qualified Plumber</strong> — pass the trade test.</li>
+  <li><strong>PIRB-Registered Plumber</strong> — issue CoCs.</li>
+  <li><strong>Master Plumber / Contractor</strong> — run your own business.</li>
+</ul>
+`,
+    requirements: `
+<ul>
+  <li>Matric or N2 with relevant subjects (Maths, Engineering Science).</li>
+  <li>A plumbing apprenticeship and a passed trade test.</li>
+  <li>Registration with the Plumbing Industry Registration Board (PIRB) to issue CoCs.</li>
+  <li>A driver\u2019s licence is a strong advantage for call-out work.</li>
+</ul>
+`,
+    faqs: [
+      { q: 'How much does a qualified plumber earn in South Africa?', a: 'An employed qualified plumber typically earns R15,000 to R28,000 per month. Self-employed and PIRB-registered plumbers who run their own businesses can earn considerably more.' },
+      { q: 'How do I become a qualified plumber?', a: 'Complete a plumbing apprenticeship combining TVET N-courses with workplace training, then pass the trade test. Register with the PIRB to issue Certificates of Compliance.' },
+      { q: 'Is plumbing a good career in South Africa?', a: 'Yes. Plumbing is on the scarce-skills list, demand is consistent, and the self-employment potential is strong, especially with gas and solar geyser skills.' },
+    ],
+  },
+  {
+    slug: 'welder-salary-south-africa',
+    title: 'Welder Salary in South Africa (2026) — Coded Welder Pay Guide',
+    h1: 'Welder Salary in South Africa',
+    description: 'What do welders earn in South Africa? Salary ranges for general and coded welders, the highest-paying certifications, and where to find welding jobs.',
+    occupation: 'Welder',
+    updated: '2026-07-01',
+    categorySlug: 'engineering',
+    averageSalary: 'R12,000 – R28,000 per month',
+    salaryRange: 'R8,000 – R55,000 per month',
+    entryLevel: 'R8,000 – R13,000 per month (General Welder)',
+    midLevel: 'R14,000 – R28,000 per month (Qualified / Coded Welder)',
+    seniorLevel: 'R30,000 – R55,000 per month (Coded Welder — pressure/pipe, mining, offshore)',
+    intro: 'Welding is a practical trade with a wide pay range in South Africa. General welders earn modest wages, but coded welders who pass strict weld tests for pressure vessels, pipelines and structural work are highly paid and in demand.',
+    body: `
+<h2>Why coding matters so much</h2>
+<p>The biggest factor in a welder\u2019s pay is coding — passing certified weld tests to recognised standards (for example ASME or ISO) for specific processes and positions. Coded welders in petrochemical, mining and power-generation environments earn far more than general fabrication welders.</p>
+
+<h2>High-paying welding sectors</h2>
+<ul>
+  <li><strong>Petrochemical &amp; refineries</strong> — Sasol, refineries, shutdown work.</li>
+  <li><strong>Power generation</strong> — Eskom stations and boiler work.</li>
+  <li><strong>Mining</strong> — structural and plant maintenance.</li>
+  <li><strong>Pipeline &amp; pressure vessel</strong> — coded pipe welding.</li>
+</ul>
+
+<h2>Processes and pay</h2>
+<p>Specialising in TIG and coded pipe welding generally pays more than basic MIG or arc welding. Shutdown and contract work can pay premium day rates but is less stable than permanent employment.</p>
+`,
+    careerPath: `
+<ul>
+  <li><strong>General / Production Welder</strong> — basic MIG/arc welding.</li>
+  <li><strong>Qualified Welder</strong> — trade-tested.</li>
+  <li><strong>Coded Welder</strong> — passed certified weld tests (pressure/pipe).</li>
+  <li><strong>Welding Inspector / Supervisor</strong> — QA and team leadership.</li>
+</ul>
+`,
+    requirements: `
+<ul>
+  <li>Grade 10–12 or N-level with technical subjects.</li>
+  <li>A welding qualification from a TVET college or training centre.</li>
+  <li>Weld coding certificates for higher-paid work.</li>
+  <li>Knowledge of safety standards and PPE use.</li>
+</ul>
+`,
+    faqs: [
+      { q: 'How much does a coded welder earn in South Africa?', a: 'Coded welders in petrochemical, mining and power-generation work can earn from R30,000 to over R55,000 per month, well above general production welders who earn R8,000 to R13,000.' },
+      { q: 'What is a coded welder?', a: 'A coded welder has passed certified weld tests to a recognised standard for a specific process and position, qualifying them for high-integrity work like pressure vessels and pipelines.' },
+      { q: 'How do I increase my welding salary?', a: 'Get coded in TIG and pipe welding, gain experience in petrochemical or power-generation environments, and consider shutdown contract work which pays premium rates.' },
+    ],
+  },
+  {
+    slug: 'call-centre-agent-salary-south-africa',
+    title: 'Call Centre Agent Salary in South Africa (2026) — Pay & Growth',
+    h1: 'Call Centre Agent Salary in South Africa',
+    description: 'What do call centre agents earn in South Africa? Salary ranges for inbound, outbound and international BPO agents, commission, and career progression.',
+    occupation: 'Call Centre Agent',
+    updated: '2026-07-01',
+    categorySlug: 'general',
+    averageSalary: 'R7,000 – R14,000 per month',
+    salaryRange: 'R5,500 – R22,000 per month',
+    entryLevel: 'R5,500 – R8,000 per month (Junior / Inbound)',
+    midLevel: 'R9,000 – R14,000 per month (Experienced / International BPO)',
+    seniorLevel: 'R15,000 – R22,000 per month (Team Leader / QA)',
+    intro: 'South Africa is a major global call centre and BPO hub, especially Cape Town and Johannesburg. Agent pay varies widely between local campaigns and international outsourcing, where salaries and incentives are higher.',
+    body: `
+<h2>Local vs international campaigns</h2>
+<p>Agents on local South African campaigns typically earn at the lower end, while those on international (UK, US, Australia) BPO campaigns earn more, often with attractive commission and performance incentives on top of the basic salary.</p>
+
+<h2>What increases earnings</h2>
+<ul>
+  <li><strong>Sales campaigns</strong> — commission can double a basic salary for strong performers.</li>
+  <li><strong>International accounts</strong> — higher base pay plus night-shift allowances.</li>
+  <li><strong>Specialised support</strong> — technical or financial support pays more.</li>
+  <li><strong>Bilingual skills</strong> — Afrikaans and other languages add value.</li>
+</ul>
+`,
+    careerPath: `
+<ul>
+  <li><strong>Call Centre Agent</strong> — inbound or outbound.</li>
+  <li><strong>Senior Agent / Subject Matter Expert</strong> — handle escalations.</li>
+  <li><strong>Team Leader</strong> — manage a team of agents.</li>
+  <li><strong>Quality Assurance / Trainer</strong> — coach and monitor.</li>
+  <li><strong>Operations Manager</strong> — run the contact centre.</li>
+</ul>
+`,
+    requirements: `
+<ul>
+  <li>Matric (Grade 12).</li>
+  <li>Clear spoken English; a neutral accent helps for international campaigns.</li>
+  <li>Basic computer skills.</li>
+  <li>Good communication and patience.</li>
+  <li>Willingness to work shifts, including night shifts for international accounts.</li>
+</ul>
+`,
+    faqs: [
+      { q: 'How much do call centre agents earn in South Africa?', a: 'Most agents earn between R7,000 and R14,000 per month. International BPO campaigns and sales roles with commission can pay significantly more for strong performers.' },
+      { q: 'Do call centre agents earn commission?', a: 'On sales and some retention campaigns, yes. Commission and performance incentives can substantially increase a strong agent\u2019s take-home pay above the basic salary.' },
+      { q: 'Is a call centre a good first job?', a: 'Yes. It only requires matric and good communication, offers structured training, and provides a clear path to team leader, QA and management roles.' },
+    ],
+  },
+  {
+    slug: 'security-guard-salary-south-africa',
+    title: 'Security Guard Salary in South Africa (2026) — PSIRA Grades & Pay',
+    h1: 'Security Guard Salary in South Africa',
+    description: 'What do security guards earn in South Africa? PSIRA grades A to E, minimum wages by area, armed response pay, and how to register and find security jobs.',
+    occupation: 'Security Guard',
+    updated: '2026-07-01',
+    categorySlug: 'general',
+    averageSalary: 'R5,500 – R9,500 per month',
+    salaryRange: 'R4,500 – R18,000 per month',
+    entryLevel: 'R4,500 – R6,500 per month (Grade E/D)',
+    midLevel: 'R7,000 – R10,000 per month (Grade C/B)',
+    seniorLevel: 'R11,000 – R18,000 per month (Grade A / Armed Response / Supervisor)',
+    intro: 'Private security is one of the largest employers in South Africa. Pay is governed by PSIRA grades and a sectoral minimum wage, with armed response, specialised and supervisory roles earning the most.',
+    body: `
+<h2>PSIRA grades explained</h2>
+<p>The Private Security Industry Regulatory Authority (PSIRA) grades officers from E (entry) up to A (most senior). Higher grades unlock better-paid roles. Your grade, the area you work in, and whether the post is armed all affect your wage, which is set by a sectoral determination.</p>
+
+<h2>Higher-paying security roles</h2>
+<ul>
+  <li><strong>Armed response officers</strong> — require a firearm competency certificate.</li>
+  <li><strong>Cash-in-transit</strong> — higher risk, higher pay.</li>
+  <li><strong>Close protection (bodyguard)</strong> — specialised training, premium rates.</li>
+  <li><strong>Control room operators</strong> — CCTV and alarm monitoring.</li>
+</ul>
+`,
+    careerPath: `
+<ul>
+  <li><strong>Grade E/D Officer</strong> — entry-level guarding.</li>
+  <li><strong>Grade C/B Officer</strong> — access control, patrolling.</li>
+  <li><strong>Grade A Officer / Armed Response</strong> — senior, armed posts.</li>
+  <li><strong>Site Supervisor</strong> — manage a team on site.</li>
+  <li><strong>Security Manager</strong> — oversee contracts and operations.</li>
+</ul>
+`,
+    requirements: `
+<ul>
+  <li>Matric is preferred; some grades accept lower.</li>
+  <li>PSIRA registration and grading (E through A).</li>
+  <li>A clear criminal record.</li>
+  <li>Physical fitness.</li>
+  <li>A firearm competency certificate for armed posts.</li>
+</ul>
+`,
+    faqs: [
+      { q: 'What is the minimum wage for security guards in South Africa?', a: 'Security wages are set by a sectoral determination based on PSIRA grade and area. Entry grades in metro areas start around R4,500 to R6,500 per month, with higher grades and armed posts paying more.' },
+      { q: 'What are PSIRA grades?', a: 'PSIRA grades range from E (entry-level) to A (most senior). Higher grades qualify you for better-paid roles such as supervision, armed response and specialised security.' },
+      { q: 'How do I become a security guard?', a: 'Complete accredited security training, register and get graded with PSIRA, and ensure you have a clear criminal record. Armed posts also require a firearm competency certificate.' },
+    ],
+  },
+  {
+    slug: 'warehouse-worker-salary-south-africa',
+    title: 'Warehouse Worker Salary in South Africa (2026) — Pay & Progression',
+    h1: 'Warehouse Worker Salary in South Africa',
+    description: 'What do warehouse workers earn in South Africa? Pay for pickers, packers and forklift drivers, overtime, and how to move up in logistics and distribution.',
+    occupation: 'Warehouse Worker',
+    updated: '2026-07-01',
+    categorySlug: 'logistics',
+    averageSalary: 'R6,000 – R11,000 per month',
+    salaryRange: 'R4,800 – R16,000 per month',
+    entryLevel: 'R4,800 – R6,500 per month (Picker / Packer / General)',
+    midLevel: 'R7,000 – R11,000 per month (Forklift Driver / Storeman)',
+    seniorLevel: 'R12,000 – R16,000 per month (Team Leader / Warehouse Supervisor)',
+    intro: 'Warehouse and distribution roles are in constant demand as e-commerce and retail logistics grow in South Africa. A forklift licence is one of the fastest ways to lift your pay above the entry level.',
+    body: `
+<h2>Roles and pay</h2>
+<ul>
+  <li><strong>Picker / Packer / General Worker</strong> — entry-level, minimum-wage range.</li>
+  <li><strong>Forklift Driver</strong> — a valid forklift licence adds a clear premium.</li>
+  <li><strong>Storeman / Stock Controller</strong> — responsible for inventory accuracy.</li>
+  <li><strong>Dispatch Clerk</strong> — manages outgoing orders.</li>
+</ul>
+
+<h2>How to earn more</h2>
+<p>Getting a forklift or reach-truck licence is the single most effective step. Learning warehouse management systems (WMS), scanning and stock control, and reliability with overtime and shifts all help you progress to storeman, controller and supervisor roles.</p>
+`,
+    careerPath: `
+<ul>
+  <li><strong>General Warehouse Worker</strong> — picking, packing, loading.</li>
+  <li><strong>Forklift Driver</strong> — licensed machine operation.</li>
+  <li><strong>Storeman / Stock Controller</strong> — inventory management.</li>
+  <li><strong>Team Leader / Supervisor</strong> — manage a shift or section.</li>
+  <li><strong>Warehouse Manager</strong> — run the facility.</li>
+</ul>
+`,
+    requirements: `
+<ul>
+  <li>Matric is preferred but not always required for entry roles.</li>
+  <li>Physical fitness for manual handling.</li>
+  <li>A forklift licence for driver roles (a big advantage).</li>
+  <li>Basic numeracy and attention to detail.</li>
+  <li>Willingness to work shifts and overtime.</li>
+</ul>
+`,
+    faqs: [
+      { q: 'How much does a warehouse worker earn in South Africa?', a: 'Entry-level pickers and packers earn around R4,800 to R6,500 per month. Forklift drivers and storemen earn more, and supervisors can reach R12,000 to R16,000.' },
+      { q: 'Does a forklift licence increase my pay?', a: 'Yes. A valid forklift or reach-truck licence is one of the quickest ways to move above the general-worker wage and into a better-paid, more secure role.' },
+      { q: 'How do I get a warehouse job with no experience?', a: 'Many warehouses hire general workers with matric and a willingness to learn. Getting a forklift licence and gaining reliable experience quickly opens better-paid roles.' },
+    ],
+  },
+  {
+    slug: 'driver-salary-south-africa',
+    title: 'Driver Salary in South Africa (2026) — Code 10 & Code 14 Pay',
+    h1: 'Driver Salary in South Africa',
+    description: 'What do drivers earn in South Africa? Pay for Code 8, 10 and 14 drivers, delivery and truck drivers, PrDP requirements, and where to find driving jobs.',
+    occupation: 'Driver',
+    updated: '2026-07-01',
+    categorySlug: 'logistics',
+    averageSalary: 'R8,000 – R16,000 per month',
+    salaryRange: 'R6,000 – R28,000 per month',
+    entryLevel: 'R6,000 – R9,000 per month (Code 8 / Delivery)',
+    midLevel: 'R10,000 – R16,000 per month (Code 10 / Code 14)',
+    seniorLevel: 'R17,000 – R28,000 per month (Long-haul / Cross-border / Specialised)',
+    intro: 'Drivers keep South Africa\u2019s economy moving. Pay rises sharply with your licence code and Professional Driving Permit (PrDP), with long-haul and cross-border truck drivers earning the most.',
+    body: `
+<h2>Pay by licence code</h2>
+<ul>
+  <li><strong>Code 8 (B)</strong> — light delivery and courier roles, entry pay.</li>
+  <li><strong>Code 10 (C1)</strong> — medium trucks and larger delivery vehicles.</li>
+  <li><strong>Code 14 (EC)</strong> — articulated trucks and heavy haulage, highest pay.</li>
+</ul>
+
+<h2>What raises a driver\u2019s salary</h2>
+<ul>
+  <li><strong>A valid PrDP</strong> — required for goods and passengers.</li>
+  <li><strong>Dangerous goods (hazchem) endorsement</strong> — higher-paid loads.</li>
+  <li><strong>Long-haul and cross-border routes</strong> — trip allowances add up.</li>
+  <li><strong>A clean driving record</strong> — trusted with better routes and vehicles.</li>
+</ul>
+`,
+    careerPath: `
+<ul>
+  <li><strong>Code 8 Delivery Driver</strong> — light vehicles and couriers.</li>
+  <li><strong>Code 10 Driver</strong> — medium trucks.</li>
+  <li><strong>Code 14 Driver</strong> — heavy and articulated trucks.</li>
+  <li><strong>Long-haul / Cross-border Driver</strong> — premium routes.</li>
+  <li><strong>Fleet Controller / Transport Supervisor</strong> — off-road management.</li>
+</ul>
+`,
+    requirements: `
+<ul>
+  <li>A valid driver\u2019s licence for the relevant code (8, 10 or 14).</li>
+  <li>A Professional Driving Permit (PrDP).</li>
+  <li>A clean driving record.</li>
+  <li>Matric is preferred; a hazchem endorsement helps for specialised loads.</li>
+  <li>Knowledge of vehicle inspections and road safety.</li>
+</ul>
+`,
+    faqs: [
+      { q: 'How much does a Code 14 truck driver earn in South Africa?', a: 'Code 14 drivers typically earn R10,000 to R16,000 per month, and experienced long-haul or cross-border drivers can earn R17,000 to R28,000 including trip allowances.' },
+      { q: 'Do I need a PrDP to drive professionally?', a: 'Yes. A Professional Driving Permit is legally required to drive goods vehicles and passengers for reward, and most employers will not hire a professional driver without one.' },
+      { q: 'How can I earn more as a driver?', a: 'Upgrade your licence code to Code 14, get a PrDP and a dangerous-goods endorsement, keep a clean record, and move into long-haul or cross-border routes.' },
+    ],
+  },
 ];

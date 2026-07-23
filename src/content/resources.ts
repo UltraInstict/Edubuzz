@@ -516,4 +516,319 @@ export const ARTICLES: ResourceArticle[] = [
       { q: 'How do I get job alerts?', a: 'Set up alerts on job boards for your chosen role and province so new listings are sent to you. Applying early, within a day or two, improves your chances.' },
     ],
   },
+  {
+    slug: 'cv-templates-south-africa',
+    title: 'Free CV Templates for South Africa (2026) — Formats That Work',
+    h1: 'CV Templates for South Africa',
+    description: 'Choose the right CV template for South African job applications. Chronological, functional and combination formats explained, with what to include in each section.',
+    category: 'cv',
+    updated: '2026-07-01',
+    readMins: 7,
+    popular: true,
+    intro: 'The right CV template makes your experience easy to read and helps you get past applicant tracking systems. This guide explains the three main CV formats used in South Africa and when to use each one.',
+    body: `
+<h2>The three main CV formats</h2>
+<p>There is no single "correct" CV template, but there are three proven structures. Choose the one that best presents your situation.</p>
+
+<h3>1. Chronological CV (most common)</h3>
+<p>Lists your work experience from newest to oldest. This is the format most South African employers and recruiters expect, and it works best when you have a steady work history in one field.</p>
+<ul>
+  <li><strong>Best for:</strong> people with continuous, relevant experience.</li>
+  <li><strong>Leads with:</strong> your most recent job and achievements.</li>
+</ul>
+
+<h3>2. Functional (skills-based) CV</h3>
+<p>Focuses on your skills and abilities rather than a timeline. It groups your strengths together and plays down gaps or job changes.</p>
+<ul>
+  <li><strong>Best for:</strong> school leavers, career changers, or people with employment gaps.</li>
+  <li><strong>Leads with:</strong> a skills summary before a short work history.</li>
+</ul>
+
+<h3>3. Combination CV</h3>
+<p>Blends the two: a strong skills summary at the top, followed by a chronological work history. This is a flexible, modern choice.</p>
+
+<h2>What every South African CV template should include</h2>
+<ul>
+  <li>Full name and professional contact details (cellphone and email).</li>
+  <li>A short professional summary (three or four lines).</li>
+  <li>Work experience with achievements, not just duties.</li>
+  <li>Education and qualifications, starting with matric.</li>
+  <li>Key skills relevant to the role.</li>
+  <li>Two contactable references, or "available on request".</li>
+</ul>
+
+<h2>Formatting tips that beat the ATS</h2>
+<ul>
+  <li>Use a clean, single-column layout with standard headings.</li>
+  <li>Avoid tables, text boxes, logos and photos that scanners cannot read.</li>
+  <li>Use a common font like Arial or Calibri at 10–12pt.</li>
+  <li>Save and send as a PDF unless the advert asks for Word.</li>
+  <li>Name the file with your full name, for example "Thabo-Mokoena-CV.pdf".</li>
+</ul>
+
+<h2>How long should it be?</h2>
+<p>Two to three pages is standard in South Africa. Keep entry-level and student CVs to one or two pages, and only include experience relevant to the job you want.</p>
+
+<h2>Ready to apply?</h2>
+<p>Once your CV looks the part, put it to work. Browse the latest vacancies across every province and apply directly through the employer\u2019s official portal.</p>
+`,
+    faqs: [
+      { q: 'Which CV format is best in South Africa?', a: 'The chronological format is the most widely expected. If you have gaps or are changing careers, a functional or combination format lets you lead with your skills instead of your timeline.' },
+      { q: 'Should I use a fancy CV template with colours and graphics?', a: 'Keep it simple. Heavily designed templates with columns, icons and photos often confuse applicant tracking systems. A clean, single-column layout is safer and just as professional.' },
+      { q: 'What file format should I send my CV in?', a: 'Send a PDF unless the advert specifically asks for Word. PDFs keep your formatting intact across devices. Name the file with your full name so recruiters can find it easily.' },
+    ],
+  },
+  {
+    slug: 'graduate-cv-south-africa',
+    title: 'How to Write a Graduate CV in South Africa (2026)',
+    h1: 'Writing a Graduate CV',
+    description: 'A step-by-step guide to writing a graduate CV in South Africa. How to present your degree, internships, projects and skills to land your first professional role.',
+    category: 'cv',
+    updated: '2026-07-01',
+    readMins: 7,
+    intro: 'As a recent graduate you have knowledge and potential but limited work experience. A strong graduate CV puts your qualification, projects and transferable skills front and centre so employers can see what you offer.',
+    body: `
+<h2>Lead with a focused summary</h2>
+<p>Open with a short professional summary that states your qualification, your field of interest, and what you bring. For example: "Recent BCom Accounting graduate seeking a graduate trainee role, with strong analytical skills and completed SAICA-accredited modules."</p>
+
+<h2>Put education near the top</h2>
+<p>As a graduate, your qualification is a major selling point, so place it prominently:</p>
+<ul>
+  <li>Your degree or diploma, institution and year completed.</li>
+  <li>Relevant modules, your major, and academic results if they are strong.</li>
+  <li>Any distinctions, deans\u2019 list or awards.</li>
+  <li>Your matric and top subjects, especially if recent.</li>
+</ul>
+
+<h2>Make the most of limited experience</h2>
+<ul>
+  <li><strong>Internships and vac work</strong> — describe what you did and learned.</li>
+  <li><strong>Academic projects</strong> — final-year projects show applied skills.</li>
+  <li><strong>Part-time and holiday jobs</strong> — prove reliability and work ethic.</li>
+  <li><strong>Leadership and volunteering</strong> — societies, tutoring, community work.</li>
+</ul>
+
+<h2>Highlight the right skills</h2>
+<p>Employers hiring graduates look for potential and attitude. List both technical skills (software, methods, tools from your studies) and soft skills (communication, teamwork, problem-solving), and back them with quick examples.</p>
+
+<h2>Tailor for graduate programmes</h2>
+<p>Big graduate programmes at banks, auditing firms, SOEs and mining houses are competitive. Read each advert carefully, mirror its key requirements, and apply the moment applications open, because places fill fast.</p>
+
+<h2>Keep it clean and error-free</h2>
+<p>Keep your graduate CV to two pages, use a simple layout, and proofread carefully. A single spelling error can cost you an interview when competition is high.</p>
+
+<h2>Next step</h2>
+<p>With your graduate CV ready, browse current graduate programmes, internships and entry-level roles and apply directly to employers.</p>
+`,
+    faqs: [
+      { q: 'What should a graduate put on a CV with little experience?', a: 'Lead with your qualification, relevant modules and projects, plus any internships, vac work, part-time jobs, leadership and volunteering. Emphasise transferable skills and your willingness to learn.' },
+      { q: 'How long should a graduate CV be?', a: 'Two pages is ideal. Include your education, any experience, projects and skills relevant to the role, and leave out unrelated detail.' },
+      { q: 'When should I apply for graduate programmes in South Africa?', a: 'Many large graduate programmes open between March and July for the following year, though some run year-round. Apply as early as possible because they are highly competitive.' },
+    ],
+  },
+  {
+    slug: 'common-interview-mistakes-to-avoid',
+    title: 'Common Interview Mistakes to Avoid in South Africa (2026)',
+    h1: 'Interview Mistakes That Cost You the Job',
+    description: 'The most common job interview mistakes South Africans make, and exactly how to avoid them, from poor preparation to bad body language and weak questions.',
+    category: 'interview',
+    updated: '2026-07-01',
+    readMins: 6,
+    intro: 'You can have the right qualifications and still lose an interview through avoidable mistakes. Here are the errors that most often cost South African candidates the job, and how to fix each one.',
+    body: `
+<h2>1. Arriving late (or logging in late)</h2>
+<p>Lateness signals unreliability before you say a word. Plan your route and aim to arrive 10 to 15 minutes early. For a video interview, test your link, camera and sound the day before and log in five minutes early.</p>
+
+<h2>2. Not researching the company</h2>
+<p>"Why do you want to work here?" catches out unprepared candidates. Spend 20 minutes on the company website and recent news so you can speak specifically about them.</p>
+
+<h2>3. Rambling or memorising answers</h2>
+<p>Long, unfocused answers lose the interviewer. Prepare structured responses using the STAR method for behavioural questions, and keep answers to about two minutes.</p>
+
+<h2>4. Badmouthing a previous employer</h2>
+<p>Even if you left on bad terms, speak neutrally. Complaining about a past boss makes interviewers wonder how you will talk about them one day.</p>
+
+<h2>5. Weak body language</h2>
+<ul>
+  <li>Offer a firm handshake and make eye contact.</li>
+  <li>Sit up, avoid crossing your arms, and do not fidget with your phone.</li>
+  <li>Smile and show genuine interest.</li>
+</ul>
+
+<h2>6. Dressing wrong for the role</h2>
+<p>Dress one level above the everyday dress code of the job. Neat, clean and professional always beats casual. When in doubt, go more formal.</p>
+
+<h2>7. Having no questions to ask</h2>
+<p>When they ask "Do you have any questions?", always say yes. Prepare two, such as "What does success look like in the first six months?" It shows real interest.</p>
+
+<h2>8. Lying or exaggerating</h2>
+<p>Never inflate your experience or qualifications. Verification and reference checks are standard, and dishonesty ends applications and careers.</p>
+
+<h2>9. Forgetting to follow up</h2>
+<p>A short thank-you email within 24 hours keeps you front of mind and shows professionalism. Reaffirm your interest and mention one thing you enjoyed discussing.</p>
+
+<h2>Put it into practice</h2>
+<p>Avoid these mistakes and you will already be ahead of most candidates. When you are ready, browse current openings and apply directly to employers.</p>
+`,
+    faqs: [
+      { q: 'What is the biggest interview mistake?', a: 'Poor preparation is the most damaging. Not researching the company, having no questions ready, and giving unstructured answers all signal a lack of genuine interest and effort.' },
+      { q: 'Should I follow up after an interview?', a: 'Yes. Send a brief, polite thank-you email within 24 hours. It shows professionalism, keeps you front of mind, and lets you reaffirm your interest in the role.' },
+      { q: 'What should I do if I do not know the answer to a question?', a: 'Stay calm and honest. Take a moment to think, answer what you can, and if you truly do not know, say you would find out. Interviewers value honesty over bluffing.' },
+    ],
+  },
+  {
+    slug: 'salary-negotiation-guide-south-africa',
+    title: 'How to Negotiate Your Salary in South Africa (2026)',
+    h1: 'How to Negotiate Your Salary',
+    description: 'A practical salary negotiation guide for South Africans. When to raise pay, how to research your market value, and exactly what to say to get a better offer.',
+    category: 'interview',
+    updated: '2026-07-01',
+    readMins: 7,
+    popular: true,
+    intro: 'Negotiating your salary can add thousands of rands a year, yet many South Africans accept the first offer out of fear. Done professionally, negotiation is expected and rarely costs you the job. Here is how to do it well.',
+    body: `
+<h2>Know your market value first</h2>
+<p>Before you can negotiate, you need a realistic number. Research typical pay for the role, your experience level and your city using salary guides and job adverts. Walk in with a range, not a single figure.</p>
+
+<h2>Let them raise money first</h2>
+<p>Where possible, avoid naming a number early. If asked your expectation, give a researched range and add that you are open to discussing the full package. This keeps your options open.</p>
+
+<h2>Consider the whole package</h2>
+<p>Salary is not the only lever. Factor in:</p>
+<ul>
+  <li>Medical aid and pension or provident fund contributions.</li>
+  <li>Bonus structure and 13th cheque.</li>
+  <li>Travel or cellphone allowances.</li>
+  <li>Leave, flexibility and remote-work options.</li>
+  <li>Training and development opportunities.</li>
+</ul>
+
+<h2>Time it right</h2>
+<p>The strongest moment to negotiate is after they have made an offer, when they have chosen you but before you have accepted. For existing jobs, tie the conversation to a performance review or a new responsibility.</p>
+
+<h2>What to actually say</h2>
+<p>Be warm, confident and specific. For example: "Thank you, I\u2019m excited about the role. Based on my experience and the market for this position, I was hoping for something closer to R[amount]. Is there flexibility?" Then pause and let them respond.</p>
+
+<h2>Back it up with value</h2>
+<p>Justify your ask with what you bring, not personal need. Reference your skills, results and relevant experience, not your rent or debts.</p>
+
+<h2>Stay professional either way</h2>
+<p>If they cannot move on salary, ask about other benefits or a review in six months. Never make threats or ultimatums, and always keep the tone positive.</p>
+
+<h2>Know your worth</h2>
+<p>Use our salary guides to benchmark your role before any negotiation, then apply to positions that match your target with confidence.</p>
+`,
+    faqs: [
+      { q: 'Is it rude to negotiate salary in South Africa?', a: 'No. Professional, respectful negotiation is expected and rarely costs you the job. Employers often build in room to negotiate, and accepting the first offer can leave money on the table.' },
+      { q: 'When is the best time to negotiate salary?', a: 'After you receive a formal offer but before you accept. That is when the employer has decided they want you, which gives you the most leverage.' },
+      { q: 'What if the employer cannot increase the salary?', a: 'Negotiate the wider package: medical aid, pension, bonuses, allowances, extra leave, remote flexibility, or a salary review in six months. These add real value beyond the base figure.' },
+    ],
+  },
+  {
+    slug: 'job-application-email-guide',
+    title: 'How to Write a Job Application Email in South Africa (With Examples)',
+    h1: 'How to Write a Job Application Email',
+    description: 'Learn how to write a professional job application email in South Africa. Subject lines, structure, what to attach, and a full example you can adapt.',
+    category: 'cover-letter',
+    updated: '2026-07-01',
+    readMins: 5,
+    intro: 'Many South African jobs are applied for by email. Your email is your first impression, so a clear subject line, a short professional message and correctly named attachments can set you apart before anyone opens your CV.',
+    body: `
+<h2>Get the subject line right</h2>
+<p>Recruiters sort dozens of emails a day. Use a clear subject line with the job title and your name, for example: "Application: Admin Clerk (Ref 123) – Nomsa Dlamini". If there is a reference number, include it.</p>
+
+<h2>Structure of a strong application email</h2>
+<ul>
+  <li><strong>Greeting</strong> — "Dear Hiring Manager" or the named contact.</li>
+  <li><strong>Opening line</strong> — state the job and where you saw it.</li>
+  <li><strong>Middle</strong> — two or three sentences on why you fit the key requirements.</li>
+  <li><strong>Closing</strong> — note your attachments, availability, and thank them.</li>
+  <li><strong>Signature</strong> — your name and cellphone number.</li>
+</ul>
+
+<h2>Attach the right documents</h2>
+<ul>
+  <li>Attach your CV as a PDF named with your full name.</li>
+  <li>Include any documents the advert asks for (ID, certificates, Z83 for government).</li>
+  <li>Keep total attachment size reasonable so it does not bounce.</li>
+</ul>
+
+<h2>Full example</h2>
+<p><em>Subject: Application: Sales Assistant (Ref SA-2026) – Sipho Ndlovu</em></p>
+<p><em>Dear Hiring Manager,</em></p>
+<p><em>I am applying for the Sales Assistant position advertised on Edubuzz. I have two years\u2019 retail experience, a strong sales record and excellent customer service skills, and I am confident I can contribute to your team.</em></p>
+<p><em>My CV is attached. I am available to start immediately and would welcome the opportunity to discuss my application. Thank you for your time and consideration.</em></p>
+<p><em>Kind regards,<br/>Sipho Ndlovu<br/>071 234 5678</em></p>
+
+<h2>Before you hit send</h2>
+<ul>
+  <li>Proofread for spelling and the correct company name.</li>
+  <li>Check the attachment is actually attached.</li>
+  <li>Send from a professional email address, not a nickname.</li>
+</ul>
+
+<h2>Ready to apply?</h2>
+<p>Browse the latest vacancies and apply directly to employers with a professional email and a well-structured CV.</p>
+`,
+    faqs: [
+      { q: 'What should the subject line of a job application email be?', a: 'Include the job title, any reference number, and your name, for example "Application: Driver (Ref 45) – John Smith". This helps recruiters find and sort your application quickly.' },
+      { q: 'Should my email be the same as my cover letter?', a: 'When you apply by email, the body of your email acts as your cover letter. Keep it short and professional, and attach your CV as a PDF.' },
+      { q: 'What documents should I attach?', a: 'Always attach your CV as a PDF named with your full name. Add anything the advert requests, such as certified copies, certificates, or a completed Z83 form for government posts.' },
+    ],
+  },
+  {
+    slug: 'how-to-write-a-resignation-letter',
+    title: 'How to Write a Resignation Letter in South Africa (With Template)',
+    h1: 'How to Write a Resignation Letter',
+    description: 'A simple guide to resigning professionally in South Africa. Notice periods, what to include, a full resignation letter template, and how to leave on good terms.',
+    category: 'career',
+    updated: '2026-07-01',
+    readMins: 5,
+    intro: 'Resigning the right way protects your reputation and your future references. A short, professional resignation letter and the correct notice period help you leave on good terms. Here is exactly how to do it.',
+    body: `
+<h2>Know your notice period</h2>
+<p>Under the Basic Conditions of Employment Act, notice periods are typically:</p>
+<ul>
+  <li>One week if employed for six months or less.</li>
+  <li>Two weeks if employed for more than six months but less than a year.</li>
+  <li>Four weeks (one month) if employed for a year or more.</li>
+</ul>
+<p>Your contract may specify a longer period, so check it. Always give notice in writing.</p>
+
+<h2>What to include in the letter</h2>
+<ul>
+  <li>The date.</li>
+  <li>A clear statement that you are resigning.</li>
+  <li>Your last working day, based on your notice period.</li>
+  <li>A brief thank-you (you do not need to give reasons).</li>
+  <li>Your signature.</li>
+</ul>
+
+<h2>Resignation letter template</h2>
+<p><em>[Date]</em></p>
+<p><em>Dear [Manager\u2019s name],</em></p>
+<p><em>I am writing to formally resign from my position as [job title] at [company name]. In line with my notice period, my last working day will be [date].</em></p>
+<p><em>Thank you for the opportunities and support during my time here. I will do everything I can to ensure a smooth handover before I leave.</em></p>
+<p><em>Kind regards,<br/>[Your name]</em></p>
+
+<h2>Leave on good terms</h2>
+<ul>
+  <li>Tell your manager in person before sending the letter, if you can.</li>
+  <li>Offer to help train your replacement and hand over properly.</li>
+  <li>Stay positive and professional until your last day.</li>
+  <li>Do not badmouth the company, even on your way out.</li>
+</ul>
+
+<h2>Your rights on leaving</h2>
+<p>You are entitled to be paid for your notice period and any accrued leave. Request a certificate of service, which your employer must provide by law.</p>
+
+<h2>Moving on</h2>
+<p>Once you have resigned professionally, focus forward. Browse new opportunities and apply for the role that takes your career further.</p>
+`,
+    faqs: [
+      { q: 'How much notice must I give when resigning in South Africa?', a: 'Under the BCEA, notice is one week if employed under six months, two weeks up to a year, and four weeks after a year. Your contract may require more, so always check it.' },
+      { q: 'Do I have to give a reason for resigning?', a: 'No. A resignation letter only needs to state that you are resigning and your last working day. A brief thank-you is professional, but you are not obliged to explain your reasons.' },
+      { q: 'Am I entitled to be paid out when I resign?', a: 'Yes. You should be paid for your notice period and any accrued annual leave. You are also entitled to a certificate of service from your employer.' },
+    ],
+  },
 ];
