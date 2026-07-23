@@ -54,13 +54,26 @@ export const GET: APIRoute = async ({ request, url }) => {
   }
 
   const active = all.filter((j) => j.active);
-  const foreign = active.filter(
-    (j) => !resolveSA({ province: j.province, city: j.city, location: j.city }).isSA
-  );
+
+  // Classify each active job. AFFIRMATIVE foreign = an explicit non-SA signal
+  // (reason starts with "country=" or "city~"). UNCERTAIN = merely missing a
+  // resolvable SA province/city (e.g. a verified-SA employer's remote role with
+  // no province). Only affirmative-foreign jobs are quarantined; quarantining
+  // "uncertain" would wrongly delete legitimate SA remote roles.
+  const classify = (j: any) => resolveSA({ province: j.province, city: j.city, location: j.city });
+  const isAffirmativeForeign = (j: any) => {
+    const r = classify(j);
+    return !r.isSA && r.reason !== 'uncertain';
+  };
+  const foreign = active.filter(isAffirmativeForeign);
+  const uncertain = active.filter((j) => {
+    const r = classify(j);
+    return !r.isSA && r.reason === 'uncertain';
+  });
 
   const reasons: Record<string, number> = {};
   for (const j of foreign) {
-    const r = resolveSA({ province: j.province, city: j.city, location: j.city }).reason;
+    const r = classify(j).reason;
     reasons[r] = (reasons[r] || 0) + 1;
   }
 
@@ -68,8 +81,10 @@ export const GET: APIRoute = async ({ request, url }) => {
     totalJobs: all.length,
     activeJobs: active.length,
     foreignActive: foreign.length,
+    uncertainActive: uncertain.length,
     reasons,
     sampleForeign: foreign.slice(0, 20).map((j) => ({ id: j.id, company: j.company, province: j.province, city: j.city })),
+    sampleUncertain: uncertain.slice(0, 20).map((j) => ({ id: j.id, company: j.company, province: j.province, city: j.city })),
     sampleFields: all[0] ? Object.keys(all[0]) : [],
   };
 
