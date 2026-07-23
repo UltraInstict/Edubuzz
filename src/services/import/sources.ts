@@ -51,6 +51,8 @@ export const EMPLOYER_SOURCES: EmployerSource[] = [
   { id: 'entersekt', employer: 'Entersekt', connector: 'greenhouse', token: 'entersekt', enabled: true, confidence: 'verified', notes: 'Verified live (~5), SA (Stellenbosch) fintech security.' },
   { id: 'offerzen', employer: 'OfferZen', connector: 'greenhouse', token: 'offerzen', enabled: true, confidence: 'verified', notes: 'Verified live (~2), SA developer marketplace.' },
   { id: 'sabertech', employer: 'Saber', connector: 'greenhouse', token: 'sabertech', enabled: true, confidence: 'verified', notes: 'Verified live (~1); confirm SA relevance on first import.' },
+  { id: 'jumo', employer: 'JUMO', connector: 'greenhouse', token: 'jumo', enabled: true, confidence: 'verified', notes: 'Verified live via boards.greenhouse.io/jumo. Cape Town-HQ pan-African fintech; SA gate keeps only SA-located roles.' },
+  { id: 'srm', employer: 'S-RM', connector: 'greenhouse', token: 'srm', enabled: true, confidence: 'verified', notes: 'Verified live via boards.greenhouse.io/srm; has Cape Town SOC roles. SA gate keeps only SA-located roles.' },
 
   // --- SmartRecruiters (SA-relevant, enabled) -------------------------------
   { id: 'standard_bank', employer: 'Standard Bank Group', connector: 'smartrecruiters', token: 'StandardBankGroup', enabled: true, confidence: 'verified', notes: 'Verified live (~131), SA bank. api.smartrecruiters.com/v1/companies/StandardBankGroup/postings.' },
