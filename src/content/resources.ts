@@ -831,4 +831,546 @@ export const ARTICLES: ResourceArticle[] = [
       { q: 'Am I entitled to be paid out when I resign?', a: 'Yes. You should be paid for your notice period and any accrued annual leave. You are also entitled to a certificate of service from your employer.' },
     ],
   },
+  {
+    slug: 'how-to-pass-a-government-job-interview',
+    title: 'How to Pass a Government Job Interview in South Africa (2026)',
+    h1: 'How to Pass a Government Job Interview',
+    description: 'Preparing for a South African government job interview? Learn the panel format, competency questions, documents to bring, and how to stand out for a public service post.',
+    category: 'interview',
+    updated: '2026-07-01',
+    readMins: 8,
+    featured: true,
+    categorySlug: 'government',
+    intro: 'Government interviews in South Africa follow a stricter, more formal process than most private-sector interviews. Understanding the panel format and preparing for competency-based questions gives you a real advantage in a very competitive field.',
+    body: `
+<h2>Understand the panel format</h2>
+<p>Public service interviews are almost always conducted by a panel, usually three to five people including the line manager, a human resources representative and sometimes a subject expert. Each panellist scores your answers against a set list of criteria, so consistency and clarity matter more than charm.</p>
+
+<h2>Know the post and the department</h2>
+<p>Re-read the advert and the job description carefully. Panels expect you to understand the department\u2019s mandate, the key responsibilities of the post, and how it fits into service delivery. Read the department\u2019s strategic plan or annual report summary if you can find it.</p>
+
+<h2>Prepare for competency-based questions</h2>
+<p>Government panels favour structured, competency-based questions such as "Tell us about a time you had to meet a tight deadline" or "How would you handle a difficult member of the public?" Use the STAR method (Situation, Task, Action, Result) to keep your answers clear and evidence-based.</p>
+
+<h2>Common government interview questions</h2>
+<ul>
+  <li>Why do you want to work in the public service?</li>
+  <li>What do you understand about this department\u2019s role?</li>
+  <li>Describe a time you delivered a service under pressure.</li>
+  <li>How do you handle confidential information?</li>
+  <li>What does Batho Pele mean to you?</li>
+</ul>
+<p>The Batho Pele ("People First") principles underpin public service in South Africa. Knowing the eight principles and being able to speak to them shows you understand the ethos of government work.</p>
+
+<h2>Bring the right documents</h2>
+<ul>
+  <li>Certified copies of your ID, qualifications and driver\u2019s licence.</li>
+  <li>Your CV and a copy of the advert with the reference number.</li>
+  <li>Originals for verification.</li>
+</ul>
+
+<h2>Dress and conduct</h2>
+<p>Dress formally, arrive early, and treat every panellist with equal respect. Address the panel as a whole, make eye contact with whoever asked the question, and stay calm and measured.</p>
+
+<h2>After the interview</h2>
+<p>Government processes can be slow, involving verification, vetting and approvals. Be patient, and if you are shortlisted you may be asked for competency assessments or security clearance.</p>
+
+<h2>Next step</h2>
+<p>Prepare thoroughly, and browse the latest government vacancies to put your preparation to work.</p>
+`,
+    faqs: [
+      { q: 'What questions are asked in a government job interview?', a: 'Expect competency-based questions about service delivery, handling pressure and confidentiality, plus questions on the department\u2019s mandate and the Batho Pele principles. Use the STAR method to structure your answers.' },
+      { q: 'What are the Batho Pele principles?', a: 'Batho Pele ("People First") is the set of eight public service principles guiding how government serves the public, covering consultation, service standards, access, courtesy, information, openness, redress and value for money.' },
+      { q: 'What must I bring to a government interview?', a: 'Bring certified copies of your ID, qualifications and driver\u2019s licence, your CV, the advert with its reference number, and the original documents for verification.' },
+    ],
+  },
+  {
+    slug: 'how-to-apply-for-jobs-online',
+    title: 'How to Apply for Jobs Online in South Africa (2026 Step-by-Step)',
+    h1: 'How to Apply for Jobs Online in South Africa',
+    description: 'A step-by-step guide to applying for jobs online in South Africa. How to use job portals, upload your CV, apply through employer sites, and avoid online scams.',
+    category: 'job-search',
+    updated: '2026-07-01',
+    readMins: 7,
+    featured: true,
+    intro: 'Most jobs in South Africa are now advertised and applied for online. Knowing how to search effectively, present your application, and apply through the right channels puts you ahead of applicants who apply carelessly.',
+    body: `
+<h2>Get your documents ready first</h2>
+<p>Before you start, prepare digital copies you can upload quickly:</p>
+<ul>
+  <li>An up-to-date CV saved as a PDF, named with your full name.</li>
+  <li>Certified copies of your ID and qualifications (scanned as clear PDFs).</li>
+  <li>A short, adaptable cover letter or email template.</li>
+</ul>
+
+<h2>Search the right way</h2>
+<p>Use specific search terms and filters. Search by job title and province, and set up job alerts so new openings come to you. Applying within a day or two of a listing going live noticeably improves your chances.</p>
+
+<h2>Apply through the official channel</h2>
+<p>Always apply through the employer\u2019s official application link or portal. Applying at the source means your application reaches the hiring team and your details stay with a legitimate employer. Follow the instructions exactly, because some employers reject applications that skip a required step.</p>
+
+<h2>Tailor every application</h2>
+<p>Read the advert, identify the key requirements, and make sure your CV and message speak directly to them. A focused application to ten relevant jobs beats a generic blast to fifty.</p>
+
+<h2>Uploading your CV</h2>
+<ul>
+  <li>Use PDF unless the portal asks for Word.</li>
+  <li>Keep the file size reasonable so it uploads without errors.</li>
+  <li>Double-check that the correct, final version uploaded.</li>
+</ul>
+
+<h2>Track your applications</h2>
+<p>Keep a simple spreadsheet of where and when you applied, the reference number and any deadlines. It helps you follow up and avoid applying twice.</p>
+
+<h2>Stay safe online</h2>
+<ul>
+  <li>Never pay to apply for a job or an interview.</li>
+  <li>Do not share your full ID number or banking details before verifying the employer.</li>
+  <li>Be cautious of offers that arrive without you applying.</li>
+</ul>
+
+<h2>Start applying</h2>
+<p>With your documents ready and your approach focused, browse the latest jobs and apply directly to employers.</p>
+`,
+    faqs: [
+      { q: 'What do I need to apply for jobs online?', a: 'A PDF CV named with your full name, scanned certified copies of your ID and qualifications, a professional email address, and a short adaptable cover letter or email template.' },
+      { q: 'How do I apply for a job online safely?', a: 'Apply only through the employer\u2019s official link or portal, never pay any fee, and do not share your full ID or banking details until you have verified that the employer is genuine.' },
+      { q: 'Why are my online applications not getting responses?', a: 'Common reasons include applying late, not tailoring your CV to the advert, missing required steps, or an unclear CV. Apply early, follow instructions exactly, and match your CV to each job.' },
+    ],
+  },
+  {
+    slug: 'how-to-check-if-a-job-is-legitimate',
+    title: 'How to Check if a Job is Legitimate in South Africa (Avoid Scams)',
+    h1: 'How to Check if a Job is Legitimate',
+    description: 'Protect yourself from job scams in South Africa. Learn the warning signs of fake job offers, how to verify an employer, and what to do if you are targeted.',
+    category: 'job-search',
+    updated: '2026-07-01',
+    readMins: 6,
+    popular: true,
+    intro: 'Job scams target desperate and hopeful job seekers alike, and they are common in South Africa. Learning to spot the warning signs protects your money, your identity and your safety.',
+    body: `
+<h2>The biggest red flag: money</h2>
+<p>No legitimate employer will ever ask you to pay for a job, an interview, "training materials", a uniform, or a "registration fee". If money is requested at any stage, it is a scam. Walk away and report it.</p>
+
+<h2>Other common warning signs</h2>
+<ul>
+  <li><strong>An offer with no application.</strong> Being "hired" for a job you never applied for is a classic scam.</li>
+  <li><strong>Too good to be true.</strong> Very high pay for little work or few requirements is a lure.</li>
+  <li><strong>Pressure and urgency.</strong> Scammers rush you so you do not think clearly.</li>
+  <li><strong>Personal email addresses.</strong> Legitimate companies use their own domain, not Gmail or Yahoo.</li>
+  <li><strong>Poor spelling and grammar</strong> in official-looking messages.</li>
+  <li><strong>Requests for your ID, bank details or documents</strong> before any verified process.</li>
+</ul>
+
+<h2>How to verify an employer</h2>
+<ul>
+  <li>Search the company name plus the word "scam" and see what comes up.</li>
+  <li>Check the company has a real website and verifiable contact details.</li>
+  <li>Confirm the job appears on the employer\u2019s own careers page.</li>
+  <li>Be wary if the only contact is a WhatsApp number.</li>
+  <li>Verify that the person contacting you has a company email address.</li>
+</ul>
+
+<h2>Protect your personal information</h2>
+<p>Never share your full ID number, banking details, or certified documents until you have confirmed the employer is genuine and you are in a real hiring process. Identity theft using stolen documents is a serious risk.</p>
+
+<h2>What to do if you are targeted</h2>
+<ul>
+  <li>Stop all contact and do not pay anything.</li>
+  <li>Report the scam to the police and, if money was taken, your bank immediately.</li>
+  <li>Warn others so they do not fall for the same scheme.</li>
+</ul>
+
+<h2>Apply with confidence</h2>
+<p>Stick to reputable job sources and apply through official employer channels. Browse verified opportunities and apply directly with peace of mind.</p>
+`,
+    faqs: [
+      { q: 'How do I know if a job offer is a scam?', a: 'The clearest sign is any request for money to secure a job, interview or training. Other red flags include offers without an application, personal email addresses, pressure to act fast, and early requests for your ID or banking details.' },
+      { q: 'Should I pay a fee to get a job?', a: 'Never. Legitimate employers do not charge you to apply, interview or start work. Any request for a registration, training or placement fee is a scam.' },
+      { q: 'What should I do if I gave a scammer my details?', a: 'Stop contact immediately, report it to the police, and if you shared banking details or paid money, contact your bank at once. Monitor your accounts and consider a fraud alert to protect against identity theft.' },
+    ],
+  },
+  {
+    slug: 'nsfas-application-guide',
+    title: 'NSFAS Application Guide 2026 — Requirements, Dates & How to Apply',
+    h1: 'NSFAS Application Guide',
+    description: 'A complete NSFAS application guide for South African students. Who qualifies, the income threshold, required documents, how to apply online, and what NSFAS covers.',
+    category: 'tvet',
+    updated: '2026-07-01',
+    readMins: 8,
+    featured: true,
+    popular: true,
+    intro: 'The National Student Financial Aid Scheme (NSFAS) funds hundreds of thousands of students at public universities and TVET colleges each year. This guide explains who qualifies, what it covers, and exactly how to apply.',
+    body: `
+<h2>What is NSFAS?</h2>
+<p>NSFAS is a government bursary scheme that funds qualifying students from poor and working-class families to study at South Africa\u2019s public universities and TVET colleges. For most students it is a bursary, not a loan, meaning it does not have to be repaid provided you meet the conditions.</p>
+
+<h2>Who qualifies for NSFAS?</h2>
+<ul>
+  <li>South African citizens.</li>
+  <li>Students from households with a combined income below the NSFAS threshold (generally up to R350,000 per year; higher for students with disabilities).</li>
+  <li>SASSA grant recipients automatically meet the financial requirement.</li>
+  <li>Students accepted to, or already studying at, a public university or TVET college.</li>
+</ul>
+
+<h2>What does NSFAS cover?</h2>
+<ul>
+  <li>Tuition fees.</li>
+  <li>An accommodation allowance (or transport allowance for students living at home).</li>
+  <li>A learning materials allowance.</li>
+  <li>A living or personal care allowance, depending on your situation.</li>
+</ul>
+
+<h2>Documents you need</h2>
+<ul>
+  <li>Your ID or birth certificate.</li>
+  <li>Parents\u2019 or guardians\u2019 IDs and proof of income (payslips, or an affidavit if unemployed).</li>
+  <li>Your latest academic results.</li>
+  <li>Proof of any SASSA grant, if applicable.</li>
+</ul>
+
+<h2>How to apply, step by step</h2>
+<ol>
+  <li>Create an account on the official NSFAS portal (my.nsfas.org.za).</li>
+  <li>Complete your personal and household details.</li>
+  <li>Upload the required supporting documents.</li>
+  <li>Submit before the application deadline.</li>
+  <li>Track your application status online.</li>
+</ol>
+
+<h2>When to apply</h2>
+<p>NSFAS applications usually open around September and close early in the year for the following academic year. Apply as early as possible and make sure your documents are complete, as incomplete applications are delayed or rejected.</p>
+
+<h2>After you apply</h2>
+<p>Check your status regularly and respond quickly to any request for more information. Once approved, keep meeting the academic requirements to keep your funding.</p>
+
+<h2>Next step</h2>
+<p>While you study, explore learnerships, internships and graduate programmes to build experience alongside your qualification.</p>
+`,
+    faqs: [
+      { q: 'Who qualifies for NSFAS funding?', a: 'South African citizens from households earning below the NSFAS income threshold (generally up to R350,000 per year, higher for students with disabilities) who are accepted at or studying at a public university or TVET college. SASSA grant recipients qualify automatically.' },
+      { q: 'Does NSFAS have to be paid back?', a: 'For most students NSFAS is a bursary, not a loan, so it does not have to be repaid provided you meet the academic and other conditions of the funding.' },
+      { q: 'When do NSFAS applications open?', a: 'Applications generally open around September and close early in the new year for that academic year. Apply as early as possible with complete documents to avoid delays.' },
+    ],
+  },
+  {
+    slug: 'tvet-college-application-guide',
+    title: 'TVET College Application Guide 2026 — Courses, Dates & How to Apply',
+    h1: 'How to Apply to a TVET College',
+    description: 'A step-by-step guide to applying to a TVET college in South Africa. Courses offered, entry requirements, application dates, fees, NSFAS funding and how to register.',
+    category: 'tvet',
+    updated: '2026-07-01',
+    readMins: 7,
+    featured: true,
+    intro: 'TVET colleges offer practical, career-focused qualifications that lead directly to work, and NSFAS can cover the cost. This guide walks you through choosing a course and applying to one of South Africa\u2019s 50 public TVET colleges.',
+    body: `
+<h2>What TVET colleges offer</h2>
+<p>South Africa\u2019s public TVET colleges provide vocational and occupational qualifications aimed at the workplace:</p>
+<ul>
+  <li><strong>NC(V)</strong> \u2013 National Certificate (Vocational), NQF 2\u20134, a practical alternative to matric.</li>
+  <li><strong>NATED / Report 191</strong> \u2013 N1\u2013N6 courses in engineering, business and utility studies.</li>
+  <li><strong>Occupational and skills programmes</strong> \u2013 shorter, trade-focused training.</li>
+</ul>
+
+<h2>Entry requirements</h2>
+<ul>
+  <li>For NC(V): Grade 9 or higher.</li>
+  <li>For NATED engineering (N1): usually Grade 9 with Maths and Science, or relevant subjects.</li>
+  <li>Some programmes require matric or specific subjects.</li>
+</ul>
+
+<h2>How to choose a course</h2>
+<p>Pick a field with real demand and a clear career path, such as electrical, civil or mechanical engineering, boilermaking, plumbing, business studies, hospitality or IT. Think about the trade or career you want at the end, then work backwards to the right course.</p>
+
+<h2>How to apply, step by step</h2>
+<ol>
+  <li>Choose a public TVET college near you and check which courses it offers.</li>
+  <li>Get the application form from the college website or campus.</li>
+  <li>Complete the form and gather your documents: certified ID, latest school results and proof of residence.</li>
+  <li>Submit before the closing date, in person or online where available.</li>
+  <li>Apply for NSFAS funding at the same time if you qualify.</li>
+</ol>
+
+<h2>Fees and funding</h2>
+<p>TVET fees are far lower than university, and NSFAS fully funds qualifying students at public colleges, covering tuition and allowances. Never pay a "guaranteed placement" fee to a third party \u2013 apply directly to the college.</p>
+
+<h2>Application dates</h2>
+<p>Applications typically open in the second half of the year for the following year, with some colleges accepting mid-year (trimester) intakes. Apply early because popular courses fill up.</p>
+
+<h2>Next step</h2>
+<p>Once you are studying, look for in-service training and apprenticeships that turn your qualification into workplace experience.</p>
+`,
+    faqs: [
+      { q: 'What qualifications can I study at a TVET college?', a: 'TVET colleges offer NC(V) qualifications (NQF 2\u20134, an alternative to matric), NATED N1\u2013N6 courses in engineering, business and utility studies, and shorter occupational and skills programmes.' },
+      { q: 'Do I need matric to study at a TVET college?', a: 'Not always. NC(V) programmes accept Grade 9 or higher, and many NATED engineering courses start at N1 with Grade 9 and relevant subjects. Some advanced programmes do require matric.' },
+      { q: 'Does NSFAS pay for TVET college?', a: 'Yes. NSFAS fully funds qualifying students at public TVET colleges, covering tuition and providing allowances. For TVET students it is a bursary, not a loan.' },
+    ],
+  },
+  {
+    slug: 'uif-paye-sdl-explained',
+    title: 'UIF, PAYE and SDL Explained — Understanding Your SA Payslip (2026)',
+    h1: 'UIF, PAYE and SDL Explained',
+    description: 'Confused by the deductions on your South African payslip? A clear guide to UIF, PAYE and SDL, what each one is, who pays it, and how to claim UIF when you need it.',
+    category: 'career',
+    updated: '2026-07-01',
+    readMins: 7,
+    popular: true,
+    intro: 'Your first payslip can be confusing, with deductions like UIF, PAYE and SDL reducing your take-home pay. This guide explains exactly what each one is, who pays it, and why it matters to you.',
+    body: `
+<h2>PAYE (Pay As You Earn)</h2>
+<p>PAYE is income tax deducted from your salary by your employer and paid to SARS on your behalf. The amount depends on how much you earn \u2013 the more you earn, the higher the percentage. If your income is below the annual tax threshold, you pay no PAYE.</p>
+<ul>
+  <li>Paid by: you (deducted from your salary).</li>
+  <li>Goes to: SARS (income tax).</li>
+  <li>Why it matters: it is your income tax; you may get a refund at tax time if too much was deducted.</li>
+</ul>
+
+<h2>UIF (Unemployment Insurance Fund)</h2>
+<p>UIF is a safety net that pays you benefits if you lose your job, cannot work due to illness, or take maternity leave. Both you and your employer contribute 1% of your salary each, so 2% in total goes to the fund.</p>
+<ul>
+  <li>Paid by: you (1%) and your employer (1%).</li>
+  <li>Goes to: the Unemployment Insurance Fund.</li>
+  <li>Why it matters: you can claim from it if you become unemployed or go on maternity or illness leave.</li>
+</ul>
+
+<h2>SDL (Skills Development Levy)</h2>
+<p>SDL funds skills training and learnerships in South Africa. Importantly, it is paid by your employer, not deducted from your salary. It should not reduce your take-home pay.</p>
+<ul>
+  <li>Paid by: your employer (1% of payroll), not you.</li>
+  <li>Goes to: SETAs, to fund skills development and learnerships.</li>
+  <li>Why it matters: it funds the learnerships and training many workers benefit from.</li>
+</ul>
+
+<h2>How to claim UIF</h2>
+<p>If you lose your job, you can claim UIF benefits. You will generally need:</p>
+<ul>
+  <li>Your ID.</li>
+  <li>Your UI-19 form (your employer declares your employment and end date).</li>
+  <li>A certificate of service.</li>
+  <li>Your banking details.</li>
+</ul>
+<p>Apply through the Department of Employment and Labour, online via uFiling or at a labour centre. Claim as soon as possible after your employment ends.</p>
+
+<h2>Check your payslip</h2>
+<p>Make sure your payslip shows PAYE and UIF deducted correctly, and that SDL is not being deducted from your salary. If something looks wrong, ask your HR or payroll department to explain.</p>
+
+<h2>Know your rights</h2>
+<p>Understanding your payslip helps you plan and protects you. For more on your rights at work, read our other career guides and browse current opportunities.</p>
+`,
+    faqs: [
+      { q: 'What is the difference between UIF, PAYE and SDL?', a: 'PAYE is your income tax deducted and paid to SARS. UIF is unemployment insurance, with you and your employer each contributing 1%. SDL is a skills levy paid by your employer only, funding training and learnerships.' },
+      { q: 'Is SDL deducted from my salary?', a: 'No. The Skills Development Levy is paid by your employer based on total payroll and should not be deducted from your salary. Only PAYE and your 1% UIF share come off your pay.' },
+      { q: 'How do I claim UIF if I lose my job?', a: 'Apply through the Department of Employment and Labour via uFiling online or at a labour centre. You need your ID, UI-19 form, certificate of service and banking details, and should claim as soon as possible after your job ends.' },
+    ],
+  },
+  {
+    slug: 'graduate-jobs-vs-learnerships',
+    title: 'Graduate Jobs vs Learnerships in South Africa — Which is Right for You?',
+    h1: 'Graduate Jobs vs Learnerships',
+    description: 'Not sure whether to pursue a graduate job or a learnership in South Africa? Compare pay, qualifications, experience and career outcomes to choose the right path.',
+    category: 'career',
+    updated: '2026-07-01',
+    readMins: 6,
+    intro: 'If you are starting out, you may be weighing up a graduate job against a learnership. They serve different needs, and the right choice depends on your qualifications, your goals and where you are in your journey. Here is how they compare.',
+    body: `
+<h2>What is a graduate job?</h2>
+<p>A graduate job (or graduate programme) is for people who have already completed a diploma or degree. It is a paid, permanent or fixed-term role, often structured to develop you into a specialist or manager. Graduate programmes at big employers can be rotational and competitive.</p>
+
+<h2>What is a learnership?</h2>
+<p>A learnership combines work and study. You earn a stipend while gaining an accredited NQF qualification and real workplace experience. Learnerships are ideal if you have matric (or sometimes less) and want to enter the workforce and earn a qualification at the same time.</p>
+
+<h2>Side-by-side comparison</h2>
+<ul>
+  <li><strong>Entry requirement:</strong> Graduate job needs a completed qualification; learnership usually needs matric or less.</li>
+  <li><strong>Pay:</strong> Graduate jobs pay a salary; learnerships pay a stipend to cover basic costs.</li>
+  <li><strong>Outcome:</strong> Graduate job builds a career in your field; learnership gives you an accredited qualification plus experience.</li>
+  <li><strong>Duration:</strong> Graduate programmes run 12\u201324 months or are permanent; learnerships are usually 12 months.</li>
+  <li><strong>Best for:</strong> Graduates vs school leavers and career changers.</li>
+</ul>
+
+<h2>Which should you choose?</h2>
+<ul>
+  <li><strong>Choose a graduate job</strong> if you have a diploma or degree and want to start your professional career and earn a full salary.</li>
+  <li><strong>Choose a learnership</strong> if you have matric (or are still building qualifications), want to earn while you learn, and need both a recognised qualification and work experience.</li>
+</ul>
+
+<h2>Can a learnership lead to a permanent job?</h2>
+<p>Often, yes. Many employers keep on strong learners after the programme, and the qualification plus experience makes you far more employable elsewhere too.</p>
+
+<h2>Next step</h2>
+<p>Whichever path fits you, browse current graduate programmes and learnerships and apply early, as both fill quickly.</p>
+`,
+    faqs: [
+      { q: 'Is a learnership better than a graduate job?', a: 'Neither is universally better. A graduate job suits those with a completed qualification who want to start a professional career, while a learnership suits school leavers who want to earn a stipend while gaining an accredited qualification and experience.' },
+      { q: 'Do learnerships pay less than graduate jobs?', a: 'Yes. Learnerships pay a stipend meant to cover transport and basic costs while you study and work, whereas graduate jobs pay a full salary. However, a learnership adds a qualification and experience that raise your future earning power.' },
+      { q: 'Can I do a graduate programme without experience?', a: 'Yes. Graduate programmes are designed for recent graduates with little or no work experience. They provide structured training to develop you, so they focus on your qualification and potential rather than prior experience.' },
+    ],
+  },
+  {
+    slug: 'what-employers-look-for-in-graduates',
+    title: 'What Employers Look for in Graduates in South Africa (2026)',
+    h1: 'What Employers Look for in Graduates',
+    description: 'What do South African employers really want from graduates? Beyond your degree, learn the skills, attitudes and experience that win graduate jobs and programmes.',
+    category: 'career',
+    updated: '2026-07-01',
+    readMins: 7,
+    intro: 'A qualification gets you noticed, but it is rarely enough on its own. South African employers hiring graduates look for a mix of skills, attitude and evidence of potential. Knowing what they value helps you stand out in a competitive field.',
+    body: `
+<h2>1. The right attitude</h2>
+<p>Employers consistently rank attitude above marks for entry-level hires. They want graduates who are willing to learn, take feedback well, show initiative and are reliable. A humble, eager attitude often beats a slightly higher qualification.</p>
+
+<h2>2. Communication skills</h2>
+<p>Being able to write clearly, speak confidently and listen well matters in every job. Graduates who can explain their ideas and work with others are far more employable.</p>
+
+<h2>3. Practical experience</h2>
+<p>Any experience helps: vacation work, internships, part-time jobs, volunteering or student projects. It shows you can apply knowledge and function in a workplace. If you have little experience, highlight academic projects and any responsibility you have held.</p>
+
+<h2>4. Problem-solving</h2>
+<p>Employers value graduates who can think, not just recite. Being able to break down a problem, weigh options and suggest a solution is a skill you can demonstrate with examples in interviews.</p>
+
+<h2>5. Digital and technical skills</h2>
+<p>Comfort with the tools of your field, plus general digital literacy (email, spreadsheets, online collaboration), is expected. In technical fields, relevant software or certifications add real weight.</p>
+
+<h2>6. Teamwork and interpersonal skills</h2>
+<p>Very little work happens alone. Evidence that you can work in a team, from group projects to sports and societies, reassures employers you will fit in.</p>
+
+<h2>7. Commercial awareness</h2>
+<p>Understanding how the organisation makes money or delivers its service, and how your role contributes, sets you apart. Research the employer and its industry before you apply.</p>
+
+<h2>How to show these on your CV and in interviews</h2>
+<ul>
+  <li>Give specific examples with results, not vague claims.</li>
+  <li>Use your academic projects, part-time work and activities as evidence.</li>
+  <li>Tailor each application to the skills the advert emphasises.</li>
+  <li>Prepare STAR-method stories for interviews.</li>
+</ul>
+
+<h2>Next step</h2>
+<p>Sharpen your CV with our graduate CV guide, then browse current graduate programmes and entry-level roles and apply.</p>
+`,
+    faqs: [
+      { q: 'What do employers look for in graduates besides a degree?', a: 'Attitude, communication skills, any practical experience, problem-solving, digital skills, teamwork and commercial awareness. For entry-level hires, employers often value a willingness to learn and reliability above marks.' },
+      { q: 'How can I stand out as a graduate with no experience?', a: 'Highlight academic projects, part-time or vacation work, volunteering and leadership in societies or sports. Show transferable skills with specific examples and demonstrate a strong, eager attitude.' },
+      { q: 'Do marks matter for graduate jobs?', a: 'Marks can help you pass initial screening, especially for competitive programmes, but employers weigh attitude, skills and experience heavily. A well-rounded graduate often beats one with higher marks alone.' },
+    ],
+  },
+  {
+    slug: 'remote-jobs-south-africa-guide',
+    title: 'Remote Jobs in South Africa — A Realistic Guide (2026)',
+    h1: 'Remote Jobs in South Africa: A Realistic Guide',
+    description: 'A realistic guide to remote jobs in South Africa. Which roles are genuinely remote, what you need to work from home, how to find legitimate remote work and avoid scams.',
+    category: 'job-search',
+    updated: '2026-07-01',
+    readMins: 8,
+    featured: true,
+    intro: 'Remote work has grown fast in South Africa, but there is a lot of hype and plenty of scams. This honest guide explains which jobs are realistically remote, what you need to do them, and how to find genuine opportunities.',
+    body: `
+<h2>Which jobs are realistically remote?</h2>
+<p>Not every job can be done from home. The roles most commonly available remotely in South Africa include:</p>
+<ul>
+  <li><strong>Technology</strong> \u2013 software development, testing, data, IT support.</li>
+  <li><strong>Customer support and BPO</strong> \u2013 including international campaigns.</li>
+  <li><strong>Digital marketing</strong> \u2013 content, social media, SEO, design.</li>
+  <li><strong>Writing and admin</strong> \u2013 copywriting, virtual assistance, bookkeeping.</li>
+  <li><strong>Sales</strong> \u2013 inside sales and account management.</li>
+</ul>
+<p>Roles that require physical presence \u2013 retail, warehousing, healthcare, trades, security \u2013 are generally not remote.</p>
+
+<h2>What you actually need</h2>
+<ul>
+  <li>A reliable internet connection (fibre or a strong LTE signal) and a backup for load shedding.</li>
+  <li>A power backup plan \u2013 an inverter, UPS or power bank matters in South Africa.</li>
+  <li>A quiet, dedicated workspace.</li>
+  <li>A capable laptop and, for support roles, a headset.</li>
+  <li>Self-discipline and good time management.</li>
+</ul>
+
+<h2>Local vs international remote work</h2>
+<p>You can work remotely for a South African employer, or for an international company that pays in foreign currency (which can pay significantly more). International roles are competitive and usually require proven skills and often overlap with certain time zones.</p>
+
+<h2>How to find genuine remote jobs</h2>
+<ul>
+  <li>Search reputable job boards and filter for "remote".</li>
+  <li>Apply through official employer channels.</li>
+  <li>Build a portfolio or profile that proves your skills.</li>
+  <li>Network on LinkedIn and in relevant online communities.</li>
+</ul>
+
+<h2>Avoiding remote-work scams</h2>
+<p>Remote work attracts scams. Be very cautious of:</p>
+<ul>
+  <li>"Work from home" offers that ask you to pay upfront for kits or training.</li>
+  <li>Data-capturing or "envelope stuffing" schemes promising high pay for no skill.</li>
+  <li>Roles that require you to receive and forward money or parcels.</li>
+</ul>
+<p>Legitimate remote employers never ask you to pay to start.</p>
+
+<h2>Be realistic</h2>
+<p>Genuine remote jobs usually require real, marketable skills. If you are starting out, building a skill (like coding, design or digital marketing) dramatically improves your remote prospects.</p>
+
+<h2>Start your search</h2>
+<p>Browse current remote openings and apply directly to legitimate employers.</p>
+`,
+    faqs: [
+      { q: 'What remote jobs are available in South Africa?', a: 'The most common genuinely remote roles are in technology (development, IT support, data), customer support and BPO, digital marketing, writing and admin, and inside sales. Physical roles like retail and trades cannot be done remotely.' },
+      { q: 'What do I need to work remotely in South Africa?', a: 'A reliable internet connection with a load-shedding backup, a power backup like a UPS or inverter, a quiet workspace, a capable laptop, and strong self-discipline and time management.' },
+      { q: 'How do I avoid remote-job scams?', a: 'Never pay upfront for kits, training or registration. Avoid schemes promising high pay for no skill and any role that asks you to receive and forward money or parcels. Apply through official employer channels only.' },
+    ],
+  },
+  {
+    slug: 'best-careers-without-a-degree-south-africa',
+    title: 'Best Careers Without a Degree in South Africa (2026)',
+    h1: 'Best Careers Without a Degree in South Africa',
+    description: 'You do not always need a degree to build a good career in South Africa. Explore well-paid trades, skills and roles you can enter through TVET, learnerships and experience.',
+    category: 'career',
+    updated: '2026-07-01',
+    readMins: 8,
+    featured: true,
+    popular: true,
+    intro: 'A university degree is not the only route to a stable, well-paid career in South Africa. Many of the country\u2019s most in-demand and best-paid jobs are reached through trades, TVET qualifications, learnerships and experience. Here are some of the best.',
+    body: `
+<h2>Skilled trades (artisans)</h2>
+<p>Qualified artisans are on South Africa\u2019s scarce-skills list and can earn very well, especially in mining, manufacturing and construction. Most start with a TVET N-course and an apprenticeship, then pass a trade test.</p>
+<ul>
+  <li><strong>Electrician</strong> \u2013 strong demand, good self-employment potential.</li>
+  <li><strong>Plumber</strong> \u2013 excellent self-employment income.</li>
+  <li><strong>Welder</strong> \u2013 coded welders are highly paid.</li>
+  <li><strong>Boilermaker, fitter and turner, millwright</strong> \u2013 sought-after in industry.</li>
+</ul>
+
+<h2>Driving and logistics</h2>
+<p>A Code 10 or Code 14 licence with a PrDP opens well-paid driving work, and warehouse roles with a forklift licence offer steady progression to supervisor.</p>
+
+<h2>Security</h2>
+<p>With PSIRA training and grading, you can build a security career from officer to armed response and management, no degree required.</p>
+
+<h2>Sales</h2>
+<p>Sales rewards results over qualifications. Strong salespeople in insurance, property, retail and tech can earn well through commission.</p>
+
+<h2>Technology</h2>
+<p>Tech is increasingly skills-first. Through coding bootcamps, TVET IT courses, certifications and a strong portfolio, you can enter software development, IT support and data roles without a degree.</p>
+
+<h2>Beauty, hospitality and personal services</h2>
+<p>Hairdressing, beauty therapy, chef and hospitality careers are built on practical qualifications and experience, with strong self-employment potential.</p>
+
+<h2>Emergency and protection services</h2>
+<p>Police (SAPS), traffic officers and emergency services offer stable government careers entered with matric plus in-service training.</p>
+
+<h2>How to get started without a degree</h2>
+<ul>
+  <li>Enrol at a TVET college for a practical qualification.</li>
+  <li>Apply for learnerships and apprenticeships to earn while you learn.</li>
+  <li>Get licensed or certified for your field (trade test, PSIRA, forklift, PrDP).</li>
+  <li>Build experience and a reputation \u2013 reliability opens doors.</li>
+</ul>
+
+<h2>Next step</h2>
+<p>Explore learnerships, TVET options and entry-level roles, and browse current jobs that match a skills-first career path.</p>
+`,
+    faqs: [
+      { q: 'What is the best career without a degree in South Africa?', a: 'Skilled trades like electrician, plumber and coded welder are among the best, as qualified artisans are scarce and well paid. Driving (Code 14), technology through bootcamps, sales, and security also offer strong careers without a degree.' },
+      { q: 'Can I earn good money without a degree in South Africa?', a: 'Yes. Qualified artisans, coded welders, Code 14 drivers, skilled salespeople and self-taught tech workers can earn well. Trades and technical skills often pay more than many degree-based entry roles.' },
+      { q: 'How do I start a career without going to university?', a: 'Enrol at a TVET college, apply for learnerships and apprenticeships to earn while you learn, get the relevant licence or certification for your field, and build experience and a reputation for reliability.' },
+    ],
+  },
 ];
