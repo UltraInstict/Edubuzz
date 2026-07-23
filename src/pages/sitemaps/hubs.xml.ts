@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { PROVINCE_HUBS } from '../../content/province-hubs';
+import { INDUSTRY_HUBS } from '../../content/industry-hubs';
 
 export const GET: APIRoute = async ({ site }) => {
   const base = site?.origin || import.meta.env.SITE_URL || 'https://edubuzz.co.za';
@@ -10,6 +11,11 @@ export const GET: APIRoute = async ({ site }) => {
   // Province career hubs
   for (const hub of PROVINCE_HUBS) {
     urls.push({ loc: `${base}/province/${hub.hubSlug}`, priority: '0.7', changefreq: 'weekly' });
+  }
+
+  // Industry authority hubs
+  for (const hub of INDUSTRY_HUBS) {
+    urls.push({ loc: `${base}/industry/${hub.slug}`, priority: '0.7', changefreq: 'weekly' });
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
