@@ -17,8 +17,10 @@ import { GreenhouseAdapter } from './adapters/greenhouse';
 import { LeverAdapter } from './adapters/lever';
 import { SmartRecruitersAdapter } from './adapters/smartrecruiters';
 import { WorkdayAdapter } from './adapters/workday';
+import { AshbyAdapter } from './adapters/ashby';
+import { RecruiteeAdapter } from './adapters/recruitee';
 
-export type Connector = 'workday' | 'greenhouse' | 'smartrecruiters' | 'lever';
+export type Connector = 'workday' | 'greenhouse' | 'smartrecruiters' | 'lever' | 'ashby' | 'recruitee';
 
 export interface EmployerSource {
   /** Source Library id. */
@@ -95,6 +97,12 @@ export function buildAdapter(s: EmployerSource): SourceAdapter | null {
     case 'workday':
       if (!s.host || !s.site) return null;
       return new WorkdayAdapter({ key: `workday:${s.id}`, host: s.host, site: s.site, company: s.employer });
+    case 'ashby':
+      if (!s.token) return null;
+      return new AshbyAdapter({ key: `ashby:${s.token}`, board: s.token, company: s.employer });
+    case 'recruitee':
+      if (!s.token) return null;
+      return new RecruiteeAdapter({ key: `recruitee:${s.token}`, company: s.token, companyName: s.employer });
     default:
       return null;
   }
