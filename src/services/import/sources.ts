@@ -19,8 +19,16 @@ import { SmartRecruitersAdapter } from './adapters/smartrecruiters';
 import { WorkdayAdapter } from './adapters/workday';
 import { AshbyAdapter } from './adapters/ashby';
 import { RecruiteeAdapter } from './adapters/recruitee';
+import { SuccessFactorsAdapter } from './adapters/successfactors';
 
-export type Connector = 'workday' | 'greenhouse' | 'smartrecruiters' | 'lever' | 'ashby' | 'recruitee';
+export type Connector =
+  | 'workday'
+  | 'greenhouse'
+  | 'smartrecruiters'
+  | 'lever'
+  | 'ashby'
+  | 'recruitee'
+  | 'successfactors';
 
 export interface EmployerSource {
   /** Source Library id. */
@@ -61,6 +69,9 @@ export const EMPLOYER_SOURCES: EmployerSource[] = [
   { id: 'outsurance', employer: 'OUTsurance', connector: 'smartrecruiters', token: 'OUTsurance', enabled: true, confidence: 'verified', notes: 'Verified live (~10), SA insurer.' },
   { id: 'deloitte_za', employer: 'Deloitte Africa', connector: 'smartrecruiters', token: 'Deloitte6', enabled: true, confidence: 'verified', notes: 'Verified live (~293); Deloitte Africa tenant — may include non-SA African roles.' },
   { id: 'life_healthcare', employer: 'Life Healthcare', connector: 'smartrecruiters', token: 'LifeHealthcare', enabled: true, confidence: 'verified', notes: 'Verified live (~1), SA hospital group.' },
+
+  // --- SuccessFactors Career Site Builder (SA-relevant, enabled) -------------
+  { id: 'sasol', employer: 'Sasol', connector: 'successfactors', host: 'https://jobs.sasol.com', enabled: true, confidence: 'verified', notes: 'Verified live: jobs.sasol.com SuccessFactors CSB. Public sitemap.xml + server-rendered schema.org microdata (title/streetAddress/description). Multi-country site — SA gate keeps only SA roles (Secunda, Sasolburg, Sandton, Bronkhorstspruit, etc.).' },
 
   // --- Confirmed live but GLOBAL / off-mission (configured, NOT enabled) -----
   { id: 'pwc_global', employer: 'PwC (Global)', connector: 'workday', host: 'pwc.wd3.myworkdayjobs.com', site: 'Global_Experienced_Careers', enabled: false, confidence: 'verified', notes: 'Verified live (~4412) but GLOBAL. Do NOT enable for a SA jobs site without a South-Africa location filter, or it floods the DB with non-SA roles.' },
@@ -103,6 +114,10 @@ export function buildAdapter(s: EmployerSource): SourceAdapter | null {
     case 'recruitee':
       if (!s.token) return null;
       return new RecruiteeAdapter({ key: `recruitee:${s.token}`, company: s.token, companyName: s.employer });
+    case 'successfactors':
+      // SuccessFactors Career Site Builder host, e.g. 'https://jobs.sasol.com'.
+      if (!s.host) return null;
+      return new SuccessFactorsAdapter({ key: `successfactors:${s.id}`, host: s.host, company: s.employer });
     default:
       return null;
   }
