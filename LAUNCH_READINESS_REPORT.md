@@ -293,3 +293,65 @@ Live-checked (all via prod node on :4321). Pass/fail:
 2. **Thin content (25 jobs)** → import a meaningful volume of original listings first; Google routinely rejects sparse sites.
 
 🟢 **Everything technical is GO:** required pages exist and are linked, mobile-responsive, no broken nav, sitemaps/feeds/robots valid, ad engine serves, white-space bug fixed, company-page ad inventory restored. Clear the two gates above and the site is application-ready.
+
+
+---
+
+# Phase 5 — Deploy COMPLETE (2026-07-16, live)
+
+## PM2 restart-cause finding (investigated before deploy, as requested)
+
+**The 11 restarts were manual `pm2 reload`s from the day's deploy/fix cycle — NOT a crash loop and NOT the memory limit.** Evidence:
+
+| Signal | Value | Meaning |
+|--------|-------|---------|
+| `unstable restarts` | **0** | None were crash-loop restarts (restarts within `min_uptime`). If it were crash-looping, this would be non-zero. |
+| Memory | 89–105 MB vs `max_memory_restart` 512 MB | Nowhere near the OOM threshold. |
+| `pm2.log` SIGKILL / "memory exceeded" | none | No OOM kills. |
+| pid stability | pid 257432 held for 9h straight | Process wasn't cycling. |
+| `created at` vs `uptime` | created 07-15 16:07, uptime 9h at check | Restarts spread across the heavy 07-14/07-15 commit cycle (deploys). |
+
+The error log *does* contain application-level errors — `admin_settings` 400s (an admin tried to save AdSense settings and PocketBase rejected the update), monetization "affiliate link not found" (the `gfds` test campaign, now deleted), a transient PB `fetch failed`, and the company-page `ReferenceError`. **None of these restart the PM2 process** — they're caught/streamed errors; the pid stayed constant through all of them. The company-page `ReferenceError` was an `unhandledRejection` that Astro's stream handler absorbed (process survived). Verdict: **the process is stable; the restart count was deploy churn.** My reload added the 12th (expected).
+
+## Deploy divergence handled (important)
+
+The server was **not** a clean checkout as the documented flow assumed:
+- Server `HEAD` was `7eef1d7` — **several commits behind** `origin/main`. The running `dist` was hand-built on 07-15 16:01 from that older tree (which is why the company-page crash was live).
+- **Local uncommitted prod edits:** `scripts/backup.sh` (the real `PB_DIR=/home/edubuzz/pocketbase/pb_data` fix — **not in git**) and `pb_hooks/main.pb.js` (verified **byte-identical to `origin/main`**, 0-line diff).
+
+Handled safely: preserved `backup.sh` across the merge (copied out, restored after), discarded the redundant identical `main.pb.js` change so the fast-forward could proceed **without altering the file on disk** (PocketBase hooks untouched — no reload/flap). Fast-forwarded `7eef1d7 → f7afd94`.
+
+## Deploy steps executed
+
+1. `branch launch/phase1-4-fixes → commit f7afd94 → push` → fast-forward `main` → push `origin/main`. ✅
+2. Deleted `gfds` test campaign from live PocketBase (HTTP 204; campaigns 7 → **6**). ✅
+3. Server: `git fetch` → preserved `backup.sh` → `git merge --ff-only origin/main` (HEAD now `f7afd94`). ✅
+4. `npm ci && npm run build` → `Complete!` in ~8s, `dist/server/entry.mjs` rebuilt 01:45:03. ✅
+5. `pm2 reload edubuzz --update-env` → `[edubuzz](0) ✓` (zero-downtime cluster reload). ✅
+6. Installed expire-jobs cron (root crontab, alongside the existing 02:00 backup):
+   `15 3 * * * cd /home/edubuzz/app && set -a && . ./.env && set +a && /usr/bin/node scripts/expire-jobs.mjs >> /home/edubuzz/logs/expire-jobs.log 2>&1`. ✅
+
+## Post-deploy verification
+
+| Check | Result |
+|-------|--------|
+| PM2 status | `online`, new pid 262551, `unstable restarts: 0`, mem 89 MB |
+| `GET /` (home) | 200 |
+| `GET /jobs` (listing) | 200 |
+| `GET /job/junior-software-developer-r98d46` (detail) | 200 |
+| `GET /company/testco` (was crashing) | 200, full 10,474-byte body |
+| Company page ×3 fresh hits | 200 / 200 / 200 |
+| New errors in error log after 01:45 (post-deploy) | **0** (last error 01:27:10, pre-deploy) |
+| `ads.txt` | 200, 0 bytes (empty — expected until `PUBLIC_ADSENSE_CLIENT` set) |
+
+**Deploy result: ✅ clean.** The company-page render crash is resolved in production, ad-slot dedupe + unfilled-collapse + env-driven URLs are live, the `gfds` test campaign is gone, and the expire-jobs cron is scheduled.
+
+## Still flagged / owner action (unchanged from prior sections)
+
+1. **Rotate secrets on the server** — run the Phase 1 commands (superuser update + `.env` edit + `pm2 reload`). New values are in local `.env`. Not done by me (avoids desyncing the running app).
+2. **`PUBLIC_ADSENSE_CLIENT`** — set your `ca-pub-…` in prod `.env` + `pm2 reload`; `ads.txt` then auto-populates (AdSense gate #1).
+3. **Content volume (25 jobs)** — import more before applying to AdSense (gate #2).
+4. **`SMTP_*`, `PAYFAST_PASSPHRASE`, `INDEXNOW_KEY`** — missing in prod (email, payment verification, IndexNow).
+5. **PM2 runs as `root`** — left as-is per your instruction; separate flagged item for least-privilege migration.
+6. **`backup.sh` `PB_DIR` fix lives only on the server** (uncommitted) — recommend committing it to the repo so it survives future deploys. (Flagged, not changed — it's outside this task's scope.)
+7. **`admin_settings` 400 errors** in logs when saving AdSense settings — worth investigating the collection's update rule/schema before relying on the admin AdSense toggle.

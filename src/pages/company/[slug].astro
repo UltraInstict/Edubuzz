@@ -24,6 +24,7 @@ const totalPages = result.totalPages;
   title={`${employer.company_name} Jobs in South Africa`}
   description={`Browse all current job openings at ${employer.company_name}. Find ${totalItems} jobs in ${employer.province || 'South Africa'}.`}
   canonicalUrl={`${Astro.url.origin}/company/${employer.company_slug}`}
+  adsEligible={totalItems > 0}
 >
   <main class="company-page">
     <div style="margin-bottom:12px">
@@ -61,7 +62,7 @@ const totalPages = result.totalPages;
         <h2>Active jobs at {employer.company_name}</h2>
         <span class="job-count">{totalItems} open position{totalItems !== 1 ? 's' : ''}</span>
       </div>
-      <MonetizationSlot zone="jobs-top" />
+      {totalItems > 0 && <MonetizationSlot zone="jobs-top" />}
 
       {companyJobs.length > 0 ? (
         <>

@@ -16,6 +16,13 @@ interface Props {
   noindex?: boolean;
   prevPage?: string;
   nextPage?: string;
+  /**
+   * Whether this page may serve ads. Defaults to `!noindex`. Set false on
+   * thin/replicated/low-value screens (empty listings, doorway pSEO templates,
+   * utility pages) so Google-served ads never appear on them — the exact
+   * AdSense policy issue ("ads on screens with replicated/low value content").
+   */
+  adsEligible?: boolean;
 }
 
 const stats = await getSiteStats();
@@ -30,6 +37,7 @@ const {
   noindex = false,
   prevPage,
   nextPage,
+  adsEligible = !noindex,
 } = Astro.props;
 
 const siteDomain = `${SITE_NAME}.co.za`;
@@ -67,8 +75,9 @@ const yandexVerification = import.meta.env.PUBLIC_YANDEX_VERIFICATION || process
 // Analytics/tag scripts should never run on admin routes.
 const enableAnalytics = !isAdmin;
 
-// Gate AdSense script on admin settings (not just env var)
-let showAdsenseScript = Boolean(adsenseClient && !isAdmin);
+// Gate AdSense script on admin settings (not just env var). Never load ad code
+// on ad-ineligible screens (thin/replicated/low-value) — AdSense policy.
+let showAdsenseScript = Boolean(adsenseClient && !isAdmin && adsEligible);
 if (showAdsenseScript) {
   try {
     const ms = await getAdminSettings(['monetization_enabled', 'adsense_enabled']);
@@ -216,7 +225,7 @@ if (showAdsenseScript) {
       <slot />
     </div>
 
-    {!isAdmin && <MonetizationSlot zone="strip" />}
+    {!isAdmin && adsEligible && <MonetizationSlot zone="strip" />}
 
     <footer class="border-t border-gray-200 bg-white py-10">
       <div class="max-w-6xl mx-auto px-4">

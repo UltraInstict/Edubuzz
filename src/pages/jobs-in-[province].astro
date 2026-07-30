@@ -26,6 +26,7 @@ const summaryText = `Browse ${totalItems.toLocaleString('en-ZA')} jobs in ${prov
   canonicalUrl={page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.pathname}
   prevPage={page > 1 ? `${Astro.url.origin}/jobs-in-${provinceSlug}?page=${Math.max(1, page - 1)}` : undefined}
   nextPage={page < totalPages ? `${Astro.url.origin}/jobs-in-${provinceSlug}?page=${page + 1}` : undefined}
+  adsEligible={totalItems > 0}
 >
   <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">
