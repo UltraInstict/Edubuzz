@@ -206,6 +206,24 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// Detail pages need the structured enrichment fields as well; list queries
+// stay on the lean JOB_FIELDS set.
+const JOB_DETAIL_FIELDS = [
+  JOB_FIELDS,
+  'responsibilities',
+  'requirements',
+  'benefits',
+  'skills',
+  'ai_summary',
+  'salary_period',
+  'experience_level',
+  'education_required',
+  'company_description',
+  'company_website',
+  'company_logo',
+  'closing_date',
+].join(',');
+
 function escapeFilter(value: string) {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
@@ -285,7 +303,7 @@ export async function getJobBySlug(slug: string): Promise<Job | null> {
   const pb = getPB();
   try {
     const result = await pb.collection('jobs').getFirstListItem(`slug="${escapeFilter(slug)}"`, {
-      fields: JOB_FIELDS,
+      fields: JOB_DETAIL_FIELDS,
     });
     return result as unknown as Job;
   } catch {

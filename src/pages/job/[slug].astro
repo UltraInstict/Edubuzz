@@ -4,9 +4,11 @@ import Sidebar from '../../components/Sidebar.astro';
 import JobCard from '../../components/JobCard.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import MonetizationSlot from '../../components/MonetizationSlot.astro';
-import { formatSalary, getJobBySlug, getRelatedJobs, isSalaryDisclosed } from '../../lib/pocketbase';
+import { formatSalary, getCategories, getEmployerBySlug, getJobBySlug, getRelatedJobs, isSalaryDisclosed } from '../../lib/pocketbase';
 import { trackEvent } from '../../lib/analytics';
 import { generateToken } from '../../lib/csrf';
+import { slugify } from '../../services/import/normalize';
+import { buildApplicationSteps, buildInterviewTips, buildJobFaqs, findIndustryHub, findProvinceHub, findSalaryGuide, isJobPageAdsEligible } from '../../lib/jobContent';
 
 const { slug } = Astro.params;
 const job = await getJobBySlug(slug || '');
@@ -22,7 +24,11 @@ if (isExpired) {
   return new Response(null, { status: 410, headers: { Location: '/404?reason=expired' } });
 }
 
-const similarJobs = await getRelatedJobs(job.category, job.id, 4);
+const [similarJobs, employer, allCategories] = await Promise.all([
+  getRelatedJobs(job.category, job.id, 4),
+  job.company ? getEmployerBySlug(slugify(job.company)).catch(() => null) : Promise.resolve(null),
+  getCategories().catch(() => []),
+]);
 const descriptionText = (job.description || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 trackEvent(job.id, 'view', Astro.request).catch(() => {});
 const pageUrl = Astro.url.href;
@@ -31,6 +37,40 @@ const validThrough = job.expires || new Date(Date.now() + 30 * 24 * 60 * 60 * 10
 const closeDate = job.expires ? new Date(job.expires).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 const postedDate = job.created ? new Date(job.created).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 const salaryDisplay = isSalaryDisclosed(job.salary_min, job.salary_max) ? formatSalary(job.salary_min, job.salary_max) : 'Not disclosed';
+
+// Editorial value-add layer (built only from real job fields)
+const categorySlug = job.category ? slugify(job.category) : '';
+const categoryExists = Boolean(categorySlug && allCategories.some(c => c.slug === categorySlug));
+const employerUrl = employer ? `/company/${employer.company_slug}` : '';
+const salaryGuide = findSalaryGuide(job.category);
+const industryHub = findIndustryHub(job.category);
+const provinceHub = findProvinceHub(job.province);
+const provinceSlug = job.province ? slugify(job.province) : '';
+const applicationSteps = buildApplicationSteps(job);
+const interviewTips = buildInterviewTips(job);
+const faqs = buildJobFaqs(job, salaryDisplay);
+const adsEligible = isJobPageAdsEligible(descriptionText.length);
+const locationStr = job.city && job.province ? `${job.city}, ${job.province}` : (job.province || 'South Africa');
+
+// Unique, answer-first introduction (real fields only)
+const introSentences: string[] = [
+  `${job.company} is hiring a ${job.title} in ${locationStr}.`,
+];
+{
+  const facts: string[] = [];
+  if (job.job_type) facts.push(`a ${job.job_type} position`);
+  if (job.category) facts.push(`in the ${job.category} sector`);
+  if (postedDate) facts.push(`posted on ${postedDate}`);
+  if (facts.length) introSentences.push(`This is ${facts.join(', ')}.`);
+}
+introSentences.push(isSalaryDisclosed(job.salary_min, job.salary_max)
+  ? `The advertised salary is ${salaryDisplay}.`
+  : 'The salary is not disclosed in the listing.');
+introSentences.push(closeDate
+  ? `Applications close on ${closeDate}.`
+  : 'No closing date is stated, so apply as soon as possible.');
+introSentences.push('Below you will find the full job description, step-by-step application guidance, interview preparation advice and answers to common questions about this vacancy.');
+const introText = introSentences.join(' ');
 
 // Build content sections from structured fields
 const contentSections = [];
@@ -128,24 +168,41 @@ const breadcrumbLd = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: Astro.url.origin },
     { '@type': 'ListItem', position: 2, name: 'Jobs', item: `${Astro.url.origin}/jobs` },
-    ...(job.category ? [{ '@type': 'ListItem', position: 3, name: `${job.category} Jobs`, item: `${Astro.url.origin}/category/${job.category.toLowerCase().replace(/\s+/g,'-')}` }] : []),
+    ...(job.category ? [{ '@type': 'ListItem', position: 3, name: `${job.category} Jobs`, item: `${Astro.url.origin}/category/${categorySlug}` }] : []),
     { '@type': 'ListItem', position: (job.category ? 4 : 3), name: `${job.title} at ${job.company}`, item: pageUrl },
   ],
 };
+
+const faqLd = {
+  '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: faqs.map(f => ({
+    '@type': 'Question', name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const metaDescription = [
+  `Apply for ${job.title} at ${job.company} in ${locationStr}.`,
+  job.job_type ? `${job.job_type}.` : '',
+  isSalaryDisclosed(job.salary_min, job.salary_max) ? `Salary: ${salaryDisplay}.` : '',
+  closeDate ? `Closing date: ${closeDate}.` : 'Apply now on Edubuzz.',
+].filter(Boolean).join(' ').slice(0, 300);
 ---
 
 <Layout
   title={`${job.title} at ${job.company} - ${job.city || job.province}`}
-  description={`Apply for ${job.title} at ${job.company} in ${job.city || job.province}. ${job.job_type}.`}
+  description={metaDescription}
   canonicalUrl={Astro.url.href}
   ogTitle={`${job.title} at ${job.company}`}
   ogDescription={`Apply for ${job.title} in ${job.city || job.province} on Edubuzz.`}
   ogImage={`${Astro.url.origin}/api/og-image/${job.id}`}
   ogType="article"
+  adsEligible={adsEligible}
 >
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
     <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
   </Fragment>
 
   <MonetizationSlot zone="jobs-top" category={job.category} />
@@ -156,7 +213,7 @@ const breadcrumbLd = {
       <Breadcrumbs items={[
         { label: 'Home', href: '/' },
         { label: 'Jobs', href: '/jobs' },
-        ...(job.category ? [{ label: `${job.category} Jobs`, href: `/category/${job.category.toLowerCase().replace(/\s+/g, '-')}` }] : []),
+        ...(job.category ? [{ label: `${job.category} Jobs`, href: `/category/${categorySlug}` }] : []),
         { label: job.title },
       ]} />
 
@@ -188,6 +245,21 @@ const breadcrumbLd = {
         </div>
       </section>
 
+      {/* ─── INTRO + AT A GLANCE ─── */}
+      <section class="jd-section jd-intro-section">
+        <p class="jd-intro">{introText}</p>
+        <dl class="jd-glance">
+          <div><dt>Position</dt><dd>{job.title}</dd></div>
+          <div><dt>Company</dt><dd>{employerUrl ? <a href={employerUrl}>{job.company}</a> : job.company}</dd></div>
+          <div><dt>Location</dt><dd>{locationStr}</dd></div>
+          {job.job_type && <div><dt>Job type</dt><dd>{job.job_type}</dd></div>}
+          {job.category && <div><dt>Category</dt><dd>{categoryExists ? <a href={`/category/${categorySlug}`}>{job.category}</a> : job.category}</dd></div>}
+          {postedDate && <div><dt>Posted</dt><dd>{postedDate}</dd></div>}
+          {closeDate && <div><dt>Closing date</dt><dd>{closeDate}</dd></div>}
+          <div><dt>Salary</dt><dd>{salaryDisplay}</dd></div>
+        </dl>
+      </section>
+
       {/* ─── CONTENT SECTIONS ─── */}
       {contentSections.map((section) => (
         <section class="jd-section">
@@ -196,7 +268,82 @@ const breadcrumbLd = {
         </section>
       ))}
 
+      {/* ─── ABOUT THE EMPLOYER ─── */}
+      {(job.company_description || employerUrl) && (
+        <section class="jd-section">
+          <h2 class="jd-section-title">About {job.company}</h2>
+          <div class="jd-section-body">
+            {job.company_description && <div set:html={job.company_description} />}
+            {employerUrl && (
+              <p><a href={employerUrl}>View all current vacancies at {job.company} &rarr;</a></p>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ─── HOW TO APPLY ─── */}
+      {!isExpired && (job.apply_email || job.apply_url) && (
+        <section class="jd-section">
+          <h2 class="jd-section-title">How to apply for this job</h2>
+          <div class="jd-section-body">
+            <ol>
+              {applicationSteps.map(step => <li>{step}</li>)}
+            </ol>
+          </div>
+        </section>
+      )}
+
       <MonetizationSlot zone="infeed" category={job.category} />
+
+      {/* ─── INTERVIEW PREPARATION ─── */}
+      {!isExpired && (
+        <section class="jd-section">
+          <h2 class="jd-section-title">Interview preparation</h2>
+          <div class="jd-section-body">
+            <p>If {job.company} shortlists you for the {job.title} position, preparation makes the difference. Work through these steps:</p>
+            <ul>
+              {interviewTips.map(tip => <li>{tip}</li>)}
+            </ul>
+            {categoryExists && (
+              <p><a href={`/interview-tips-${categorySlug}-jobs`}>Read our full interview guide for {job.category} jobs &rarr;</a></p>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ─── FAQS ─── */}
+      <section class="jd-section">
+        <h2 class="jd-section-title">Frequently asked questions</h2>
+        <div class="jd-section-body jd-faq">
+          {faqs.map(f => (
+            <details>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── RELATED CAREER GUIDANCE ─── */}
+      <section class="jd-section">
+        <h2 class="jd-section-title">Related career guidance</h2>
+        <div class="jd-linkgrid">
+          {salaryGuide && <a href={`/salary/${salaryGuide.slug}`}>{salaryGuide.occupation} salary guide</a>}
+          {industryHub && <a href={`/industry/${industryHub.slug}`}>Careers in {industryHub.name}</a>}
+          {provinceHub && <a href={`/province/${provinceHub.hubSlug}`}>Careers in {provinceHub.name}</a>}
+          {categoryExists && <a href={`/category/${categorySlug}`}>More {job.category} jobs</a>}
+          {categoryExists && <a href={`/how-to-get-into-${categorySlug}-in-south-africa`}>How to get into {job.category}</a>}
+          {categoryExists && <a href={`/cv-tips-for-${categorySlug}`}>CV tips for {job.category} jobs</a>}
+          {employerUrl && <a href={employerUrl}>All jobs at {job.company}</a>}
+          {provinceSlug && provinceSlug !== 'remote' && <a href={`/jobs-in-${provinceSlug}`}>Jobs in {job.province}</a>}
+          {/learnership/i.test(job.job_type || '') && <a href="/learnerships">More learnerships</a>}
+          {/intern/i.test(job.job_type || '') && <a href="/internships">More internships</a>}
+          {/graduate|trainee|entry.level/i.test(job.job_type || '') && <a href="/graduate-jobs">More graduate jobs</a>}
+          {isRemote && <a href="/remote-jobs">More remote jobs</a>}
+          <a href="/resources">Career resources</a>
+          <a href="/salary">All salary guides</a>
+        </div>
+      </section>
 
       {/* ─── SHARE ─── */}
       <div class="jd-share">
@@ -577,6 +724,99 @@ const breadcrumbLd = {
   .jd-section-body :global(li:last-child) { margin-bottom: 0; }
 
   .jd-section-body :global(strong) { color: #111827; }
+
+  /* ─── INTRO + AT A GLANCE ─── */
+  .jd-intro-section {
+    padding-top: 4px;
+  }
+
+  .jd-intro {
+    margin: 0 0 14px;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .jd-glance {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+    margin: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .jd-glance > div {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    background: #fff;
+  }
+
+  .jd-glance dt {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9ca3af;
+    margin-bottom: 2px;
+  }
+
+  .jd-glance dd {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: #111827;
+  }
+
+  .jd-glance dd a { color: #166534; }
+  .jd-glance dd a:hover { text-decoration: underline; }
+
+  /* ─── FAQ ─── */
+  .jd-faq details {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    background: #fff;
+  }
+
+  .jd-faq summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    list-style-position: outside;
+  }
+
+  .jd-faq details p {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.6;
+  }
+
+  /* ─── RELATED GUIDANCE LINKS ─── */
+  .jd-linkgrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .jd-linkgrid a {
+    font-size: 12px;
+    color: #166534;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 5px 12px;
+    text-decoration: none;
+    background: #fff;
+  }
+
+  .jd-linkgrid a:hover {
+    border-color: #166534;
+    background: #f0fdf4;
+  }
 
   /* ─── SHARE ─── */
   .jd-share {
