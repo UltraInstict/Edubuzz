@@ -108,6 +108,13 @@ const TITLE_TO_CAREER: { pattern: RegExp; target: string }[] = [
   { pattern: /security guard|security officer|control room/i, target: '/careers/how-to-become-a-security-guard' },
 ];
 
+/** Title patterns for jobs whose category is miscategorised in PB (verified cases). */
+const TITLE_TO_INDUSTRY: { pattern: RegExp; target: string }[] = [
+  { pattern: /head of finance|finance|financial|asset management|stockbroking|risk/i, target: '/industry/finance' },
+  { pattern: /mechanical|machine|mold|mould|handyman|technician|supervisor|maintenance/i, target: '/industry/engineering' },
+  { pattern: /sap|abap|erp|consultant|developer|software|data|it audit/i, target: '/industry/it' },
+];
+
 /**
  * Determine the best informational redirect target for a job record.
  * Order: title-specific career guide → verified category alias →
@@ -126,7 +133,12 @@ export function getJobRedirectTarget(job: { title?: string; category?: string; c
   const industry = CATEGORY_TO_INDUSTRY[category];
   if (industry) return industry;
 
-  // 3) Company-based fallback for empty/ambiguous categories
+  // 3) Title-based industry for miscategorised records (verified cases)
+  for (const rule of TITLE_TO_INDUSTRY) {
+    if (rule.pattern.test(title)) return rule.target;
+  }
+
+  // 4) Company-based fallback for empty/ambiguous categories
   if (job.company) {
     const companyKey = job.company.toLowerCase().trim();
     for (const [prefix, dest] of Object.entries(COMPANY_TO_INDUSTRY)) {
@@ -134,7 +146,7 @@ export function getJobRedirectTarget(job: { title?: string; category?: string; c
     }
   }
 
-  // 4) Generic career information (final fallback only)
+  // 5) Generic career information (final fallback only)
   return '/careers';
 }
 
