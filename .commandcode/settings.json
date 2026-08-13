@@ -11,7 +11,8 @@
       "Shell(node dist\\server\\entry.mjs)",
       "Shell(curl -s -o NUL -w \"%{http_code} %{redirect_url}\" http://127.0.0.1:4321/)",
       "Shell(cmd:*)",
-      "Shell(curl.exe:*)"
+      "Shell(curl.exe:*)",
+      "Shell(git add .gitignore && git commit -F - <<'EOF' feat(adsense-phase): transform job aggregator into info-first education & career site - Add feature flags (JOBS_PUBLIC/ADS_ENABLED) as single restore point - New content collections: education guides (5), career guides (10), company guides (10) - New routes: /education, /careers, /industry hubs with full SEO schema - Homepage rebuilt as four-pillar content hub (Education/Careers/Resources/Companies) - All public job routes 301 to closest informational guide (category->industry, title->career, province->province hub) - Advertising fully disabled: MonetizationSlot no-op, AdSense/GTM/Meta/LinkedIn scripts removed, ads.txt empty - Job feeds return empty; job sitemaps excluded from index (generators preserved) - robots.txt excludes job/PSEO routes; sitemap index now education+careers focused - PocketBase data, importers, APIs, admin and employer dashboards untouched Co-authored-by: CommandCodeBot <noreply@commandcode.ai> EOF)"
     ],
     "deny": [],
     "defaultMode": "default"

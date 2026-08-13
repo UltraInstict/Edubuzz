@@ -6,6 +6,8 @@
  * redirect — relevance is preserved for both users and search engines.
  */
 
+import { slugify } from '../services/import/normalize';
+
 const CATEGORY_TO_INDUSTRY: Record<string, string> = {
   government: '/industry/government',
   'health-medical': '/industry/healthcare',
@@ -41,7 +43,7 @@ const TITLE_TO_CAREER: { pattern: RegExp; target: string }[] = [
  */
 export function getJobRedirectTarget(job: { title?: string; category?: string; company?: string }): string {
   const title = job.title || '';
-  const category = (job.category || '').toLowerCase();
+  const category = slugify(job.category || '');
 
   // 1) Occupation-specific career guide (title match)
   for (const rule of TITLE_TO_CAREER) {
@@ -59,7 +61,7 @@ export function getJobRedirectTarget(job: { title?: string; category?: string; c
 /** Redirect target for listing routes (category, province, job-type pages). */
 export function getListingRedirectTarget(categorySlug?: string): string {
   if (categorySlug) {
-    const industry = CATEGORY_TO_INDUSTRY[categorySlug];
+    const industry = CATEGORY_TO_INDUSTRY[slugify(categorySlug)];
     if (industry) return industry;
   }
   return '/careers';
