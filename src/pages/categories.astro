@@ -1,6 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getCategoriesWithCounts } from '../services/jobService';
+import { JOBS_PUBLIC } from '../lib/featureFlags';
+
+// AdSense phase: category index → industry hub listing.
+if (!JOBS_PUBLIC) {
+  return Astro.redirect('/careers', 301);
+}
+
 const categories = await getCategoriesWithCounts();
 ---
 

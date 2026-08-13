@@ -1,12 +1,17 @@
 import type { APIRoute } from 'astro';
 import { getPB } from '../../lib/pocketbase';
 import { siteBase } from '../../lib/constants';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 
 function esc(value: unknown) {
   return String(value ?? '').replace(/[<>&'"]/g, (char) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[char]!));
 }
 
 export const GET: APIRoute = async () => {
+  // AdSense phase: no public job feeds. Empty channel (not an error).
+  if (!JOBS_PUBLIC) {
+    return new Response('', { status: 200, headers: { 'Content-Type': 'application/rss+xml', 'Cache-Control': 'public, max-age=3600' } });
+  }
   const base = siteBase();
   const today = new Date().toISOString().slice(0, 10);
   const jobs = await getPB().collection('jobs').getFullList({

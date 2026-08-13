@@ -10,7 +10,22 @@ Disallow: /admin/
 Disallow: /employer/
 Disallow: /logout
 Disallow: /?*
-Disallow: /jobs?*
+Disallow: /jobs*
+Disallow: /job/
+Disallow: /category/
+Disallow: /province/
+Disallow: /learnerships*
+Disallow: /internships*
+Disallow: /graduate-jobs*
+Disallow: /remote-jobs*
+Disallow: /bursaries*
+Disallow: /cv-tips-*
+Disallow: /interview-tips-*
+Disallow: /how-to-get-into-*
+Disallow: /post-job
+Disallow: /pricing
+Disallow: /advertise
+Disallow: /feeds/
 
 User-agent: GPTBot
 Allow: /

@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import AdminNav from '../../components/AdminNav.astro';
 import { requireAdmin } from '../../lib/auth';
+import { siteBase } from '../../lib/constants';
 import { listXmlSources } from '../../services/jobService';
 
 const { redirect } = await requireAdmin(Astro.request);
@@ -36,7 +37,7 @@ const OUTBOUND_FEEDS = [
   })),
 ];
 
-const siteOrigin = Astro.url.origin;
+const siteOrigin = siteBase();
 ---
 
 <Layout title="Imports — Admin" description="Manage inbound and outbound feeds." canonicalUrl={Astro.url.href}>
@@ -168,7 +169,7 @@ const siteOrigin = Astro.url.origin;
   <!-- Modal -->
   <div id="feed-modal" class="fixed inset-0 bg-black/45 flex items-center justify-center z-[9999]" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="bg-white rounded-md p-6 w-[90%] max-w-[460px] relative">
-      <button type="button" class="absolute top-2.5 right-3.5 bg-transparent border-0 text-xl text-gray-500 cursor-pointer" aria-label="Close">&times;</button>
+      <button type="button" class="absolute top-2.5 right-3.5 bg-transparent border-0 text-xl text-gray-500 cursor-pointer modal-close" aria-label="Close">&times;</button>
       <h3 id="modal-title" class="text-base font-semibold text-gray-900 mb-3.5">Add Feed</h3>
       <form id="feed-form" class="space-y-3">
         <input type="hidden" name="id" value="" />
@@ -331,6 +332,7 @@ const siteOrigin = Astro.url.origin;
 
   document.getElementById('open-add')?.addEventListener('click', () => openModal('add'));
   document.querySelector('.modal-close')?.addEventListener('click', closeModal);
+  document.querySelector('.modal-cancel')?.addEventListener('click', closeModal);
   modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
   document.querySelectorAll<HTMLButtonElement>('[data-edit]').forEach((btn) => {

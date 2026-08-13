@@ -1,326 +1,177 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import JobCard from '../../components/JobCard.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import EmptyState from '../../components/ui/EmptyState.astro';
-import MonetizationSlot from '../../components/MonetizationSlot.astro';
-import { formatSalary, getCategories, getEmployerBySlug, isSalaryDisclosed } from '../../lib/pocketbase';
-import { listCompanyJobs, listEmployers } from '../../services/jobService';
-import { aggregateEmployerJobs, buildEmployerFaqs } from '../../lib/employerContent';
-import { findSalaryGuide } from '../../lib/jobContent';
-import { slugify } from '../../services/import/normalize';
+import { COMPANY_GUIDES } from '../../content/company-guides';
+import { CAREER_GUIDES } from '../../content/career-guides';
+import { ARTICLES } from '../../content/resources';
+import { SITE_URL } from '../../lib/constants';
+import { getEmployerBySlug } from '../../lib/pocketbase';
 
-const employer = await getEmployerBySlug(Astro.params.slug || '');
-if (!employer) return Astro.redirect('/404');
+const { slug } = Astro.params;
 
-const page = Math.max(1, Number(Astro.url.searchParams.get('page') || '1'));
-const perPage = 10;
+// 1) Curated employer guide, or 2) existing PocketBase employer record
+// (informational only during the AdSense phase — no job listings rendered).
+const guide = COMPANY_GUIDES.find(c => c.slug === slug);
+const employer = guide ? null : await getEmployerBySlug(slug || '').catch(() => null);
+if (!guide && !employer) return Astro.redirect('/404');
 
-const [result, aggregateResult, allCategories, provinceEmployers] = await Promise.all([
-  listCompanyJobs(employer.id, employer.company_name, page, perPage),
-  listCompanyJobs(employer.id, employer.company_name, 1, 50),
-  getCategories().catch(() => []),
-  employer.province ? listEmployers(1, 7, { province: employer.province }).catch(() => null) : Promise.resolve(null),
-]);
+const name = guide?.name || employer?.company_name || 'Employer';
+const sector = guide?.sector || 'Employer';
+const locationLabel = employer ? [employer.city, employer.province].filter(Boolean).join(', ') : '';
+const website = guide?.officialSite || employer?.website || '';
 
-const companyJobs = result.items;
-const totalItems = result.totalItems;
-const totalPages = result.totalPages;
+const relatedCareers = (guide?.careerLinks || [])
+  .map(s => CAREER_GUIDES.find(c => c.slug === s))
+  .filter(Boolean);
+const otherCompanies = COMPANY_GUIDES.filter(c => c.slug !== slug).slice(0, 4);
 
-const facts = aggregateEmployerJobs(aggregateResult.items);
-const faqs = buildEmployerFaqs(employer, facts);
-const knownCategorySlugs = new Set(allCategories.map(c => c.slug));
-const linkedCategories = facts.categories.filter(c => knownCategorySlugs.has(slugify(c)));
-const salaryGuides = [...new Map(
-  facts.categories.map(c => findSalaryGuide(c)).filter(Boolean).map(g => [g!.slug, g!]),
-).values()];
-const relatedEmployers = (provinceEmployers?.items || [])
-  .filter(e => e.company_slug !== employer.company_slug)
-  .slice(0, 6);
-const locationLabel = [employer.city, employer.province].filter(Boolean).join(', ');
-const salaryInsight = facts.salaryCount > 0 && facts.salaryMin && facts.salaryMax
-  ? `${formatSalary(facts.salaryMin, facts.salaryMax)} across ${facts.salaryCount} listing${facts.salaryCount === 1 ? '' : 's'} that disclose pay`
-  : '';
-
-const overviewText = employer.description
-  ? employer.description
-  : `${employer.company_name} is an employer hiring in South Africa${locationLabel ? `, based in ${locationLabel}` : ''}${facts.totalListings > 0 ? `, currently advertising ${facts.totalListings} vacanc${facts.totalListings === 1 ? 'y' : 'ies'}${facts.categories.length > 0 ? ` across ${facts.categories.slice(0, 3).join(', ')}` : ''}` : ''}. This page brings together every live vacancy at ${employer.company_name}, where the company hires, which fields it recruits for, and practical guidance on how to apply.`;
-
-const orgLd: Record<string, any> = {
-  '@context': 'https://schema.org', '@type': 'Organization',
-  name: employer.company_name,
-  url: `${Astro.url.origin}/company/${employer.company_slug}`,
-  ...(employer.website ? { sameAs: employer.website } : {}),
-  ...(employer.logo ? { logo: employer.logo } : {}),
-  ...(locationLabel ? { address: { '@type': 'PostalAddress', addressLocality: employer.city || '', addressRegion: employer.province || '', addressCountry: 'ZA' } } : {}),
-};
-
-const faqLd = {
-  '@context': 'https://schema.org', '@type': 'FAQPage',
-  mainEntity: faqs.map(f => ({
-    '@type': 'Question', name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: f.a },
-  })),
-};
-
-const breadcrumbLd = {
-  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: Astro.url.origin },
-    { '@type': 'ListItem', position: 2, name: 'Companies', item: `${Astro.url.origin}/companies` },
-    { '@type': 'ListItem', position: 3, name: employer.company_name, item: `${Astro.url.origin}/company/${employer.company_slug}` },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Companies', item: `${SITE_URL}/companies` },
+    { '@type': 'ListItem', position: 3, name },
   ],
 };
 
-const metaDescription = totalItems > 0
-  ? `${employer.company_name} has ${totalItems} open position${totalItems === 1 ? '' : 's'} in South Africa${facts.provinces.length > 0 ? ` — hiring in ${facts.provinces.slice(0, 3).join(', ')}` : ''}. See all vacancies, locations, fields and how to apply.`
-  : `See current and upcoming vacancies at ${employer.company_name}${locationLabel ? ` in ${locationLabel}` : ''}, plus how to apply and where the company hires in South Africa.`;
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: `${name} Careers`,
+  description: guide?.description || `${name} is an employer in South Africa${locationLabel ? `, based in ${locationLabel}` : ''}. Learn how to apply and prepare for opportunities at ${name}.`,
+  dateModified: '2026-08-01',
+  datePublished: '2026-08-01',
+  author: { '@type': 'Organization', name: 'Edubuzz', url: SITE_URL },
+  publisher: { '@type': 'Organization', name: 'Edubuzz', url: SITE_URL },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/company/${slug}` },
+};
+
+const faqSchema = guide ? {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: guide.faqs.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+} : null;
 ---
 
 <Layout
-  title={`${employer.company_name} Jobs, Vacancies & Careers in South Africa`}
-  description={metaDescription}
-  canonicalUrl={`${Astro.url.origin}/company/${employer.company_slug}`}
-  adsEligible={totalItems > 0}
+  title={guide?.title || `${name} Careers in South Africa`}
+  description={guide?.description || `${name} is an employer in South Africa${locationLabel ? `, based in ${locationLabel}` : ''}. Find out how to apply for opportunities at ${name} and how to prepare.`}
+  canonicalUrl={`${SITE_URL}/company/${slug}`}
+  ogType="article"
+  adsEligible={false}
 >
-  <Fragment slot="head">
-    <script type="application/ld+json" set:html={JSON.stringify(orgLd)} />
-    <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
-    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
-  </Fragment>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} slot="head" />
+  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} slot="head" />
+  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />}
 
-  <main class="company-page">
-    <div style="margin-bottom:12px">
-      <Breadcrumbs items={[
-        { label: 'Home', href: '/' },
-        { label: 'Companies', href: '/companies' },
-        { label: employer.company_name },
-      ]} />
-    </div>
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
+      <a href="/" class="hover:text-gray-900">Home</a> &rsaquo;
+      <a href="/companies" class="hover:text-gray-900">Companies</a> &rsaquo;
+      <span class="text-gray-900 font-medium">{name}</span>
+    </nav>
 
-    <section class="panel header-card">
-      <div class="logo-box">
-        {employer.logo
-          ? <img src={employer.logo} alt={`${employer.company_name} logo`} width="54" height="54" style="object-fit:contain" />
-          : employer.company_name.slice(0, 2).toUpperCase()}
+    <header class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">{name} Careers</h1>
+      <div class="flex items-center gap-3 text-xs text-gray-500">
+        <span>{sector}{locationLabel ? ` · ${locationLabel}` : ''}</span>
+        {website && <a href={website} target="_blank" rel="noopener noreferrer" class="text-green-800 hover:underline">Official website &rarr;</a>}
       </div>
-      <div>
-        <h1>{employer.company_name}</h1>
-        <p>{locationLabel || 'South Africa'}</p>
-        <div class="header-meta">
-          {employer.verified && <span class="verified-badge">Verified Employer</span>}
-          {employer.website && <a href={employer.website} target="_blank" rel="noopener noreferrer" class="website-link">Visit website &rarr;</a>}
-        </div>
-      </div>
-    </section>
+    </header>
 
-    <!-- Company overview (real description, or facts-only summary when absent) -->
-    <section class="panel">
-      <h2 class="panel-title">Working at {employer.company_name}</h2>
-      <p class="overview-text">{overviewText}</p>
-      <dl class="fact-grid">
-        {locationLabel && <div><dt>Based in</dt><dd>{locationLabel}</dd></div>}
-        <div><dt>Open positions</dt><dd>{totalItems}</dd></div>
-        {facts.categories.length > 0 && <div><dt>Fields hiring in</dt><dd>{facts.categories.slice(0, 3).join(', ')}</dd></div>}
-        {facts.jobTypes.length > 0 && <div><dt>Job types</dt><dd>{facts.jobTypes.join(', ')}</dd></div>}
-        {salaryInsight && <div><dt>Advertised pay</dt><dd>{salaryInsight}</dd></div>}
-      </dl>
-    </section>
+    {guide ? (
+      <>
+        <section class="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-green-800 prose-li:text-gray-700 mb-8" set:html={guide.overview} />
 
-    <section>
-      <div class="section-head">
-        <h2>Current vacancies at {employer.company_name}</h2>
-        <span class="job-count">{totalItems} open position{totalItems !== 1 ? 's' : ''}</span>
-      </div>
-      {totalItems > 0 && <MonetizationSlot zone="jobs-top" />}
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">Career areas at {name}</h2>
+          <div class="flex flex-wrap gap-2">
+            {guide.careerAreas.map(area => (
+              <span class="px-3 py-1.5 bg-green-50 border border-green-200 rounded-full text-xs text-green-800">{area}</span>
+            ))}
+          </div>
+        </section>
 
-      {companyJobs.length > 0 ? (
-        <>
-          {companyJobs.map((job: any, i: number) => (
-            <>
-              <JobCard job={job} />
-              {(i + 1) % 5 === 0 && i < companyJobs.length - 1 && <MonetizationSlot zone="infeed" />}
-            </>
-          ))}
-          {totalPages > 1 && (
-            <nav class="pagination">
-              {page > 1 && <a href={`/company/${employer.company_slug}?page=${page - 1}`}>Previous</a>}
-              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                const p = i + 1;
-                return <a href={`/company/${employer.company_slug}?page=${p}`} class={p === page ? 'active' : ''}>{p}</a>;
-              })}
-              {page < totalPages && <a href={`/company/${employer.company_slug}?page=${page + 1}`}>Next</a>}
-            </nav>
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">Entry-level opportunities</h2>
+          <div class="prose prose-sm max-w-none prose-p:text-gray-700 prose-li:text-gray-700" set:html={guide.entryLevel} />
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">How to apply</h2>
+          <div class="prose prose-sm max-w-none prose-p:text-gray-700 prose-a:text-green-800 prose-li:text-gray-700" set:html={guide.howToApply} />
+          <a href={guide.officialSite} target="_blank" rel="noopener noreferrer" class="inline-block mt-3 bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Visit the official careers site</a>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
+          <div class="space-y-4">
+            {guide.faqs.map(faq => (
+              <details class="border border-gray-200 rounded-md p-4 group">
+                <summary class="font-medium text-sm text-gray-900 cursor-pointer group-open:mb-2">{faq.q}</summary>
+                <p class="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      </>
+    ) : (
+      <>
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">About {name}</h2>
+          <div class="prose prose-sm max-w-none prose-p:text-gray-700 prose-a:text-green-800" set:html={employer?.description || `<p>${name} is an employer in South Africa${locationLabel ? `, based in ${locationLabel}` : ''}. For the latest information about opportunities at ${name}, visit the company's official website.</p>`} />
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">How to apply for opportunities at {name}</h2>
+          <p class="text-sm text-gray-700 leading-relaxed mb-3">
+            The most reliable way to apply is through {name}'s official careers or contact channels.
+            Keep your CV up to date and tailored, and prepare certified copies of your ID and
+            qualifications for the shortlisting stage.
+          </p>
+          {website && (
+            <a href={website} target="_blank" rel="noopener noreferrer" class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Visit the official website</a>
           )}
-        </>
-      ) : (
-        <EmptyState
-          icon="none"
-          title="No active jobs right now"
-          description={`${employer.company_name} doesn't have any open positions at the moment. Check back soon or browse other companies.`}
-          action={{ label: 'Browse all jobs', href: '/jobs' }}
-        />
-      )}
-    </section>
-
-    <!-- Entry-level opportunities (only real, current listings) -->
-    {(facts.learnershipJobs.length > 0 || facts.internshipJobs.length > 0 || facts.graduateJobs.length > 0) && (
-      <section class="panel">
-        <h2 class="panel-title">Learnerships, internships &amp; graduate programmes at {employer.company_name}</h2>
-        <p class="panel-note">Entry-level opportunities this employer is advertising right now. These fill quickly — apply early.</p>
-        <ul class="entry-list">
-          {facts.learnershipJobs.slice(0, 3).map(j => <li><span class="entry-badge">Learnership</span> <a href={`/job/${j.slug}`}>{j.title}</a>{j.city ? ` — ${j.city}` : ''}</li>)}
-          {facts.internshipJobs.slice(0, 3).map(j => <li><span class="entry-badge">Internship</span> <a href={`/job/${j.slug}`}>{j.title}</a>{j.city ? ` — ${j.city}` : ''}</li>)}
-          {facts.graduateJobs.slice(0, 3).map(j => <li><span class="entry-badge">Graduate</span> <a href={`/job/${j.slug}`}>{j.title}</a>{j.city ? ` — ${j.city}` : ''}</li>)}
-        </ul>
-      </section>
+        </section>
+      </>
     )}
 
-    <!-- Where the company hires -->
-    {facts.provinces.length > 0 && (
-      <section class="panel">
-        <h2 class="panel-title">Where {employer.company_name} hires</h2>
-        <div class="link-grid">
-          {facts.provinces.filter(p => slugify(p) !== 'remote').map(p => (
-            <a href={`/jobs-in-${slugify(p)}`}>Jobs in {p}</a>
+    {relatedCareers.length > 0 && (
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Related career guides</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {relatedCareers.map(c => (
+            <a href={`/careers/${c.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors">
+              <h3 class="text-sm font-semibold text-gray-900 mb-1">{c.h1}</h3>
+              <p class="text-xs text-gray-500">{c.readMins} min read</p>
+            </a>
           ))}
-          {facts.provinces.some(p => slugify(p) === 'remote') && <a href="/remote-jobs">Remote jobs</a>}
-        </div>
-        {facts.cities.length > 0 && <p class="panel-note">Current vacancy locations include {facts.cities.slice(0, 8).join(', ')}.</p>}
-      </section>
-    )}
-
-    <!-- Fields the company hires for -->
-    {linkedCategories.length > 0 && (
-      <section class="panel">
-        <h2 class="panel-title">Fields {employer.company_name} hires for</h2>
-        <div class="link-grid">
-          {linkedCategories.map(c => <a href={`/category/${slugify(c)}`}>{c} jobs</a>)}
         </div>
       </section>
     )}
 
-    <!-- How to apply / hiring guidance -->
-    <section class="panel">
-      <h2 class="panel-title">How to apply for jobs at {employer.company_name}</h2>
-      <ol class="steps-list">
-        <li>Browse the live vacancies above and open the listing that matches your skills and experience.</li>
-        <li>Read the full requirements before applying — tailoring your CV to the advert is the single biggest factor in getting shortlisted.</li>
-        <li>Apply through the official channel shown on the listing, either the Edubuzz application form or the employer's own careers site.</li>
-        {facts.hasGovernmentRoles && <li>For government posts, complete and sign a Z83 form and quote the exact reference number from the advert.</li>}
-        <li>Prepare certified copies of your ID and qualifications for the shortlisting stage.</li>
-      </ol>
-      <div class="link-grid" style="margin-top:10px">
-        <a href="/resources/cv-writing-guide-south-africa">CV writing guide</a>
-        <a href="/resources/common-interview-questions-and-answers">Interview questions &amp; answers</a>
-        <a href="/resources/cover-letter-guide-south-africa">Cover letter guide</a>
-      </div>
-    </section>
-
-    <!-- Salary guides for the fields this employer hires in -->
-    {salaryGuides.length > 0 && (
-      <section class="panel">
-        <h2 class="panel-title">Salary guides</h2>
-        <p class="panel-note">What these roles typically pay in South Africa:</p>
-        <div class="link-grid">
-          {salaryGuides.map(g => <a href={`/salary/${g.slug}`}>{g.occupation} salaries</a>)}
-        </div>
-      </section>
-    )}
-
-    <!-- Related employers -->
-    {relatedEmployers.length > 0 && (
-      <section class="panel">
-        <h2 class="panel-title">Similar employers{employer.province ? ` in ${employer.province}` : ''}</h2>
-        <div class="link-grid">
-          {relatedEmployers.map(e => <a href={`/company/${e.company_slug}`}>{e.company_name}</a>)}
-        </div>
-      </section>
-    )}
-
-    <!-- FAQs -->
-    <section class="panel">
-      <h2 class="panel-title">Frequently asked questions about {employer.company_name}</h2>
-      <div class="faq-list">
-        {faqs.map(f => (
-          <details>
-            <summary>{f.q}</summary>
-            <p>{f.a}</p>
-          </details>
+    <section class="mb-8">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">Helpful application guides</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {ARTICLES.slice(0, 4).map(a => (
+          <a href={`/resources/${a.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors">
+            <h3 class="text-sm font-semibold text-gray-900 mb-1">{a.h1}</h3>
+            <p class="text-xs text-gray-500">{a.readMins} min read</p>
+          </a>
         ))}
       </div>
     </section>
 
-    <!-- Internal linking: Career resources -->
-    <section class="panel internal-links">
-      <h3>Career Resources</h3>
-      <div class="link-grid">
-        <a href="/resources/cv-writing-guide-south-africa">CV Writing Guide</a>
-        <a href="/resources/common-interview-questions-and-answers">Interview Questions</a>
-        <a href="/resources/cover-letter-guide-south-africa">Cover Letter Guide</a>
-        <a href="/salary">Salary Guides</a>
-        <a href="/resources">All Resources</a>
+    <section class="mb-8">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">Other employer guides</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {otherCompanies.map(c => (
+          <a href={`/company/${c.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors">
+            <h3 class="text-sm font-semibold text-gray-900 mb-1">{c.name}</h3>
+            <p class="text-xs text-gray-500">{c.sector}</p>
+          </a>
+        ))}
       </div>
     </section>
-
-    <!-- Internal linking: Browse more -->
-    <section class="panel internal-links">
-      <h3>Explore More</h3>
-      <div class="link-grid">
-        <a href="/companies">All Companies</a>
-        <a href="/categories">Job Categories</a>
-        <a href="/provinces">Jobs by Province</a>
-        <a href="/learnerships">Learnerships</a>
-        <a href="/internships">Internships</a>
-      </div>
-    </section>
-  </main>
+  </div>
 </Layout>
-
-<style>
-  .company-page { max-width: 900px; margin: 1.5rem auto; padding: 0 1.5rem; display: grid; gap: 16px; }
-  .header-card { display: flex; gap: 14px; align-items: center; }
-  .logo-box { width: 54px; height: 54px; border: 1px solid #e5e7eb; border-radius: 6px; display: grid; place-items: center; font-size: 18px; font-weight: 600; color: #166534; overflow: hidden; background: #f9fafb; }
-  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; letter-spacing: -0.3px; color: #111827; }
-  p { margin: 0; color: #6b7280; font-size: 13px; }
-  .header-meta { display: flex; gap: 12px; align-items: center; margin-top: 6px; }
-  .verified-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: #166534; font-weight: 500; }
-  .website-link { color: #166534; font-size: 13px; font-weight: 500; }
-  .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
-  .section-head h2 { margin: 0; font-size: 16px; font-weight: 600; color: #111827; }
-  .job-count { font-size: 13px; color: #9ca3af; }
-  .pagination { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
-  .pagination a { border: 1px solid #e5e7eb; background: #fff; border-radius: 4px; padding: 5px 10px; font-size: 12px; color: #374151; }
-  .pagination a.active { background: #166534; color: #fff; border-color: #166534; }
-  .internal-links h3 { font-size: 14px; font-weight: 600; color: #111827; margin: 0 0 8px; }
-  .link-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-  .link-grid a { font-size: 12px; color: #166534; border: 1px solid #e5e7eb; border-radius: 4px; padding: 4px 10px; }
-  .link-grid a:hover { border-color: #166534; background: #f0fdf4; }
-
-  .panel-title { font-size: 16px; font-weight: 600; color: #111827; margin: 0 0 8px; }
-  .panel-note { font-size: 12px; color: #6b7280; margin: 0 0 8px; }
-  .overview-text { font-size: 14px; color: #374151; line-height: 1.7; margin: 0 0 12px; }
-
-  .fact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin: 0; }
-  .fact-grid > div { border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 12px; background: #f9fafb; }
-  .fact-grid dt { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; }
-  .fact-grid dd { margin: 2px 0 0; font-size: 13px; font-weight: 500; color: #111827; }
-
-  .entry-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-  .entry-list li { font-size: 13px; color: #374151; }
-  .entry-list a { color: #166534; font-weight: 500; }
-  .entry-list a:hover { text-decoration: underline; }
-  .entry-badge { display: inline-block; font-size: 11px; font-weight: 600; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 1px 6px; margin-right: 4px; }
-
-  .steps-list { margin: 0; padding-left: 1.25rem; font-size: 13px; color: #374151; line-height: 1.7; }
-  .steps-list li { margin-bottom: 6px; }
-
-  .faq-list details { border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 14px; margin-bottom: 8px; background: #fff; }
-  .faq-list summary { cursor: pointer; font-size: 13px; font-weight: 600; color: #111827; }
-  .faq-list details p { margin: 8px 0 0; font-size: 13px; color: #374151; line-height: 1.6; }
-
-  @media (max-width: 640px) {
-    .header-card { flex-direction: column; align-items: flex-start; }
-    .company-page { padding: 0 1rem; }
-  }
-</style>

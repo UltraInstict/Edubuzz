@@ -6,14 +6,15 @@ import JobCard from '../../components/JobCard.astro';
 import { SALARY_GUIDES } from '../../content/salary-guides';
 import { getJobs } from '../../lib/pocketbase';
 import { SITE_URL } from '../../lib/constants';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 
 const { slug } = Astro.params;
 const guide = SALARY_GUIDES.find(g => g.slug === slug);
 if (!guide) return Astro.redirect('/404');
 
-// Fetch related jobs
+// Fetch related jobs (AdSense phase: no job listings shown)
 let relatedJobs: any[] = [];
-if (guide.categorySlug) {
+if (JOBS_PUBLIC && guide.categorySlug) {
   const result = await getJobs({ category: guide.categorySlug, perPage: 5 });
   relatedJobs = result.items;
 }
@@ -123,7 +124,7 @@ const faqSchema = {
       </section>
 
       <!-- Related jobs -->
-      {relatedJobs.length > 0 && (
+      {JOBS_PUBLIC && relatedJobs.length > 0 && (
         <section class="mb-8">
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Related {guide.occupation} Jobs</h2>
           <div class="space-y-3">

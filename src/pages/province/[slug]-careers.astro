@@ -8,13 +8,15 @@ import { SALARY_GUIDES } from '../../content/salary-guides';
 import { ARTICLES } from '../../content/resources';
 import { getJobs, getEmployers, slugify } from '../../lib/pocketbase';
 import { SITE_URL } from '../../lib/constants';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 
 const { slug } = Astro.params;
 const hub = PROVINCE_HUBS.find(h => h.slug === slug);
 if (!hub) return Astro.redirect('/404');
 
-// Live data from PocketBase
-const { items: jobs, totalItems } = await getJobs({ province: hub.name, perPage: 6 });
+// Live data from PocketBase (AdSense phase: no job listings rendered)
+const jobsResult = JOBS_PUBLIC ? await getJobs({ province: hub.name, perPage: 6 }) : { items: [] as any[], totalItems: 0 };
+const { items: jobs, totalItems } = jobsResult;
 const employersResult = await getEmployers({ province: hub.name, perPage: 6 }).catch(() => ({ items: [] as any[] }));
 const employers = (employersResult as any).items || [];
 
@@ -67,8 +69,8 @@ const faqSchema = {
       </nav>
 
       <header class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Careers &amp; Jobs in {hub.name}</h1>
-        <p class="text-sm text-gray-500">{totalItems.toLocaleString()} live jobs in {hub.name} on Edubuzz</p>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Careers in {hub.name}</h1>
+        <p class="text-sm text-gray-500">Career information and opportunities in {hub.name}, South Africa</p>
       </header>
 
       <MonetizationSlot zone="content-top" />
@@ -98,18 +100,20 @@ const faqSchema = {
         </div>
       </section>
 
-      <!-- Live jobs -->
-      <section class="mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Latest jobs in {hub.name}</h2>
-        {jobs.length > 0 ? (
-          <div class="space-y-3">
-            {jobs.map(job => <JobCard job={job} />)}
-          </div>
-        ) : (
-          <p class="text-sm text-gray-500">No live jobs in {hub.name} right now. Check back soon or browse all jobs.</p>
-        )}
-        <a href={`/province/${hub.slug}`} class="inline-block mt-3 text-sm text-green-800 hover:underline font-medium">View all {hub.name} jobs &rarr;</a>
-      </section>
+      <!-- Live jobs (AdSense phase: hidden) -->
+      {JOBS_PUBLIC && (
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Latest jobs in {hub.name}</h2>
+          {jobs.length > 0 ? (
+            <div class="space-y-3">
+              {jobs.map(job => <JobCard job={job} />)}
+            </div>
+          ) : (
+            <p class="text-sm text-gray-500">No live jobs in {hub.name} right now. Check back soon or browse all jobs.</p>
+          )}
+          <a href={`/province/${hub.slug}`} class="inline-block mt-3 text-sm text-green-800 hover:underline font-medium">View all {hub.name} jobs &rarr;</a>
+        </section>
+      )}
 
       <MonetizationSlot zone="in-content" />
 

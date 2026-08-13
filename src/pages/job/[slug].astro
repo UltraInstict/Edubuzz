@@ -7,14 +7,25 @@ import MonetizationSlot from '../../components/MonetizationSlot.astro';
 import { formatSalary, getCategories, getEmployerBySlug, getJobBySlug, getRelatedJobs, isSalaryDisclosed } from '../../lib/pocketbase';
 import { trackEvent } from '../../lib/analytics';
 import { generateToken } from '../../lib/csrf';
+import { siteBase } from '../../lib/constants';
 import { slugify } from '../../services/import/normalize';
 import { buildApplicationSteps, buildInterviewTips, buildJobFaqs, findIndustryHub, findProvinceHub, findSalaryGuide, isJobPageAdsEligible } from '../../lib/jobContent';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
+import { getJobRedirectTarget } from '../../lib/jobRedirects';
 
 const { slug } = Astro.params;
 const job = await getJobBySlug(slug || '');
 const csrfToken = generateToken();
 
 if (!job) return Astro.redirect('/404?reason=notfound');
+
+// AdSense phase: job detail pages redirect to the closest informational guide
+// (career guide, industry hub or career hub). JOBS_PUBLIC=true restores the
+// original listing page with no further changes.
+if (!JOBS_PUBLIC) {
+  const target = getJobRedirectTarget(job);
+  return Astro.redirect(target, 301);
+}
 
 const isExpired = Boolean(
   (job.expires && new Date(job.expires).getTime() <= Date.now()) ||
@@ -31,7 +42,8 @@ const [similarJobs, employer, allCategories] = await Promise.all([
 ]);
 const descriptionText = (job.description || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 trackEvent(job.id, 'view', Astro.request).catch(() => {});
-const pageUrl = Astro.url.href;
+const siteOrigin = siteBase();
+const pageUrl = `${siteOrigin}${Astro.url.pathname}${Astro.url.search}`;
 const isRemote = /remote/i.test(job.job_type || '') || /remote/i.test(job.title || '');
 const validThrough = job.expires || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 const closeDate = job.expires ? new Date(job.expires).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
@@ -147,7 +159,7 @@ const jsonLd: Record<string, any> = {
   hiringOrganization: {
     '@type': 'Organization', name: job.company,
     sameAs: job.company_website || job.apply_url || undefined,
-    logo: job.company_logo || `${Astro.url.origin}/favicon.svg`,
+    logo: job.company_logo || `${siteOrigin}/favicon.svg`,
   },
   jobLocation: {
     '@type': 'Place',
@@ -158,7 +170,7 @@ const jsonLd: Record<string, any> = {
   ...(isSalaryDisclosed(job.salary_min, job.salary_max) ? {
     baseSalary: { '@type': 'MonetaryAmount', currency: 'ZAR', value: { '@type': 'QuantitativeValue', minValue: job.salary_min || undefined, maxValue: job.salary_max || undefined, unitText: 'MONTH' } },
   } : {}),
-  image: `${Astro.url.origin}/api/og-image/${job.id}`, url: pageUrl, sameAs: pageUrl,
+  image: `${siteOrigin}/api/og-image/${job.id}`, url: pageUrl, sameAs: pageUrl,
   industry: job.category || undefined, occupationalCategory: job.category || undefined,
   jobBenefits: job.featured ? 'Featured listing' : undefined,
 };
@@ -166,9 +178,9 @@ const jsonLd: Record<string, any> = {
 const breadcrumbLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: Astro.url.origin },
-    { '@type': 'ListItem', position: 2, name: 'Jobs', item: `${Astro.url.origin}/jobs` },
-    ...(job.category ? [{ '@type': 'ListItem', position: 3, name: `${job.category} Jobs`, item: `${Astro.url.origin}/category/${categorySlug}` }] : []),
+    { '@type': 'ListItem', position: 1, name: 'Home', item: siteOrigin },
+    { '@type': 'ListItem', position: 2, name: 'Jobs', item: `${siteOrigin}/jobs` },
+    ...(job.category ? [{ '@type': 'ListItem', position: 3, name: `${job.category} Jobs`, item: `${siteOrigin}/category/${categorySlug}` }] : []),
     { '@type': 'ListItem', position: (job.category ? 4 : 3), name: `${job.title} at ${job.company}`, item: pageUrl },
   ],
 };
@@ -195,7 +207,7 @@ const metaDescription = [
   canonicalUrl={Astro.url.href}
   ogTitle={`${job.title} at ${job.company}`}
   ogDescription={`Apply for ${job.title} in ${job.city || job.province} on Edubuzz.`}
-  ogImage={`${Astro.url.origin}/api/og-image/${job.id}`}
+  ogImage={`${siteOrigin}/api/og-image/${job.id}`}
   ogType="article"
   adsEligible={adsEligible}
 >

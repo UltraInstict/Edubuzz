@@ -1,15 +1,16 @@
 import type { APIRoute } from 'astro';
 import { getPB } from '../../lib/pocketbase';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 
 export const GET: APIRoute = async ({ site }) => {
   const base = site?.origin || import.meta.env.SITE_URL || 'https://edubuzz.co.za';
-  const pb = getPB();
   const today = new Date().toISOString().slice(0, 10);
-  const jobs = await pb.collection('jobs').getFullList({
+  const pb = getPB();
+  const jobs = JOBS_PUBLIC ? await pb.collection('jobs').getFullList({
     filter: `active=true&&expires>"${today}"`,
     fields: 'slug,created,updated',
     sort: '-created',
-  }).catch(() => []);
+  }).catch(() => []) : [];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

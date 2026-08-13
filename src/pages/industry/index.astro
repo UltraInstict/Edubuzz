@@ -1,0 +1,34 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { INDUSTRY_HUBS } from '../../content/industry-hubs';
+import { SITE_URL } from '../../lib/constants';
+---
+
+<Layout
+  title="Careers by Industry in South Africa"
+  description="Explore South African careers by industry: government, healthcare, education, engineering, mining, retail, logistics, finance, IT, hospitality, security and manufacturing."
+  canonicalUrl={`${SITE_URL}/industry`}
+  adsEligible={false}
+>
+  <div class="bg-white border-b border-gray-200 py-10">
+    <div class="max-w-6xl mx-auto px-4">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Careers by Industry</h1>
+      <p class="text-sm text-gray-600 leading-relaxed max-w-3xl">
+        Understand each major South African industry: what careers it offers, typical
+        qualifications, entry routes, salary ranges and progression.
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {INDUSTRY_HUBS.map(hub => (
+        <a href={`/industry/${hub.slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+          <h2 class="text-base font-semibold text-gray-900 mb-1">{hub.name}</h2>
+          <p class="text-sm text-gray-600 mb-2">{hub.description}</p>
+          <span class="text-xs text-green-800 font-medium">Explore careers &rarr;</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</Layout>

@@ -1,4 +1,6 @@
 ---
+import { siteBase } from '../lib/constants';
+
 export interface Props {
   page: number;
   totalPages: number;
@@ -9,7 +11,7 @@ export interface Props {
 const { page, totalPages, baseUrl, paramName = 'page' } = Astro.props;
 
 const buildUrl = (p: number) => {
-  const url = new URL(baseUrl, Astro.url.origin);
+  const url = new URL(baseUrl, siteBase());
   if (p > 1) {
     url.searchParams.set(paramName, String(p));
   } else {

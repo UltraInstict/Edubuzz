@@ -6,6 +6,7 @@ import JobCard from '../../components/JobCard.astro';
 import { ARTICLES, RESOURCE_CATEGORIES } from '../../content/resources';
 import { getJobs } from '../../lib/pocketbase';
 import { SITE_URL } from '../../lib/constants';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 
 const { slug } = Astro.params;
 const article = ARTICLES.find(a => a.slug === slug);
@@ -13,9 +14,10 @@ if (!article) return Astro.redirect('/404');
 
 const categoryMeta = RESOURCE_CATEGORIES.find(c => c.id === article.category);
 
-// Fetch related jobs if the article maps to a job category
+// Fetch related jobs if the article maps to a job category (only when the
+// job platform is public — AdSense phase shows no job listings).
 let relatedJobs: any[] = [];
-if (article.categorySlug) {
+if (JOBS_PUBLIC && article.categorySlug) {
   const result = await getJobs({ category: article.categorySlug, perPage: 5 });
   relatedJobs = result.items;
 }
@@ -120,7 +122,7 @@ const faqSchema = article.faqs?.length ? {
       )}
 
       <!-- Related jobs -->
-      {relatedJobs.length > 0 && (
+      {JOBS_PUBLIC && relatedJobs.length > 0 && (
         <section class="mb-8">
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Related Job Openings</h2>
           <div class="space-y-3">

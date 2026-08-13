@@ -2,8 +2,17 @@
 import Layout from '../layouts/Layout.astro';
 import JobCard from '../components/JobCard.astro';
 import Sidebar from '../components/Sidebar.astro';
+import { siteBase } from '../lib/constants';
 import { getJobs, getCategoriesWithCounts, PROVINCES } from '../lib/pocketbase';
 import { provinceName, slugify } from '../lib/slugify';
+import { JOBS_PUBLIC } from '../lib/featureFlags';
+import { PROVINCE_HUBS } from '../content/province-hubs';
+
+if (!JOBS_PUBLIC) {
+  const { province: provinceSlug } = Astro.params;
+  const hub = PROVINCE_HUBS.find(h => h.slug === provinceSlug || h.hubSlug === provinceSlug);
+  return Astro.redirect(hub ? `/province/${hub.hubSlug}` : '/careers', 301);
+}
 
 const { province: provinceSlug } = Astro.params;
 const province = provinceName(provinceSlug || '');
@@ -18,14 +27,15 @@ const [{ items: jobs, totalItems, totalPages }, categories] = await Promise.all(
 
 const topCategories = categories.filter(c => c.count > 0).sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 8);
 const summaryText = `Browse ${totalItems.toLocaleString('en-ZA')} jobs in ${province}, South Africa. Find full-time, part-time, government and remote positions in ${province} across all industries.`;
+const siteOrigin = siteBase();
 ---
 
 <Layout
   title={`Jobs in ${province} | ${totalItems.toLocaleString('en-ZA')} Vacancies`}
   description={summaryText}
-  canonicalUrl={page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.pathname}
-  prevPage={page > 1 ? `${Astro.url.origin}/jobs-in-${provinceSlug}?page=${Math.max(1, page - 1)}` : undefined}
-  nextPage={page < totalPages ? `${Astro.url.origin}/jobs-in-${provinceSlug}?page=${page + 1}` : undefined}
+  canonicalUrl={page > 1 ? Astro.url.href : `${siteOrigin}${Astro.url.pathname}`}
+  prevPage={page > 1 ? `${siteOrigin}/jobs-in-${provinceSlug}?page=${Math.max(1, page - 1)}` : undefined}
+  nextPage={page < totalPages ? `${siteOrigin}/jobs-in-${provinceSlug}?page=${page + 1}` : undefined}
   adsEligible={totalItems > 0}
 >
   <div class="bg-white border-b border-gray-200 py-10 px-6">
@@ -93,13 +103,13 @@ const summaryText = `Browse ${totalItems.toLocaleString('en-ZA')} jobs in ${prov
     '@type': 'CollectionPage',
     name: `Jobs in ${province}`,
     description: summaryText,
-    url: `${Astro.url.origin}/jobs-in-${provinceSlug}`,
+    url: `${siteOrigin}/jobs-in-${provinceSlug}`,
     mainEntity: {
       '@type': 'ItemList',
       itemListElement: jobs.map((job, i) => ({
         '@type': 'ListItem',
         position: i + 1,
-        url: `${Astro.url.origin}/job/${job.slug}`,
+        url: `${siteOrigin}/job/${job.slug}`,
       })),
     },
   })} />

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "powershell",
+      "Shell(Get-Content:*)",
+      "Shell(git:*)",
+      "Shell(node --version)",
+      "Shell(npm:*)",
+      "Shell(npm.cmd:*)",
+      "Shell(Select-Object:*)",
+      "Shell(node dist\\server\\entry.mjs)",
+      "Shell(curl -s -o NUL -w \"%{http_code} %{redirect_url}\" http://127.0.0.1:4321/)",
+      "Shell(cmd:*)",
+      "Shell(curl.exe:*)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

@@ -6,13 +6,17 @@ export const GET: APIRoute = async ({ site }) => {
 
   const sitemaps = [
     `${base}/sitemaps/static.xml`,
-    `${base}/sitemaps/jobs.xml`,
-    `${base}/sitemaps/categories.xml`,
-    `${base}/sitemaps/provinces.xml`,
+    // AdSense phase: job, category, province and pSEO sitemaps removed from the
+    // public index. The generators themselves are preserved for restoration.
+    // `${base}/sitemaps/jobs.xml`,
+    // `${base}/sitemaps/categories.xml`,
+    // `${base}/sitemaps/provinces.xml`,
+    // `${base}/sitemaps/pseo.xml`,
     `${base}/sitemaps/companies.xml`,
-    `${base}/sitemaps/pseo.xml`,
     `${base}/sitemaps/resources.xml`,
     `${base}/sitemaps/hubs.xml`,
+    `${base}/sitemaps/education.xml`,
+    `${base}/sitemaps/careers.xml`,
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

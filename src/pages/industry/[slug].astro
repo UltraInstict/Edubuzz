@@ -9,15 +9,16 @@ import { ARTICLES } from '../../content/resources';
 import { PROVINCE_HUBS } from '../../content/province-hubs';
 import { getJobs, getEmployers } from '../../lib/pocketbase';
 import { SITE_URL } from '../../lib/constants';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 
 const { slug } = Astro.params;
 const hub = INDUSTRY_HUBS.find(h => h.slug === slug);
 if (!hub) return Astro.redirect('/404');
 
-// Live data
+// Live data (AdSense phase: no job listings shown on hub pages)
 let jobs: any[] = [];
 let totalItems = 0;
-if (hub.categorySlug) {
+if (JOBS_PUBLIC && hub.categorySlug) {
   const res = await getJobs({ category: hub.categorySlug, perPage: 6 });
   jobs = res.items;
   totalItems = res.totalItems;
@@ -110,8 +111,8 @@ const faqSchema = {
 
       <MonetizationSlot zone="in-content" />
 
-      <!-- Live jobs -->
-      {jobs.length > 0 && (
+      <!-- Live jobs (AdSense phase: hidden) -->
+      {JOBS_PUBLIC && jobs.length > 0 && (
         <section class="mb-8">
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Latest {hub.name} jobs</h2>
           <div class="space-y-3">

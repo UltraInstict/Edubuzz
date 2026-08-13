@@ -1,0 +1,98 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { CAREER_GUIDES } from '../../content/career-guides';
+import { SALARY_GUIDES } from '../../content/salary-guides';
+import { SITE_URL } from '../../lib/constants';
+
+const featured = CAREER_GUIDES.filter(c => c.featured);
+const popular = CAREER_GUIDES.filter(c => c.popular);
+const all = CAREER_GUIDES;
+---
+
+<Layout
+  title="Career Guides for South Africa: How to Enter Top Careers"
+  description="Comprehensive South African career guides: how to become an electrician, nurse, teacher, accountant, data analyst, police officer and more — training, requirements and salaries."
+  canonicalUrl={`${SITE_URL}/careers`}
+  adsEligible={false}
+>
+  <div class="bg-white border-b border-gray-200 py-10">
+    <div class="max-w-6xl mx-auto px-4">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Career Guides</h1>
+      <p class="text-sm text-gray-600 leading-relaxed max-w-3xl">
+        What career should you pursue — and how do you enter it? Each guide covers what the
+        job involves, entry requirements, training routes, salary expectations and career
+        progression.
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <section class="mb-10">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Featured career guides</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {featured.map(c => (
+          <a href={`/careers/${c.slug}`} class="bg-green-50 border border-green-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+            <h3 class="text-base font-semibold text-gray-900 mb-1">{c.h1}</h3>
+            <p class="text-sm text-gray-600 mb-2">{c.description}</p>
+            <span class="text-xs text-green-800 font-medium">Read guide &rarr;</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">All career guides</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {all.map(c => (
+          <a href={`/careers/${c.slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+            <h3 class="text-base font-semibold text-gray-900 mb-1">{c.h1}</h3>
+            <p class="text-sm text-gray-600 mb-2">{c.description}</p>
+            <span class="text-xs text-gray-400">{c.readMins} min read</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Popular careers without a degree</h2>
+      <div class="flex flex-wrap gap-2">
+        {['how-to-become-an-electrician', 'how-to-become-a-plumber', 'how-to-become-a-security-guard', 'careers-without-a-degree'].map(s => {
+          const c = CAREER_GUIDES.find(x => x.slug === s);
+          return c && <a href={`/careers/${c.slug}`} class="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-green-800 hover:border-green-800">{c.occupation}</a>;
+        })}
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Salary guides</h2>
+      <p class="text-sm text-gray-600 mb-4">Detailed salary information for the occupations above and more.</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {SALARY_GUIDES.slice(0, 8).map(g => (
+          <a href={`/salary/${g.slug}`} class="border border-gray-200 rounded-md p-3 hover:border-green-800">
+            <span class="block text-sm font-semibold text-gray-900">{g.occupation}</span>
+            <span class="block text-xs text-green-800">{g.averageSalary}</span>
+          </a>
+        ))}
+      </div>
+      <a href="/salary" class="inline-block mt-3 text-sm text-green-800 hover:underline font-medium">View all salary guides &rarr;</a>
+    </section>
+
+    <section>
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Continue exploring</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <a href="/education" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors">
+          <h3 class="text-base font-semibold text-gray-900">Education</h3>
+          <p class="text-sm text-gray-600 mt-1">Study options and pathways.</p>
+        </a>
+        <a href="/resources" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors">
+          <h3 class="text-base font-semibold text-gray-900">Resources</h3>
+          <p class="text-sm text-gray-600 mt-1">CV, interview and application guides.</p>
+        </a>
+        <a href="/companies" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors">
+          <h3 class="text-base font-semibold text-gray-900">Companies</h3>
+          <p class="text-sm text-gray-600 mt-1">Employer guides and how to apply.</p>
+        </a>
+      </div>
+    </section>
+  </div>
+</Layout>

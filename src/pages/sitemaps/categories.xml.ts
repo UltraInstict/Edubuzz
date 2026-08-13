@@ -1,12 +1,13 @@
 import type { APIRoute } from 'astro';
 import { getCategories } from '../../lib/pocketbase';
 import { CATEGORIES } from '../../lib/slugify';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 
 export const GET: APIRoute = async ({ site }) => {
   const base = site?.origin || import.meta.env.SITE_URL || 'https://edubuzz.co.za';
   const lastmod = new Date().toISOString().slice(0, 10);
-  const categories = await getCategories().catch(() => []);
-  const slugs = categories.length ? categories.map((c) => c.slug) : CATEGORIES;
+  const categories = JOBS_PUBLIC ? await getCategories().catch(() => []) : [];
+  const slugs = categories.length ? categories.map((c) => c.slug) : (JOBS_PUBLIC ? CATEGORIES : []);
 
   const urls = slugs.map((slug) => ({
     loc: `${base}/category/${slug}`,

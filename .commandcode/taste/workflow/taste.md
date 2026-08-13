@@ -2,6 +2,8 @@
 - When writing architectural plan files in plan mode, use `~/.commandcode/plans/<filename>.md` (the home directory path), NOT the project-local `.commandcode/plans/` path. The plan mode enforces the home directory location. Confidence: 0.70
 - Complete Phase 1 (core functionality, stability, verification) before beginning Phase 2 (enhancements, monetization); do not interleave phases or start enhancement work until the foundation is confirmed stable. Do not redesign UI, tweak CSS, or optimize performance until the platform functions correctly. Confidence: 0.85
 - Before implementing any significant architectural change, produce a structured readiness review covering: breaking changes, database migrations, schema updates, production risks, rollback risks, missing admin functionality, future scalability issues, and unverified assumptions. Then produce final schema/state diagrams, request/render flows, admin workflows, and deployment sequences. Do not begin coding until this review is complete. Confidence: 0.75
+- Before deleting or cleaning up files (local or server), inspect them first to confirm they are safe to remove — check contents, ownership, and .gitignore — rather than deleting based on filename or extension patterns alone. Leave real in-progress work and legitimate docs untouched. Confidence: 0.75
+- When a server cleanup target is owned by another user (e.g., root) and there is no passwordless sudo, only clean what the connected user owns, then hand the user the exact commands to run as root — do not attempt privilege escalation. Confidence: 0.70
 
 # implementation-reporting
 - After each completed task provide: ✔ What changed ✔ Why ✔ Files changed ✔ Database changes ✔ Deployment status ✔ Production verification ✔ Next task. Confidence: 0.95

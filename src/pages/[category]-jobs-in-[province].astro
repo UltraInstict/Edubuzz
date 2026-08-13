@@ -2,9 +2,16 @@
 import Layout from '../layouts/Layout.astro';
 import JobCard from '../components/JobCard.astro';
 import Sidebar from '../components/Sidebar.astro';
+import { siteBase } from '../lib/constants';
 import { getJobs, getCategoryBySlug } from '../lib/pocketbase';
 import { provinceName, titleFromSlug, slugify } from '../lib/slugify';
 import { PROVINCES } from '../lib/pocketbase';
+import { JOBS_PUBLIC } from '../lib/featureFlags';
+import { getListingRedirectTarget } from '../lib/jobRedirects';
+
+if (!JOBS_PUBLIC) {
+  return Astro.redirect(getListingRedirectTarget(Astro.params.category || ''), 301);
+}
 
 const { category: categorySlug, province: provinceSlug } = Astro.params;
 const province = provinceName(provinceSlug || '');
@@ -20,15 +27,16 @@ const { items: jobs, totalItems, totalPages } = await getJobs({
 });
 
 const summaryText = `Find ${totalItems.toLocaleString('en-ZA')} ${category.name} jobs in ${province}. Browse ${category.name.toLowerCase()} vacancies in ${province} — updated daily on Edubuzz.`;
-const pageCanonical = page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.pathname;
+const siteOrigin = siteBase();
+const pageCanonical = page > 1 ? Astro.url.href : `${siteOrigin}${Astro.url.pathname}`;
 ---
 
 <Layout
   title={`${category.name} Jobs in ${province} | ${totalItems.toLocaleString('en-ZA')} Vacancies`}
   description={summaryText}
   canonicalUrl={pageCanonical}
-  prevPage={page > 1 ? `${Astro.url.origin}/${categorySlug}-jobs-in-${provinceSlug}?page=${Math.max(1, page - 1)}` : undefined}
-  nextPage={page < totalPages ? `${Astro.url.origin}/${categorySlug}-jobs-in-${provinceSlug}?page=${page + 1}` : undefined}
+  prevPage={page > 1 ? `${siteOrigin}/${categorySlug}-jobs-in-${provinceSlug}?page=${Math.max(1, page - 1)}` : undefined}
+  nextPage={page < totalPages ? `${siteOrigin}/${categorySlug}-jobs-in-${provinceSlug}?page=${page + 1}` : undefined}
   adsEligible={totalItems >= 5}
 >
   <div class="bg-white border-b border-gray-200 py-10 px-6">
@@ -84,13 +92,13 @@ const pageCanonical = page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.p
     '@type': 'CollectionPage',
     name: `${category.name} Jobs in ${province}`,
     description: summaryText,
-    url: `${Astro.url.origin}/${categorySlug}-jobs-in-${provinceSlug}`,
+    url: `${siteOrigin}/${categorySlug}-jobs-in-${provinceSlug}`,
     mainEntity: {
       '@type': 'ItemList',
       itemListElement: jobs.map((job, i) => ({
         '@type': 'ListItem',
         position: i + 1,
-        url: `${Astro.url.origin}/job/${job.slug}`,
+        url: `${siteOrigin}/job/${job.slug}`,
       })),
     },
   })} />

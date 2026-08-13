@@ -1,24 +1,24 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import JobCard from '../components/JobCard.astro';
 import { getJobs } from '../lib/pocketbase';
+import { JOBS_PUBLIC } from '../lib/featureFlags';
 
 const url = new URL(Astro.request.url);
 const isJobUrl = url.pathname.startsWith('/job/');
 const isGone = url.searchParams.get('reason') === 'expired';
 
-const suggestions = (isJobUrl || isGone) ? await getJobs({ perPage: 4 }).catch(() => ({ items: [] })) : { items: [] };
+const suggestions = JOBS_PUBLIC && (isJobUrl || isGone) ? await getJobs({ perPage: 4 }).catch(() => ({ items: [] })) : { items: [] };
 
 Astro.response.status = isGone ? 410 : 404;
 ---
 
-<Layout title={isGone ? 'Job expired' : 'Page not found'} description={isGone ? 'This job has expired.' : 'This page doesn\'t exist.'} canonicalUrl="" noindex={true}>
+<Layout title={isGone ? 'Content no longer available' : 'Page not found'} description={isGone ? 'This content is no longer available.' : 'This page doesn\'t exist.'} canonicalUrl="" noindex={true}>
   <main class="max-w-2xl mx-auto min-h-[56vh] py-12 px-4 text-center">
     <p class="text-[56px] text-gray-500 font-semibold leading-none m-0">{isGone ? '410' : '404'}</p>
     {isJobUrl || isGone ? (
       <>
-        <h1 class="text-2xl font-bold text-gray-900 mt-2 mb-1">{isGone ? 'This job has expired' : 'This job may have expired'}</h1>
-        <p class="text-sm text-gray-600">The listing you're looking for has been removed, filled, or never existed.</p>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2 mb-1">{isGone ? 'This content is no longer available' : 'This page may have moved'}</h1>
+        <p class="text-sm text-gray-600">The page you're looking for has been removed or moved. Explore our career and education guides instead.</p>
       </>
     ) : (
       <>
@@ -27,11 +27,10 @@ Astro.response.status = isGone ? 410 : 404;
       </>
     )}
     <a href="/" class="inline-flex mt-3 mb-5.5 bg-green-800 text-white text-sm font-semibold px-4 py-2.5 rounded-md hover:bg-green-900 transition-colors">Go to homepage &rarr;</a>
-    {suggestions.items.length > 0 && (
-      <section class="text-left">
-        <p class="text-sm text-gray-600 mb-2">Or try one of these:</p>
-        {suggestions.items.map((job) => <JobCard job={job} compact />)}
-      </section>
-    )}
+    <div class="flex gap-2 justify-center flex-wrap mt-4">
+      <a href="/careers" class="inline-block border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800">Career guides</a>
+      <a href="/education" class="inline-block border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800">Education guides</a>
+      <a href="/resources" class="inline-block border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800">Resources</a>
+    </div>
   </main>
 </Layout>

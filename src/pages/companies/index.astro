@@ -1,42 +1,62 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getEmployers, PROVINCES } from '../../lib/pocketbase';
-import { getJobCountsByEmployer } from '../../services/jobService';
+import { COMPANY_GUIDES } from '../../content/company-guides';
+import { SITE_URL } from '../../lib/constants';
 
 const province = Astro.url.searchParams.get('province') || '';
-const [employers, jobCounts] = await Promise.all([
-  getEmployers({ page: 1, perPage: 100, province, verifiedOnly: true }).catch(() => ({ items: [] })),
-  getJobCountsByEmployer(),
-]);
+const employers = await getEmployers({ page: 1, perPage: 100, province, verifiedOnly: true }).catch(() => ({ items: [] }));
 function provinceSlug(value: string) { return value ? `/companies?province=${encodeURIComponent(value)}` : '/companies'; }
-function jobCount(emp: any) { return jobCounts[emp.id] || jobCounts[emp.company_name] || 0; }
 ---
 
-<Layout title="Companies Hiring in South Africa" description="Browse verified employers hiring on Edubuzz." canonicalUrl={Astro.url.href}>
+<Layout
+  title="Employer Guides in South Africa: How to Apply at Top Companies"
+  description="Informational employer guides for South Africa's biggest companies: Shoprite, Capitec, Standard Bank, Woolworths, Pick n Pay, Clicks and more — how to apply, requirements and FAQs."
+  canonicalUrl={`${SITE_URL}/companies`}
+  adsEligible={false}
+>
   <div class="max-w-6xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">Companies hiring on Edubuzz</h1>
-    <p class="text-sm text-gray-600 mb-4">Verified employers with active job listings</p>
-    <div class="flex gap-2 mb-6 flex-wrap">
-      {['',...PROVINCES].map(p => <a href={provinceSlug(p)} class={`text-sm px-4 py-1.5 rounded-md transition-colors ${p===province||(!province&&p==='') ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-900 hover:border-green-800 hover:text-green-800'}`}>{p||'All'}</a>)}
-    </div>
-    {employers.items.length ? (
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Employer Guides</h1>
+    <p class="text-sm text-gray-600 mb-4">How to apply at South Africa's biggest employers — requirements, programmes and FAQs. Always confirm current vacancies on each company's official careers site.</p>
+
+    <section class="mb-10">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Major employer guides</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {employers.items.map((emp: any) => (
-          <a href={`/company/${emp.company_slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+        {COMPANY_GUIDES.map(g => (
+          <a href={`/company/${g.slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-base font-semibold text-gray-900">{emp.company_name}</span>
-              {emp.verified && <span class="text-xs bg-green-50 text-green-800 px-2 py-0.5 rounded-md font-medium">Verified</span>}
+              <span class="text-base font-semibold text-gray-900">{g.name}</span>
             </div>
-            <p class="text-sm text-gray-600">{[emp.city, emp.province].filter(Boolean).join(', ') || 'South Africa'}</p>
-            <p class="text-sm text-green-800 font-medium mt-1">{jobCount(emp)} open position{jobCount(emp) !== 1 ? 's' : ''}</p>
+            <p class="text-sm text-gray-600">{g.sector}</p>
+            <p class="text-sm text-green-800 font-medium mt-1">View employer guide &rarr;</p>
           </a>
         ))}
       </div>
-    ) : (
-      <div class="bg-white border border-gray-200 rounded-md p-8 text-center">
-        <p class="text-sm text-gray-600 mb-4">{province ? `No verified employers in ${province} right now.` : 'No companies registered yet. Be the first to post a job on Edubuzz.'}</p>
-        <a href="/post-job" class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Post a job</a>
+    </section>
+
+    <section>
+      <h2 class="text-lg font-semibold text-gray-900 mb-2">Other verified employers</h2>
+      <p class="text-sm text-gray-600 mb-4">Additional employers known to Edubuzz across South Africa.</p>
+      <div class="flex gap-2 mb-6 flex-wrap">
+        {['',...PROVINCES].map(p => <a href={provinceSlug(p)} class={`text-sm px-4 py-1.5 rounded-md transition-colors ${p===province||(!province&&p==='') ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-900 hover:border-green-800 hover:text-green-800'}`}>{p||'All'}</a>)}
       </div>
-    )}
+      {employers.items.length ? (
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {employers.items.map((emp: any) => (
+            <a href={`/company/${emp.company_slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-base font-semibold text-gray-900">{emp.company_name}</span>
+                {emp.verified && <span class="text-xs bg-green-50 text-green-800 px-2 py-0.5 rounded-md font-medium">Verified</span>}
+              </div>
+              <p class="text-sm text-gray-600">{[emp.city, emp.province].filter(Boolean).join(', ') || 'South Africa'}</p>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="bg-white border border-gray-200 rounded-md p-8 text-center">
+          <p class="text-sm text-gray-600">{province ? `No verified employers in ${province} right now.` : 'No verified employers listed for this filter.'}</p>
+        </div>
+      )}
+    </section>
   </div>
 </Layout>

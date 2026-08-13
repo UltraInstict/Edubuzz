@@ -7,8 +7,10 @@ See [workflow/taste.md](workflow/taste.md)
 See [design-system/taste.md](design-system/taste.md)
 # infrastructure
 - For scheduled jobs, use systemd timers or crontab, not PM2 cron_restart — PM2 cron_restart restarts the entire app process, which is the wrong tool for scheduled task execution. Confidence: 0.75
+- The production server's remote shell is bash, not PowerShell — when running commands over SSH, use bash syntax (head, tail, grep, etc.), not PowerShell cmdlets (Select-Object). Confidence: 0.80
 
 # deployment
+- Expects direct SSH access to the live production server and is comfortable making changes on the live site, not just through a staging environment. Confidence: 0.70
 - Ship every feature immediately: after EVERY feature/change, run the full cycle: Build, Test, Verify locally, Deploy to production, Verify on live URL. No feature is complete until it is visible and verified on the production public URL. Confidence: 0.90
 - After each completed task, provide a structured report: ✔ What changed ✔ Why ✔ Files changed ✔ Database changes ✔ Deployment status ✔ Production verification ✔ Next task. No task may be marked done without the full report. Confidence: 0.85
 
@@ -24,6 +26,7 @@ See [data-integrity/taste.md](data-integrity/taste.md)
 
 # security
 - Reference .env by key name only when discussing credentials in agent sessions; never paste real credentials into prompts or code. Confidence: 0.75
+- When a plaintext secret (e.g., CSRF_SECRET) is found in a scratch/debug file during cleanup, delete the file and explicitly flag the secret for rotation in .env — never silently delete it or leave it unmentioned. Confidence: 0.70
 
 # communication
 - Provide evidence-backed audit reports with raw command output; avoid summary claims like "everything is fixed" or "looks good." Confidence: 0.85
@@ -50,6 +53,7 @@ See [workflow/taste.md](workflow/taste.md)
 - Never cache writes; only cache reads (active campaigns, settings, house ads) with a 60-second in-memory TTL. Confidence: 0.70
 
 # monetization
+- Gate Google-served ads (AdSense) on thin/replicated/low-value screens to avoid AdSense policy violations: opt out doorway pSEO templates (cv-tips, interview-tips, how-to-get-into, bursaries, learnerships-in-province) entirely, only show ads on listing pages when results exist, and only serve ads on job/company detail pages when content clears a length threshold (job descriptions <250 chars do not serve ads). Confidence: 0.75
 - Track impressions client-side via navigator.sendBeacon() or fetch(keepalive:true), never during SSR. Confidence: 0.85
 - For empty/fallback ad slots, render nothing at all — no wrapper div, no spacer, no empty container, zero DOM impact. Confidence: 0.85
 - Deactivate a campaign only after 3 consecutive content-resolution failures, not after a single failure; log each failure with entity ID and reason. Confidence: 0.75

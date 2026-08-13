@@ -1,0 +1,82 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { EDUCATION_GUIDES } from '../../content/education-guides';
+import { SITE_URL } from '../../lib/constants';
+
+const featured = EDUCATION_GUIDES[0];
+const rest = EDUCATION_GUIDES.slice(1);
+---
+
+<Layout
+  title="Education in South Africa: TVET Colleges, NSFAS & Study Pathways"
+  description="South African education guides: TVET colleges, NSFAS funding, NATED N4–N6 programmes, university vs TVET, and what to do after matric."
+  canonicalUrl={`${SITE_URL}/education`}
+  adsEligible={false}
+>
+  <div class="bg-white border-b border-gray-200 py-10">
+    <div class="max-w-6xl mx-auto px-4">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Education in South Africa</h1>
+      <p class="text-sm text-gray-600 leading-relaxed max-w-3xl">
+        How to prepare for a career — TVET colleges, universities, NSFAS funding, NATED
+        programmes and every post-matric pathway explained in plain language.
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <section class="mb-10">
+      <div class="bg-green-50 border border-green-200 rounded-md p-6">
+        <span class="text-xs font-semibold text-green-800 uppercase tracking-wide">Featured guide</span>
+        <h2 class="text-xl font-bold text-gray-900 mt-1 mb-2">{featured.h1}</h2>
+        <p class="text-sm text-gray-600 mb-4">{featured.description}</p>
+        <a href={`/education/${featured.slug}`} class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Read the guide &rarr;</a>
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">All education guides</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {EDUCATION_GUIDES.map(g => (
+          <a href={`/education/${g.slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+            <h3 class="text-base font-semibold text-gray-900 mb-1">{g.h1}</h3>
+            <p class="text-sm text-gray-600 mb-2">{g.description}</p>
+            <span class="text-xs text-gray-400">{g.readMins} min read</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Popular topics</h2>
+      <div class="flex flex-wrap gap-2">
+        {[
+          { label: 'TVET Colleges', href: '/education/tvet-colleges-in-south-africa' },
+          { label: 'NSFAS Funding', href: '/education/nsfas-funding-explained' },
+          { label: 'N4–N6 NATED', href: '/education/n4-n6-nated-programmes-explained' },
+          { label: 'University vs TVET', href: '/education/university-vs-tvet-which-path-fits-you' },
+          { label: 'After Matric', href: '/education/what-to-do-after-matric' },
+        ].map(l => (
+          <a href={l.href} class="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-green-800 hover:border-green-800">{l.label}</a>
+        ))}
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Continue exploring</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <a href="/careers" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors">
+          <h3 class="text-base font-semibold text-gray-900">Career guides</h3>
+          <p class="text-sm text-gray-600 mt-1">How to enter specific careers, step by step.</p>
+        </a>
+        <a href="/resources" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors">
+          <h3 class="text-base font-semibold text-gray-900">Resources</h3>
+          <p class="text-sm text-gray-600 mt-1">CV, interview and application guides.</p>
+        </a>
+        <a href="/salary" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors">
+          <h3 class="text-base font-semibold text-gray-900">Salary guides</h3>
+          <p class="text-sm text-gray-600 mt-1">What different occupations pay in South Africa.</p>
+        </a>
+      </div>
+    </section>
+  </div>
+</Layout>

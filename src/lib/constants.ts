@@ -5,8 +5,8 @@
 
 export const SITE_NAME = 'Edubuzz';
 export const SITE_URL = 'https://edubuzz.co.za';
-export const SITE_DESCRIPTION = 'South African job marketplace connecting employers with qualified candidates across all sectors.';
-export const SITE_TAGLINE = 'South African jobs, updated daily.';
+export const SITE_DESCRIPTION = 'South African education and career information — what to study, which careers exist, how to enter them, what they pay, and how to apply.';
+export const SITE_TAGLINE = 'South African education & career information.';
 export const SITE_LOCALE = 'en_ZA';
 export const SITE_LANG = 'en-ZA';
 

@@ -1,12 +1,16 @@
 import type { APIRoute } from 'astro';
 import { getPB } from '../../lib/pocketbase';
 import { siteBase } from '../../lib/constants';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 
 function cdata(value: unknown) {
   return `<![CDATA[${String(value ?? '').replaceAll(']]>', ']]]]><![CDATA[>')}]]>`;
 }
 
 export const GET: APIRoute = async () => {
+  if (!JOBS_PUBLIC) {
+    return new Response('', { status: 200, headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=3600' } });
+  }
   const base = siteBase();
   const pb = getPB();
   const today = new Date().toISOString().slice(0, 10);

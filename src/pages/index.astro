@@ -1,109 +1,154 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import JobCard from '../components/JobCard.astro';
-import Sidebar from '../components/Sidebar.astro';
-import MonetizationSlot from '../components/MonetizationSlot.astro';
-import { getFeaturedJobs, getJobs, PROVINCES } from '../lib/pocketbase';
+import { EDUCATION_GUIDES } from '../content/education-guides';
+import { CAREER_GUIDES } from '../content/career-guides';
+import { ARTICLES, RESOURCE_CATEGORIES } from '../content/resources';
+import { SALARY_GUIDES } from '../content/salary-guides';
+import { COMPANY_GUIDES } from '../content/company-guides';
+import { INDUSTRY_HUBS } from '../content/industry-hubs';
+import { SITE_URL } from '../lib/constants';
 
-const params = Astro.url.searchParams;
-const page = Math.max(1, Number(params.get('page') || '1'));
-const search = params.get('search')?.trim() || '';
-const province = params.get('province') || '';
-const job_type = params.get('type') || params.get('job_type') || '';
-
-const [{ items: jobs, totalItems, totalPages }, featuredJobs] = await Promise.all([
-  getJobs({ page, perPage: 20, search, province, job_type }),
-  getFeaturedJobs(4),
-]);
-
-const pills = [
-  { label: 'All', value: '' },
-  { label: 'Full-time', value: 'Full-time' }, { label: 'Part-time', value: 'Part-time' },
-  { label: 'Contract', value: 'Contract' }, { label: 'Remote', value: 'Remote' },
-  { label: 'Internship', value: 'Internship' }, { label: 'Learnership', value: 'Learnership' },
-  { label: 'Graduate', value: 'Graduate Programme' },
-];
-
-function withParams(next: Record<string, string>) {
-  const p = new URLSearchParams();
-  if (search) p.set('search', search);
-  if (province) p.set('province', province);
-  if (job_type) p.set('type', job_type);
-  Object.entries(next).forEach(([k, v]) => v ? p.set(k, v) : p.delete(k));
-  const q = p.toString();
-  return q ? `/?${q}` : '/';
-}
-function pageUrl(n: number) { return withParams({ page: String(n) }); }
-const resultSummary = `Showing ${totalItems.toLocaleString('en-ZA')} active jobs`;
+const featuredEducation = EDUCATION_GUIDES[0];
+const featuredCareers = CAREER_GUIDES.filter(c => c.featured);
+const popularArticles = ARTICLES.filter(a => a.popular).slice(0, 6);
+const popularCompanies = COMPANY_GUIDES.slice(0, 6);
 ---
 
-<Layout title="Find Jobs in South Africa" description="Browse thousands of verified job listings across all nine provinces — updated daily." canonicalUrl={Astro.url.origin + Astro.url.pathname}>
-  <div class="bg-white border-b border-gray-200 py-10">
+<Layout
+  title="South African Education & Career Information"
+  description="Edubuzz helps South Africans understand what to study, which careers exist, how to enter them, and how to succeed — TVET colleges, NSFAS, career guides, salaries and employer information."
+  canonicalUrl={`${SITE_URL}/`}
+  adsEligible={false}
+>
+  <!-- Hero -->
+  <div class="bg-white border-b border-gray-200 py-12">
     <div class="max-w-6xl mx-auto px-4">
-      <h1 class="text-2xl font-bold text-gray-900 mb-2">Find your next job in South Africa</h1>
-      <p class="text-sm text-gray-600 leading-relaxed mb-6">Browse thousands of verified job listings across all nine provinces — updated daily.</p>
-      <form class="flex max-w-2xl border-2 border-green-800 rounded-md overflow-hidden bg-white" action="/" method="get">
-        <input type="search" name="search" value={search} placeholder="Job title, keyword, or company" class="flex-1 border-none px-4 py-2.5 text-sm text-gray-900 outline-none" />
-        <select name="province" class="w-36 border-l border-gray-200 bg-gray-50 text-sm text-gray-600 outline-none px-2">
-          <option value="">All provinces</option>
-          {PROVINCES.map(p => <option value={p} selected={p === province}>{p}</option>)}
-        </select>
-        <button type="submit" class="bg-green-800 text-white text-sm font-medium px-5 hover:bg-green-900 transition-colors">Search</button>
-      </form>
-      <div class="flex gap-2 mt-3 flex-wrap">
-        {pills.map(pill => (
-          <a href={withParams({ type: pill.value, page: '' })} class={`inline-block text-sm px-4 py-1.5 rounded-md transition-colors ${pill.value === job_type ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-900 hover:border-green-800 hover:text-green-800'}`}>{pill.label}</a>
-        ))}
-      </div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-3">South African Education &amp; Career Information</h1>
+      <p class="text-base text-gray-600 leading-relaxed max-w-3xl">
+        Understand what to study, which careers exist, how to enter them, what they pay,
+        and how to apply — practical guides written for South Africans.
+      </p>
     </div>
-  </div>
-
-  <div class="max-w-6xl mx-auto px-4">
-    <MonetizationSlot zone="homepage-hero" />
   </div>
 
   <div class="max-w-6xl mx-auto px-4 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
-      <div>
-        {featuredJobs.length > 0 && (
-          <section class="mb-6">
-            <div class="flex justify-between items-center mb-3">
-              <h2 class="text-xl font-semibold text-gray-900">Featured jobs</h2>
-              <a href="/jobs" class="text-sm text-green-800 hover:underline font-medium">View all</a>
-            </div>
-            {featuredJobs.map(j => <JobCard job={j} />)}
-          </section>
-        )}
-        <section>
-          <div class="flex justify-between items-center mb-3">
-            <h2 class="text-xl font-semibold text-gray-900">Latest jobs</h2>
-            <a href="/jobs" class="text-sm text-green-800 hover:underline font-medium">View all</a>
-          </div>
-          <p class="text-xs text-gray-500 mb-3">{resultSummary}</p>
-          {jobs.length === 0 ? (
-            <div class="bg-white border border-gray-200 rounded-md p-8 text-center">
-              <p class="text-sm text-gray-600">No jobs found. Try adjusting your search or browse by category.</p>
-            </div>
-          ) : (
-            <>
-              {jobs.map((j, i) => (
-                <>
-                  <JobCard job={j} />
-                  {(i + 1) % 5 === 0 && i < jobs.length - 1 && <MonetizationSlot zone="infeed" />}
-                </>
-              ))}
-            </>
-          )}
-          {totalPages > 1 && (
-            <div class="flex gap-1 mt-4 flex-wrap">
-              {page > 1 && <a href={pageUrl(page-1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800 hover:text-green-900">Previous</a>}
-              {Array.from({length: Math.min(totalPages,7)}, (_,i) => i+1).map(p => <a href={pageUrl(p)} class={`rounded-md px-3 py-1.5 text-sm ${p===page ? 'bg-green-800 text-white' : 'border border-gray-200 text-green-800 hover:border-green-800 hover:text-green-900'}`}>{p}</a>)}
-              {page < totalPages && <a href={pageUrl(page+1)} class="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-green-800 hover:border-green-800 hover:text-green-900">Next</a>}
-            </div>
-          )}
-        </section>
-      </div>
-      <aside><Sidebar /></aside>
+    <!-- Four pillars -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+      <a href="/education" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+        <h2 class="text-base font-semibold text-gray-900">Education</h2>
+        <p class="text-sm text-gray-600 mt-1 mb-2">TVET colleges, universities, NSFAS, NATED N4–N6 and study pathways.</p>
+        <span class="text-xs text-green-800 font-medium">Explore education &rarr;</span>
+      </a>
+      <a href="/careers" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+        <h2 class="text-base font-semibold text-gray-900">Careers</h2>
+        <p class="text-sm text-gray-600 mt-1 mb-2">How to enter specific careers: requirements, training routes and salaries.</p>
+        <span class="text-xs text-green-800 font-medium">Explore careers &rarr;</span>
+      </a>
+      <a href="/resources" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+        <h2 class="text-base font-semibold text-gray-900">Resources</h2>
+        <p class="text-sm text-gray-600 mt-1 mb-2">CV, interview, application and job-search guides that work.</p>
+        <span class="text-xs text-green-800 font-medium">Explore resources &rarr;</span>
+      </a>
+      <a href="/companies" class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+        <h2 class="text-base font-semibold text-gray-900">Companies</h2>
+        <p class="text-sm text-gray-600 mt-1 mb-2">Employer guides: Shoprite, Capitec, Standard Bank and more.</p>
+        <span class="text-xs text-green-800 font-medium">Explore companies &rarr;</span>
+      </a>
     </div>
+
+    <!-- Education section -->
+    <section class="mb-12">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-900">Education</h2>
+        <a href="/education" class="text-sm text-green-800 hover:underline font-medium">View all education guides &rarr;</a>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <a href={`/education/${featuredEducation.slug}`} class="lg:row-span-2 bg-green-50 border border-green-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+          <span class="text-xs font-semibold text-green-800 uppercase tracking-wide">Featured guide</span>
+          <h3 class="text-base font-semibold text-gray-900 mt-1 mb-2">{featuredEducation.h1}</h3>
+          <p class="text-sm text-gray-600 mb-3">{featuredEducation.description}</p>
+          <span class="text-xs text-green-800 font-medium">{featuredEducation.readMins} min read &rarr;</span>
+        </a>
+        {EDUCATION_GUIDES.slice(1, 5).map(g => (
+          <a href={`/education/${g.slug}`} class="bg-white border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors block">
+            <h3 class="text-sm font-semibold text-gray-900 mb-1">{g.h1}</h3>
+            <p class="text-xs text-gray-500">{g.readMins} min read</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Careers section -->
+    <section class="mb-12">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-900">Career Guides</h2>
+        <a href="/careers" class="text-sm text-green-800 hover:underline font-medium">View all career guides &rarr;</a>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {featuredCareers.map(c => (
+          <a href={`/careers/${c.slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+            <h3 class="text-base font-semibold text-gray-900 mb-1">{c.h1}</h3>
+            <p class="text-sm text-gray-600 mb-2">{c.description}</p>
+            <span class="text-xs text-green-800 font-medium">Read guide &rarr;</span>
+          </a>
+        ))}
+        {CAREER_GUIDES.filter(c => !c.featured).slice(0, 3).map(c => (
+          <a href={`/careers/${c.slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
+            <h3 class="text-base font-semibold text-gray-900 mb-1">{c.h1}</h3>
+            <p class="text-sm text-gray-600 mb-2">{c.description}</p>
+            <span class="text-xs text-green-800 font-medium">Read guide &rarr;</span>
+          </a>
+        ))}
+      </div>
+      <div class="flex flex-wrap gap-2 mt-4">
+        {SALARY_GUIDES.slice(0, 6).map(g => (
+          <a href={`/salary/${g.slug}`} class="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-green-800 hover:border-green-800">{g.occupation} salary</a>
+        ))}
+        <a href="/salary" class="px-3 py-1.5 bg-green-50 border border-green-200 rounded-md text-xs text-green-800 font-medium">All salary guides &rarr;</a>
+      </div>
+    </section>
+
+    <!-- Resources section -->
+    <section class="mb-12">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-900">Resources</h2>
+        <a href="/resources" class="text-sm text-green-800 hover:underline font-medium">View all resources &rarr;</a>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {popularArticles.map(a => (
+          <a href={`/resources/${a.slug}`} class="bg-white border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors block">
+            <span class="text-xs text-gray-400 uppercase tracking-wide">{RESOURCE_CATEGORIES.find(c => c.id === a.category)?.label || a.category}</span>
+            <h3 class="text-sm font-semibold text-gray-900 mt-1 mb-1">{a.h1}</h3>
+            <p class="text-xs text-gray-500">{a.readMins} min read</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Companies section -->
+    <section class="mb-12">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-900">Employer Guides</h2>
+        <a href="/companies" class="text-sm text-green-800 hover:underline font-medium">View all companies &rarr;</a>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {popularCompanies.map(g => (
+          <a href={`/company/${g.slug}`} class="bg-white border border-gray-200 rounded-md p-3 hover:border-green-800 transition-colors text-center">
+            <span class="block text-sm font-semibold text-gray-900">{g.name}</span>
+            <span class="block text-xs text-gray-500">{g.sector}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Industries + provinces -->
+    <section class="mb-12">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Careers by industry</h2>
+      <div class="flex flex-wrap gap-2">
+        {INDUSTRY_HUBS.map(i => (
+          <a href={`/industry/${i.slug}`} class="px-3 py-1.5 border border-gray-200 rounded-md text-xs text-green-800 hover:border-green-800">{i.name}</a>
+        ))}
+      </div>
+    </section>
   </div>
 </Layout>

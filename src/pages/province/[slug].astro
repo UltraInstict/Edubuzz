@@ -4,22 +4,32 @@ import JobCard from '../../components/JobCard.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import MonetizationSlot from '../../components/MonetizationSlot.astro';
+import { siteBase } from '../../lib/constants';
 import { getJobs, PROVINCES } from '../../lib/pocketbase';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
+import { PROVINCE_HUBS } from '../../content/province-hubs';
 
 const { slug } = Astro.params;
+if (!JOBS_PUBLIC) {
+  // Province job listings → province career hub (informational)
+  const hub = PROVINCE_HUBS.find(h => h.slug === slug || h.hubSlug === slug);
+  return Astro.redirect(hub ? `/province/${hub.hubSlug}` : '/careers', 301);
+}
+
 const province = PROVINCES.find(p => p.toLowerCase().replace(/\s+/g, '-') === slug);
 if (!province) return Astro.redirect('/');
 
 const page = parseInt(Astro.url.searchParams.get('page') || '1');
 const { items: jobs, totalItems, totalPages } = await getJobs({ page, perPage: 20, province });
+const siteOrigin = siteBase();
 ---
 
 <Layout
   title={`Jobs in ${province} | Edubuzz`}
   description={`Find ${totalItems} jobs in ${province}, South Africa. Browse full-time, part-time and government roles in ${province}.`}
-  canonicalUrl={page > 1 ? Astro.url.href : Astro.url.origin + Astro.url.pathname}
-  prevPage={page > 1 ? `${Astro.url.origin}/province/${slug}?page=${Math.max(1, page - 1)}` : undefined}
-  nextPage={page < totalPages ? `${Astro.url.origin}/province/${slug}?page=${page + 1}` : undefined}
+  canonicalUrl={page > 1 ? Astro.url.href : `${siteOrigin}${Astro.url.pathname}`}
+  prevPage={page > 1 ? `${siteOrigin}/province/${slug}?page=${Math.max(1, page - 1)}` : undefined}
+  nextPage={page < totalPages ? `${siteOrigin}/province/${slug}?page=${page + 1}` : undefined}
 >
   <div class="bg-white border-b border-gray-200 py-10 px-6">
     <div class="max-w-6xl mx-auto">

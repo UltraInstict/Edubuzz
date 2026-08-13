@@ -7,7 +7,11 @@
  * Renders: sponsored job → sponsored employer → AdSense → affiliate → house ad → empty.
  * Impressions tracked client-side via navigator.sendBeacon() or fetch keepalive.
  * Empty returns nothing — no wrapper, no spacer, no DOM.
+ *
+ * AdSense phase: ADS_ENABLED=false renders nothing at all — no wrapper,
+ * no spacer, no DOM impact.
  */
+import { ADS_ENABLED } from '../lib/featureFlags';
 import { resolveSlot } from '../services/monetizationService';
 import type { ResolvedSlot, AffiliateContent, HouseAdContent, SponsoredJobContent, SponsoredEmployerContent, AdSenseContent } from '../services/monetizationService';
 
@@ -18,7 +22,9 @@ export interface Props {
 
 const { zone, category } = Astro.props;
 
-const result: ResolvedSlot = await resolveSlot(zone, { category }).catch(() => ({ type: 'empty' as const, content: null }));
+const result: ResolvedSlot = ADS_ENABLED
+  ? await resolveSlot(zone, { category }).catch(() => ({ type: 'empty' as const, content: null }))
+  : { type: 'empty' as const, content: null };
 
 const affiliate = result.type.startsWith('affiliate_') ? (result.content as AffiliateContent | null) : null;
 const houseAd = result.type === 'house_ad' ? (result.content as HouseAdContent | null) : null;

@@ -3,51 +3,45 @@ import type { APIRoute } from 'astro';
 export const GET: APIRoute = async ({ site }) => {
   const base = site?.origin || import.meta.env.SITE_URL || 'https://edubuzz.co.za';
 
-  const content = `# Edubuzz.co.za — South African Job Marketplace
+  const content = `# Edubuzz.co.za — South African Education & Career Information
 
-> Edubuzz connects employers with qualified candidates across South Africa's key employment sectors including government, health, IT, education, finance, engineering and more.
+> Edubuzz helps South Africans understand what to study, which careers exist, how to enter them, what they pay, and how to apply.
 
 ## Core Pages
-- [Homepage](${base}/): Job search, featured jobs, and latest listings
-- [Browse All Jobs](${base}/jobs): Complete job listings with filters
-- [Browse by Category](${base}/categories): All job categories with counts
-- [Browse by Province](${base}/provinces): Jobs filtered by South African province
-- [Companies](${base}/companies): Verified employer profiles
+- [Homepage](${base}/): Education, careers, resources and employer guides
+- [Education](${base}/education): TVET colleges, NSFAS, NATED programmes, study pathways
+- [Careers](${base}/careers): Comprehensive occupation guides with training routes and salaries
+- [Resources](${base}/resources): CV, interview and application guides
+- [Salary Guides](${base}/salary): Salary information for key South African occupations
+- [Companies](${base}/companies): Employer guides for major South African employers
 
-## Popular Job Searches
-- [Remote Jobs](${base}/remote-jobs): Work from home opportunities
-- [Internships](${base}/internships): Entry-level and internship positions
-- [Graduate Jobs](${base}/graduate-jobs): Graduate programmes and entry-level
-- [Learnerships](${base}/learnerships): SETA-accredited learnerships
-- [Bursaries](${base}/bursaries): Scholarships and funding opportunities
+## Education Guides
+- [TVET Colleges in South Africa](${base}/education/tvet-colleges-in-south-africa)
+- [NSFAS Funding Explained](${base}/education/nsfas-funding-explained)
+- [N4–N6 NATED Programmes](${base}/education/n4-n6-nated-programmes-explained)
+- [University vs TVET](${base}/education/university-vs-tvet-which-path-fits-you)
+- [What to Do After Matric](${base}/education/what-to-do-after-matric)
 
-## Job Categories
-- [Government Jobs](${base}/category/government): Public sector vacancies
-- [Healthcare Jobs](${base}/category/health): Medical and healthcare positions
-- [IT & Tech Jobs](${base}/category/it-tech): Technology and software roles
-- [Education Jobs](${base}/category/education): Teaching and academic positions
-- [Finance Jobs](${base}/category/finance): Banking, accounting, financial services
-- [Engineering Jobs](${base}/category/engineering): Engineering and technical roles
+## Career Guides
+- [How to Become an Electrician](${base}/careers/how-to-become-an-electrician)
+- [How to Become a Nurse](${base}/careers/how-to-become-a-nurse)
+- [How to Become a Teacher](${base}/careers/how-to-become-a-teacher)
+- [How to Become an Accountant](${base}/careers/how-to-become-an-accountant)
+- [How to Become a Data Analyst](${base}/careers/how-to-become-a-data-analyst)
+- [Careers Without a Degree](${base}/careers/careers-without-a-degree)
 
-## For Employers
-- [Post a Job](${base}/post-job): Create job listings
-- [Pricing](${base}/pricing): Advertising plans and rates
-- [Advertise](${base}/advertise): Employer advertising options
-
-## Feeds & APIs
+## Sitemaps
 - [Sitemap Index](${base}/sitemap.xml): XML sitemap index
-- [RSS Feed](${base}/feeds/rss.xml): Latest jobs RSS feed
-- [Indeed XML Feed](${base}/feeds/jobs.xml): Indeed-compatible XML feed
 
 ## About
-- [About Edubuzz](${base}/about): About the platform
+- [About Edubuzz](${base}/about): About the site
 - [Contact](${base}/contact): Get in touch
 - [Privacy Policy](${base}/privacy): Privacy information
 - [Terms of Use](${base}/terms): Terms and conditions
 
 ---
 
-*Edubuzz helps South Africans find meaningful employment across all sectors. Updated daily with new job listings.*
+*Edubuzz provides researched, original education and career information for South Africans.*
 `;
 
   return new Response(content, {

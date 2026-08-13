@@ -1,0 +1,162 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { CAREER_GUIDES } from '../../content/career-guides';
+import { SALARY_GUIDES } from '../../content/salary-guides';
+import { EDUCATION_GUIDES } from '../../content/education-guides';
+import { ARTICLES } from '../../content/resources';
+import { COMPANY_GUIDES } from '../../content/company-guides';
+import { SITE_URL } from '../../lib/constants';
+
+const { slug } = Astro.params;
+const guide = CAREER_GUIDES.find(c => c.slug === slug);
+if (!guide) return Astro.redirect('/404');
+
+const salaryGuide = guide.salarySlug ? SALARY_GUIDES.find(g => g.slug === guide.salarySlug) : null;
+const educationLinks = guide.educationLinks
+  .map(s => EDUCATION_GUIDES.find(g => g.slug === s))
+  .filter(Boolean);
+const resourceLinks = guide.resourceLinks
+  .map(s => ARTICLES.find(a => a.slug === s))
+  .filter(Boolean);
+const companyLinks = (guide.companyLinks || [])
+  .map(l => ({ ...l, guide: COMPANY_GUIDES.find(c => c.slug === l.slug) }))
+  .filter(x => x.guide);
+const related = CAREER_GUIDES.filter(c => c.slug !== slug).slice(0, 4);
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Career Guides', item: `${SITE_URL}/careers` },
+    { '@type': 'ListItem', position: 3, name: guide.h1 },
+  ],
+};
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: guide.h1,
+  description: guide.description,
+  dateModified: guide.updated,
+  datePublished: guide.updated,
+  author: { '@type': 'Organization', name: 'Edubuzz', url: SITE_URL },
+  publisher: { '@type': 'Organization', name: 'Edubuzz', url: SITE_URL },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/careers/${guide.slug}` },
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: guide.faqs.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+
+<Layout
+  title={guide.title}
+  description={guide.description}
+  canonicalUrl={`${SITE_URL}/careers/${guide.slug}`}
+  ogType="article"
+  adsEligible={false}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} slot="head" />
+  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} slot="head" />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />
+
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
+      <a href="/" class="hover:text-gray-900">Home</a> &rsaquo;
+      <a href="/careers" class="hover:text-gray-900">Career Guides</a> &rsaquo;
+      <span class="text-gray-900 font-medium">{guide.h1}</span>
+    </nav>
+
+    <header class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">{guide.h1}</h1>
+      <div class="flex items-center gap-3 text-xs text-gray-500">
+        <span>Updated {guide.updated}</span>
+        <span>&middot;</span>
+        <span>{guide.readMins} min read</span>
+      </div>
+    </header>
+
+    <p class="text-gray-700 text-base leading-relaxed mb-6">{guide.intro}</p>
+
+    <article class="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-green-800 prose-li:text-gray-700 mb-8" set:html={guide.body} />
+
+    {salaryGuide && (
+      <div class="bg-green-50 border border-green-200 rounded-md p-5 mb-8">
+        <h2 class="text-sm font-semibold text-green-900 mb-1">Salary guide: {salaryGuide.occupation}</h2>
+        <p class="text-sm text-green-900">{salaryGuide.averageSalary} &middot; {salaryGuide.salaryRange}</p>
+        <a href={`/salary/${salaryGuide.slug}`} class="inline-block mt-2 text-sm text-green-800 hover:underline font-medium">Read the full salary guide &rarr;</a>
+      </div>
+    )}
+
+    {guide.faqs.length > 0 && (
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {guide.faqs.map(faq => (
+            <details class="border border-gray-200 rounded-md p-4 group">
+              <summary class="font-medium text-sm text-gray-900 cursor-pointer group-open:mb-2">{faq.q}</summary>
+              <p class="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {educationLinks.length > 0 && (
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Study options for this career</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {educationLinks.map(g => (
+            <a href={`/education/${g.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors">
+              <h3 class="text-sm font-semibold text-gray-900 mb-1">{g.h1}</h3>
+              <p class="text-xs text-gray-500">{g.readMins} min read</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {companyLinks.length > 0 && (
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Employers to explore</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {companyLinks.map(l => (
+            <a href={`/company/${l.guide!.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors">
+              <h3 class="text-sm font-semibold text-gray-900 mb-1">{l.guide!.name}</h3>
+              <p class="text-xs text-gray-500">{l.guide!.sector}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {resourceLinks.length > 0 && (
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Helpful resources</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {resourceLinks.map(a => (
+            <a href={`/resources/${a.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors">
+              <h3 class="text-sm font-semibold text-gray-900 mb-1">{a.h1}</h3>
+              <p class="text-xs text-gray-500">{a.readMins} min read</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="mb-8">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">More career guides</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {related.map(c => (
+          <a href={`/careers/${c.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors">
+            <h3 class="text-sm font-semibold text-gray-900 mb-1">{c.h1}</h3>
+            <p class="text-xs text-gray-500">{c.readMins} min read</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+</Layout>

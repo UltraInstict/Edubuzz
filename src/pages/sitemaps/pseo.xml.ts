@@ -1,10 +1,19 @@
 import type { APIRoute } from 'astro';
 import { JOB_TYPES, PROVINCES } from '../../lib/pocketbase';
 import { slugify, CATEGORIES } from '../../lib/slugify';
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 
 export const GET: APIRoute = async ({ site }) => {
   const base = site?.origin || import.meta.env.SITE_URL || 'https://edubuzz.co.za';
   const lastmod = new Date().toISOString().slice(0, 10);
+
+  // AdSense phase: no pSEO doorway pages in the public sitemap.
+  if (!JOBS_PUBLIC) {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+</urlset>`;
+    return new Response(xml, { headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=3600' } });
+  }
 
   const urls: { loc: string; priority: string; changefreq: string }[] = [];
 

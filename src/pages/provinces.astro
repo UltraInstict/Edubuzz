@@ -1,6 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { PROVINCES } from '../lib/pocketbase';
+import { JOBS_PUBLIC } from '../lib/featureFlags';
+
+// AdSense phase: province index → career guides (province hubs remain at
+// /province/[slug] where [slug] is a hubSlug like gauteng-careers).
+if (!JOBS_PUBLIC) {
+  return Astro.redirect('/careers', 301);
+}
+
 const provinceSlug = (p: string) => p.toLowerCase().replace(/\s+/g, '-');
 ---
 

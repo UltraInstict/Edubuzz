@@ -6,24 +6,17 @@ export const GET: APIRoute = async ({ site }) => {
 
   const urls = [
     { loc: `${base}/`, priority: '1.0', changefreq: 'daily' },
-    { loc: `${base}/jobs`, priority: '0.9', changefreq: 'daily' },
-    { loc: `${base}/companies`, priority: '0.7', changefreq: 'daily' },
-    { loc: `${base}/categories`, priority: '0.7', changefreq: 'weekly' },
-    { loc: `${base}/provinces`, priority: '0.7', changefreq: 'weekly' },
-    { loc: `${base}/post-job`, priority: '0.8', changefreq: 'monthly' },
+    { loc: `${base}/education`, priority: '0.9', changefreq: 'weekly' },
+    { loc: `${base}/careers`, priority: '0.9', changefreq: 'weekly' },
+    { loc: `${base}/resources`, priority: '0.8', changefreq: 'weekly' },
+    { loc: `${base}/salary`, priority: '0.8', changefreq: 'weekly' },
+    { loc: `${base}/companies`, priority: '0.8', changefreq: 'weekly' },
+    { loc: `${base}/industry`, priority: '0.7', changefreq: 'weekly' },
     { loc: `${base}/contact`, priority: '0.4', changefreq: 'monthly' },
     { loc: `${base}/about`, priority: '0.5', changefreq: 'monthly' },
-    { loc: `${base}/advertise`, priority: '0.5', changefreq: 'monthly' },
-    { loc: `${base}/resources`, priority: '0.5', changefreq: 'monthly' },
-    { loc: `${base}/salary`, priority: '0.7', changefreq: 'weekly' },
-    { loc: `${base}/pricing`, priority: '0.5', changefreq: 'monthly' },
     { loc: `${base}/privacy`, priority: '0.3', changefreq: 'yearly' },
     { loc: `${base}/terms`, priority: '0.3', changefreq: 'yearly' },
-    { loc: `${base}/remote-jobs`, priority: '0.8', changefreq: 'daily' },
-    { loc: `${base}/internships`, priority: '0.8', changefreq: 'daily' },
-    { loc: `${base}/graduate-jobs`, priority: '0.7', changefreq: 'daily' },
-    { loc: `${base}/learnerships`, priority: '0.7', changefreq: 'daily' },
-    { loc: `${base}/bursaries`, priority: '0.7', changefreq: 'daily' },
+    { loc: `${base}/cookie-policy`, priority: '0.3', changefreq: 'yearly' },
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

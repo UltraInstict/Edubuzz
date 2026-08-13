@@ -1,9 +1,7 @@
 ---
 import '../styles/global.css';
-import { getSiteStats } from '../lib/pocketbase';
-import MonetizationSlot from '../components/MonetizationSlot.astro';
-import { getAdminSettings } from '../services/jobService';
-import { SITE_NAME, SITE_DESCRIPTION, SITE_TAGLINE, SITE_LOCALE, SITE_LANG, DEFAULT_OG_IMAGE, TWITTER_HANDLE, SOCIAL_URLS } from '../lib/constants';
+import { SITE_NAME, SITE_DESCRIPTION, SITE_TAGLINE, SITE_LOCALE, SITE_LANG, DEFAULT_OG_IMAGE, TWITTER_HANDLE, SOCIAL_URLS, siteBase } from '../lib/constants';
+import { ADS_ENABLED } from '../lib/featureFlags';
 
 interface Props {
   title?: string;
@@ -17,17 +15,14 @@ interface Props {
   prevPage?: string;
   nextPage?: string;
   /**
-   * Whether this page may serve ads. Defaults to `!noindex`. Set false on
-   * thin/replicated/low-value screens (empty listings, doorway pSEO templates,
-   * utility pages) so Google-served ads never appear on them — the exact
-   * AdSense policy issue ("ads on screens with replicated/low value content").
+   * Whether this page may serve ads. During the AdSense phase ads are
+   * globally disabled by the ADS_ENABLED feature flag regardless of this.
    */
   adsEligible?: boolean;
 }
 
-const stats = await getSiteStats();
 const {
-  title = 'Find Jobs in South Africa',
+  title = 'South African Education & Career Information',
   description = SITE_DESCRIPTION,
   canonicalUrl = Astro.url.href,
   ogImage = DEFAULT_OG_IMAGE,
@@ -37,7 +32,6 @@ const {
   noindex = false,
   prevPage,
   nextPage,
-  adsEligible = !noindex,
 } = Astro.props;
 
 const siteDomain = `${SITE_NAME}.co.za`;
@@ -45,49 +39,51 @@ const siteDomain = `${SITE_NAME}.co.za`;
 // Canonical + og:url MUST be the production https origin. nginx proxies to the
 // Node app over http, so Astro.url.href is http:// — never emit that as canonical.
 // Rebuild from the configured SITE_URL origin, preserving path + query.
-const SITE_ORIGIN = (import.meta.env.SITE_URL || process.env.SITE_URL || 'https://edubuzz.co.za').replace(/\/+$/, '');
+const SITE_ORIGIN = siteBase();
 let canonicalHref = `${SITE_ORIGIN}/`;
 try {
   const u = new URL(canonicalUrl, SITE_ORIGIN);
   canonicalHref = `${SITE_ORIGIN}${u.pathname}${u.search}`;
 } catch { /* keep origin root */ }
 
+function normalizeSiteUrl(value?: string): string | undefined {
+  if (!value) return undefined;
+  try {
+    const u = new URL(value, SITE_ORIGIN);
+    return `${SITE_ORIGIN}${u.pathname}${u.search}`;
+  } catch {
+    return undefined;
+  }
+}
+
 const paginationHead = [
-  prevPage ? `<link rel="prev" href="${prevPage}" />` : '',
-  nextPage ? `<link rel="next" href="${nextPage}" />` : '',
+  normalizeSiteUrl(prevPage) ? `<link rel="prev" href="${normalizeSiteUrl(prevPage)}" />` : '',
+  normalizeSiteUrl(nextPage) ? `<link rel="next" href="${normalizeSiteUrl(nextPage)}" />` : '',
 ].filter(Boolean).join('\n    ');
 
 const isAdmin = Astro.url.pathname.startsWith('/admin');
-const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT || process.env.PUBLIC_ADSENSE_CLIENT || '';
-const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
 
-// Additional analytics + tag managers — all env-gated (inert until an ID is set).
-const gtmId = import.meta.env.PUBLIC_GTM_ID || process.env.PUBLIC_GTM_ID || '';
+// AdSense phase: all ad scripts removed. ADS_ENABLED is the single kill-switch
+// to restore advertising when the job platform returns.
+const adsenseClient = ADS_ENABLED ? (import.meta.env.PUBLIC_ADSENSE_CLIENT || process.env.PUBLIC_ADSENSE_CLIENT || '') : '';
+
+// Analytics — kept (not advertising). GA/Clarity are measurement, not ads.
+const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
 const clarityId = import.meta.env.PUBLIC_CLARITY_ID || process.env.PUBLIC_CLARITY_ID || '';
-const metaPixelId = import.meta.env.PUBLIC_META_PIXEL_ID || process.env.PUBLIC_META_PIXEL_ID || '';
-const linkedInPartnerId = import.meta.env.PUBLIC_LINKEDIN_PARTNER_ID || process.env.PUBLIC_LINKEDIN_PARTNER_ID || '';
+
+// Ad/tag managers removed during AdSense phase (GTM, Meta Pixel, LinkedIn).
+const gtmId = '';
+const metaPixelId = '';
+const linkedInPartnerId = '';
 
 // Search-engine ownership verification meta tags — env-gated.
 const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION || process.env.PUBLIC_GOOGLE_SITE_VERIFICATION || '';
 const bingSiteVerification = import.meta.env.PUBLIC_BING_SITE_VERIFICATION || process.env.PUBLIC_BING_SITE_VERIFICATION || '';
 const yandexVerification = import.meta.env.PUBLIC_YANDEX_VERIFICATION || process.env.PUBLIC_YANDEX_VERIFICATION || '';
 
-// Analytics/tag scripts should never run on admin routes.
+// Analytics scripts never run on admin routes.
 const enableAnalytics = !isAdmin;
-
-// Gate AdSense script on admin settings (not just env var). Never load ad code
-// on ad-ineligible screens (thin/replicated/low-value) — AdSense policy.
-let showAdsenseScript = Boolean(adsenseClient && !isAdmin && adsEligible);
-if (showAdsenseScript) {
-  try {
-    const ms = await getAdminSettings(['monetization_enabled', 'adsense_enabled']);
-    // Only block if explicitly disabled; missing/unset defaults to enabled for revenue
-    if (ms.monetization_enabled === 'false') showAdsenseScript = false;
-    else if (ms.adsense_enabled !== 'true') showAdsenseScript = false;
-  } catch {
-    // PB unreachable — default to showing ads (revenue preservation)
-  }
-}
+const showAdsenseScript = false;
 ---
 
 <!doctype html>
@@ -121,33 +117,24 @@ if (showAdsenseScript) {
     {paginationHead && <Fragment set:html={paginationHead} />}
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-    <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
-    <script>
-      window.googletag = window.googletag || {cmd:[]};
-    </script>
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: SITE_NAME,
-      url: Astro.url.origin,
+      url: SITE_ORIGIN,
       description: SITE_DESCRIPTION,
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: { '@type': 'EntryPoint', urlTemplate: `${Astro.url.origin}/?search={search_term_string}` },
-        'query-input': 'required name=search_term_string',
-      },
-      publisher: { '@type': 'Organization', name: SITE_NAME, url: Astro.url.origin, logo: { '@type': 'ImageObject', url: `${Astro.url.origin}/favicon.svg` } },
+      publisher: { '@type': 'Organization', name: SITE_NAME, url: SITE_ORIGIN, logo: { '@type': 'ImageObject', url: `${SITE_ORIGIN}/favicon.svg` } },
     })} />
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: SITE_NAME,
-      url: Astro.url.origin,
-      logo: { '@type': 'ImageObject', url: `${Astro.url.origin}/favicon.svg` },
+      url: SITE_ORIGIN,
+      logo: { '@type': 'ImageObject', url: `${SITE_ORIGIN}/favicon.svg` },
       description: SITE_DESCRIPTION,
       sameAs: [SOCIAL_URLS.facebook, SOCIAL_URLS.linkedin, SOCIAL_URLS.twitter],
     })} />
@@ -198,24 +185,23 @@ if (showAdsenseScript) {
     {enableAnalytics && metaPixelId && (
       <noscript set:html={`<img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1" />`} />
     )}
-    <div class="bg-green-800 text-white text-center text-xs py-1.5">
-      {stats.jobs === 1 ? '1 active job' : `${stats.jobs.toLocaleString('en-ZA')} active jobs`} across South Africa — updated daily
-    </div>
-
     <nav class="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
         <a href="/" class="text-lg font-bold text-gray-900">{SITE_NAME}</a>
         <div class="hidden md:flex items-center gap-6">
-          <a href="/jobs" class="text-sm text-green-800 hover:text-green-900">Browse Jobs</a>
+          <a href="/education" class="text-sm text-green-800 hover:text-green-900">Education</a>
+          <a href="/careers" class="text-sm text-green-800 hover:text-green-900">Careers</a>
+          <a href="/resources" class="text-sm text-green-800 hover:text-green-900">Resources</a>
           <a href="/companies" class="text-sm text-green-800 hover:text-green-900">Companies</a>
         </div>
-        <a href="/post-job" class="hidden md:inline-block ml-auto bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Post a Job</a>
         <details class="md:hidden ml-auto">
           <summary class="text-sm text-gray-600 cursor-pointer list-none">Menu</summary>
           <div class="absolute right-4 top-14 bg-white border border-gray-200 rounded-md p-3 space-y-2 shadow-sm">
-            <a href="/jobs" class="block text-sm text-green-800 hover:text-green-900">Browse Jobs</a>
+            <a href="/education" class="block text-sm text-green-800 hover:text-green-900">Education</a>
+            <a href="/careers" class="block text-sm text-green-800 hover:text-green-900">Careers</a>
+            <a href="/resources" class="block text-sm text-green-800 hover:text-green-900">Resources</a>
             <a href="/companies" class="block text-sm text-green-800 hover:text-green-900">Companies</a>
-            <a href="/post-job" class="block text-sm text-green-800 font-medium">Post a Job</a>
+            <a href="/salary" class="block text-sm text-green-800 hover:text-green-900">Salary Guides</a>
           </div>
         </details>
       </div>
@@ -225,8 +211,6 @@ if (showAdsenseScript) {
       <slot />
     </div>
 
-    {!isAdmin && adsEligible && <MonetizationSlot zone="strip" />}
-
     <footer class="border-t border-gray-200 bg-white py-10">
       <div class="max-w-6xl mx-auto px-4">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -235,20 +219,20 @@ if (showAdsenseScript) {
             <p class="text-sm text-gray-500 mt-1">{SITE_TAGLINE}</p>
           </div>
           <div>
-            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Job seekers</h3>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Learn</h3>
             <div class="space-y-2">
-              <a href="/jobs" class="block text-sm text-green-800 hover:text-green-900">Browse jobs</a>
-              <a href="/categories" class="block text-sm text-green-800 hover:text-green-900">By category</a>
-              <a href="/provinces" class="block text-sm text-green-800 hover:text-green-900">By province</a>
+              <a href="/education" class="block text-sm text-green-800 hover:text-green-900">Education</a>
+              <a href="/careers" class="block text-sm text-green-800 hover:text-green-900">Career guides</a>
+              <a href="/salary" class="block text-sm text-green-800 hover:text-green-900">Salary guides</a>
               <a href="/resources" class="block text-sm text-green-800 hover:text-green-900">Resources</a>
             </div>
           </div>
           <div>
-            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Employers</h3>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Explore</h3>
             <div class="space-y-2">
-              <a href="/post-job" class="block text-sm text-green-800 hover:text-green-900">Post a job</a>
-              <a href="/pricing" class="block text-sm text-green-800 hover:text-green-900">Pricing</a>
-              <a href="/advertise" class="block text-sm text-green-800 hover:text-green-900">Advertise</a>
+              <a href="/companies" class="block text-sm text-green-800 hover:text-green-900">Employer guides</a>
+              <a href="/industry" class="block text-sm text-green-800 hover:text-green-900">Industries</a>
+              <a href="/resources" class="block text-sm text-green-800 hover:text-green-900">CV &amp; interview guides</a>
             </div>
           </div>
           <div>
