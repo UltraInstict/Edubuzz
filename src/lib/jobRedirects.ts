@@ -129,14 +129,16 @@ export function getJobRedirectTarget(job: { title?: string; category?: string; c
     if (rule.pattern.test(title)) return rule.target;
   }
 
-  // 2) Category → industry hub (verified alias table)
-  const industry = CATEGORY_TO_INDUSTRY[category];
-  if (industry) return industry;
-
-  // 3) Title-based industry for miscategorised records (verified cases)
+  // 2) Title-based industry for miscategorised records (verified cases).
+  //    Runs before the category map so PB values like "Human Resources"
+  //    attached to finance/engineering/IT roles don't win by accident.
   for (const rule of TITLE_TO_INDUSTRY) {
     if (rule.pattern.test(title)) return rule.target;
   }
+
+  // 3) Category → industry hub (verified alias table)
+  const industry = CATEGORY_TO_INDUSTRY[category];
+  if (industry) return industry;
 
   // 4) Company-based fallback for empty/ambiguous categories
   if (job.company) {
