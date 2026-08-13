@@ -1,5 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { ADS_ENABLED } from '../lib/featureFlags';
+
+// AdSense phase: advertising packages are not offered. ADS_ENABLED=true
+// restores this page when advertising returns.
+if (!ADS_ENABLED) {
+  return Astro.redirect('/about', 301);
+}
 ---
 
 <Layout title="Advertise on Edubuzz" description="Reach thousands of active South African job seekers. Banner ads, category sponsorships, and featured employer placements." canonicalUrl={Astro.url.href}>

@@ -8,6 +8,25 @@ import { getEmployerBySlug } from '../../lib/pocketbase';
 
 const { slug } = Astro.params;
 
+/**
+ * Exact-identity duplicate employer slugs → curated company guide.
+ * e.g. /company/shoprite-group → /company/shoprite.
+ * Verified against the PocketBase employers collection (2026-08-13).
+ */
+const EMPLOYER_ALIAS_TO_GUIDE: Record<string, string> = {
+  'shoprite-group': 'shoprite',
+  'capitec-bank': 'capitec',
+  'standard-bank-group': 'standard-bank',
+  'clicks-group': 'clicks',
+  // Same company under two PB slugs — consolidate to one stub page.
+  'takealot-com': 'takealot-group',
+};
+
+const aliasTarget = EMPLOYER_ALIAS_TO_GUIDE[slug || ''];
+if (aliasTarget && aliasTarget !== slug) {
+  return Astro.redirect(`/company/${aliasTarget}`, 301);
+}
+
 // 1) Curated employer guide, or 2) existing PocketBase employer record
 // (informational only during the AdSense phase — no job listings rendered).
 const guide = COMPANY_GUIDES.find(c => c.slug === slug);
@@ -18,6 +37,9 @@ const name = guide?.name || employer?.company_name || 'Employer';
 const sector = guide?.sector || 'Employer';
 const locationLabel = employer ? [employer.city, employer.province].filter(Boolean).join(', ') : '';
 const website = guide?.officialSite || employer?.website || '';
+// PB-only employer pages without curated content are thin stubs during the
+// AdSense phase — noindex them so they don't count as low-value content.
+const isThinStub = !guide;
 
 const relatedCareers = (guide?.careerLinks || [])
   .map(s => CAREER_GUIDES.find(c => c.slug === s))
@@ -59,6 +81,7 @@ const faqSchema = guide ? {
   canonicalUrl={`${SITE_URL}/company/${slug}`}
   ogType="article"
   adsEligible={false}
+  noindex={isThinStub}
 >
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} slot="head" />
   <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} slot="head" />

@@ -1,5 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { JOBS_PUBLIC } from '../lib/featureFlags';
+
+// AdSense phase: job-listing pricing is not applicable. JOBS_PUBLIC=true
+// restores this page when the job platform returns.
+if (!JOBS_PUBLIC) {
+  return Astro.redirect('/about', 301);
+}
 ---
 
 <Layout title="Pricing | Edubuzz" description="Simple, transparent pricing for job listings on Edubuzz. No subscriptions. Pay only when you post." canonicalUrl={Astro.url.href}>

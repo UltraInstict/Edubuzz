@@ -28,7 +28,7 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     slug: 'gauteng',
     name: 'Gauteng',
     hubSlug: 'gauteng-careers',
-    title: 'Careers & Jobs in Gauteng (2026) — Employers, Salaries & Industries',
+    title: 'Careers in Gauteng (2026) — Employers, Salaries & Industries',
     description: 'A complete guide to careers in Gauteng. Major employers, growing industries, learnerships, internships, salary guides and live jobs in Johannesburg, Pretoria and Ekurhuleni.',
     overview: `
 <p>Gauteng is South Africa\u2019s economic engine. Despite being the smallest province by land area, it generates roughly a third of national GDP and is home to Johannesburg (the financial capital), Pretoria (the administrative capital) and the industrial hubs of Ekurhuleni and the Vaal.</p>
@@ -52,7 +52,7 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     slug: 'western-cape',
     name: 'Western Cape',
     hubSlug: 'western-cape-careers',
-    title: 'Careers & Jobs in the Western Cape (2026) — Employers & Industries',
+    title: 'Careers in the Western Cape (2026) — Employers & Industries',
     description: 'A complete guide to careers in the Western Cape. Major employers, growing industries, learnerships, internships, salary guides and live jobs in Cape Town and beyond.',
     overview: `
 <p>The Western Cape is South Africa\u2019s second-largest economy and one of its fastest-growing job markets. Cape Town has become the country\u2019s technology and business-process outsourcing (BPO) capital, while the wider province is a powerhouse in agriculture, tourism, retail and financial services.</p>
@@ -76,7 +76,7 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     slug: 'kwazulu-natal',
     name: 'KwaZulu-Natal',
     hubSlug: 'kwazulu-natal-careers',
-    title: 'Careers & Jobs in KwaZulu-Natal (2026) — Employers & Industries',
+    title: 'Careers in KwaZulu-Natal (2026) — Employers & Industries',
     description: 'A complete guide to careers in KwaZulu-Natal. Major employers, growing industries, learnerships, internships, salary guides and live jobs in Durban, Pietermaritzburg and beyond.',
     overview: `
 <p>KwaZulu-Natal (KZN) is South Africa\u2019s third-largest provincial economy and a logistics and manufacturing powerhouse. Durban is home to the busiest port in Africa, making the province the country\u2019s gateway for imports and exports and a magnet for logistics, warehousing and manufacturing jobs.</p>
@@ -100,7 +100,7 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     slug: 'eastern-cape',
     name: 'Eastern Cape',
     hubSlug: 'eastern-cape-careers',
-    title: 'Careers & Jobs in the Eastern Cape (2026) — Employers & Industries',
+    title: 'Careers in the Eastern Cape (2026) — Employers & Industries',
     description: 'A complete guide to careers in the Eastern Cape. Major employers, growing industries, learnerships, internships, salary guides and live jobs in Gqeberha, East London and beyond.',
     overview: `
 <p>The Eastern Cape is the heart of South Africa\u2019s automotive manufacturing industry. Gqeberha (Port Elizabeth) and East London host major vehicle assembly plants and a deep network of component suppliers, making the province a key destination for manufacturing and engineering careers.</p>
@@ -124,7 +124,7 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     slug: 'free-state',
     name: 'Free State',
     hubSlug: 'free-state-careers',
-    title: 'Careers & Jobs in the Free State (2026) — Employers & Industries',
+    title: 'Careers in the Free State (2026) — Employers & Industries',
     description: 'A complete guide to careers in the Free State. Major employers, growing industries, learnerships, internships, salary guides and live jobs in Bloemfontein, Welkom and beyond.',
     overview: `
 <p>The Free State sits at the centre of South Africa and is built on agriculture, mining and government. Bloemfontein is the judicial capital of the country and the provincial administrative centre, providing substantial public-sector and legal employment.</p>
@@ -148,7 +148,7 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     slug: 'limpopo',
     name: 'Limpopo',
     hubSlug: 'limpopo-careers',
-    title: 'Careers & Jobs in Limpopo (2026) — Employers & Industries',
+    title: 'Careers in Limpopo (2026) — Employers & Industries',
     description: 'A complete guide to careers in Limpopo. Major employers, growing industries, learnerships, internships, salary guides and live jobs in Polokwane and beyond.',
     overview: `
 <p>Limpopo is one of South Africa\u2019s richest provinces for mining, home to major platinum, chrome and coal operations. The province is also a leading agricultural producer, especially of fruit and vegetables, and has a growing tourism sector anchored by the Kruger National Park.</p>
@@ -172,7 +172,7 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     slug: 'mpumalanga',
     name: 'Mpumalanga',
     hubSlug: 'mpumalanga-careers',
-    title: 'Careers & Jobs in Mpumalanga (2026) — Employers & Industries',
+    title: 'Careers in Mpumalanga (2026) — Employers & Industries',
     description: 'A complete guide to careers in Mpumalanga. Major employers, growing industries, learnerships, internships, salary guides and live jobs in Mbombela, eMalahleni and beyond.',
     overview: `
 <p>Mpumalanga is the energy heartland of South Africa. The province produces the majority of the country\u2019s coal and hosts most of Eskom\u2019s power stations, making mining and energy the dominant employers. Sasol\u2019s major operations in Secunda anchor a large petrochemical sector.</p>
@@ -196,7 +196,7 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     slug: 'north-west',
     name: 'North West',
     hubSlug: 'north-west-careers',
-    title: 'Careers & Jobs in the North West (2026) — Employers & Industries',
+    title: 'Careers in the North West (2026) — Employers & Industries',
     description: 'A complete guide to careers in the North West. Major employers, growing industries, learnerships, internships, salary guides and live jobs in Rustenburg, Mahikeng and beyond.',
     overview: `
 <p>The North West is the world\u2019s leading platinum-producing region. The mines around Rustenburg dominate the provincial economy and are the largest employers, supported by a deep network of mining-services and engineering companies.</p>
@@ -220,7 +220,7 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     slug: 'northern-cape',
     name: 'Northern Cape',
     hubSlug: 'northern-cape-careers',
-    title: 'Careers & Jobs in the Northern Cape (2026) — Employers & Industries',
+    title: 'Careers in the Northern Cape (2026) — Employers & Industries',
     description: 'A complete guide to careers in the Northern Cape. Major employers, growing industries, learnerships, internships, salary guides and live jobs in Kimberley, Upington and beyond.',
     overview: `
 <p>The Northern Cape is South Africa\u2019s largest province by land area and a major centre for mining and renewable energy. It is rich in iron ore, manganese, diamonds and zinc, and has become the country\u2019s leading region for solar power, creating new construction and technical jobs.</p>

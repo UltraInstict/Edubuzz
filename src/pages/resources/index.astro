@@ -38,10 +38,10 @@ const breadcrumbSchema = {
 
 const pageTitle = activeCategoryMeta
   ? `${activeCategoryMeta.label} — Career Resources`
-  : 'Career Resources — Free Guides for South African Job Seekers';
+  : 'Career & Education Resources — Free Guides for South Africans';
 const pageDesc = activeCategoryMeta
   ? activeCategoryMeta.blurb
-  : 'Free career resources for South African job seekers. CV writing guides, interview preparation, learnership info, government job applications, salary guides and more.';
+  : 'Free career and education guides for South Africans. CV writing, interview preparation, learnership info, NSFAS and TVET applications, salary guides and more.';
 ---
 
 <Layout title={pageTitle} description={pageDesc} canonicalUrl={`${SITE_URL}/resources${categoryFilter ? `?category=${categoryFilter}` : ''}`}>

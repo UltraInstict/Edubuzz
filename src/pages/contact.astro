@@ -4,10 +4,10 @@ import { generateToken } from '../lib/csrf';
 const csrfToken = generateToken();
 ---
 
-<Layout title="Contact Edubuzz" description="Contact the Edubuzz team for advertising, job posting help, or general enquiries." canonicalUrl={Astro.url.href}>
+<Layout title="Contact Edubuzz" description="Contact the Edubuzz team for content feedback, partnerships, or general enquiries." canonicalUrl={Astro.url.href}>
   <div class="max-w-2xl mx-auto px-4 pt-6 pb-10">
     <h1 class="text-2xl font-bold text-gray-900 mb-2">Contact Edubuzz</h1>
-    <p class="text-sm text-gray-600 leading-relaxed mb-6">Have a question, want to advertise, or need help posting a job? Get in touch and we will respond within one business day.</p>
+    <p class="text-sm text-gray-600 leading-relaxed mb-6">Have a question, spotted an error, or want to discuss a partnership? Get in touch and we will respond within one business day.</p>
     <form id="contact-form" class="space-y-5">
       <input type="hidden" name="_csrf" value={csrfToken} />
       <div class="sr-only"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
@@ -16,8 +16,8 @@ const csrfToken = generateToken();
       <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><select class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="subject" required>
         <option value="">Select a topic</option>
         <option value="General Enquiry">General Enquiry</option>
-        <option value="Post a Job">Post a Job</option>
-        <option value="Advertise">Advertise</option>
+        <option value="Content Feedback">Content Feedback</option>
+        <option value="Partnerships">Partnerships</option>
         <option value="Technical Issue">Technical Issue</option>
         <option value="Other">Other</option>
       </select></div>

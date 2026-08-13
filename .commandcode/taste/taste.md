@@ -8,6 +8,7 @@ See [design-system/taste.md](design-system/taste.md)
 # infrastructure
 - For scheduled jobs, use systemd timers or crontab, not PM2 cron_restart — PM2 cron_restart restarts the entire app process, which is the wrong tool for scheduled task execution. Confidence: 0.75
 - The production server's remote shell is bash, not PowerShell — when running commands over SSH, use bash syntax (head, tail, grep, etc.), not PowerShell cmdlets (Select-Object). Confidence: 0.80
+- For remote verification or any complex command on the server, upload a bash script to /tmp via scp and run it over ssh — never inline complex quoted bash over SSH, because PowerShell mangles complex quoted remote commands. Confidence: 0.90
 
 # deployment
 - Expects direct SSH access to the live production server and is comfortable making changes on the live site, not just through a staging environment. Confidence: 0.70
@@ -23,6 +24,7 @@ See [data-integrity/taste.md](data-integrity/taste.md)
 # architecture
 - Consolidate duplicate data access layers (PocketBase access, jobService, affiliateService, monetizationService) into a single source of truth; no duplicate data access paths. Confidence: 0.85
 - The import/ingestion engine must be designed as a pluggable connector architecture — Firecrawl is only ONE connector type. New connectors (RSS, XML, JSON, CSV, Playwright, career APIs, sitemap crawlers) must be addable without modifying the core engine. Each connector normalizes into the same unified schema. Confidence: 0.80
+- When temporarily hiding or phasing out functionality (e.g. removing jobs from the public frontend), prefer a reversible kill-switch — a feature flag or config toggle — over deleting code or data, so the feature can be restored by flipping a flag without code changes. Confidence: 0.80
 
 # security
 - Reference .env by key name only when discussing credentials in agent sessions; never paste real credentials into prompts or code. Confidence: 0.75
