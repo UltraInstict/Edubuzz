@@ -10,3 +10,4 @@
 - After each completed task provide: ✔ What changed ✔ Why ✔ Files changed ✔ Database changes ✔ Deployment status ✔ Production verification ✔ Next task. Confidence: 0.95
 - After deploying to production, curl-verify all key pages return 200 against the live public URL (not localhost) to confirm the deploy succeeded before declaring done. Confidence: 0.85
 - When verifying a visual/layout fix, test in an actual browser (incognito) on the live public URL, not just curl or grep DOM element counts; rendered output is what matters. Confidence: 0.80
+- Before starting a fix/modification pass, create a lightweight git checkpoint (tag or commit) and record the commit hash as a restore point; never modify the original pre-change backup. Confidence: 0.75

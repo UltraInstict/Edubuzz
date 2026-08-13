@@ -71,3 +71,12 @@ See [workflow/taste.md](workflow/taste.md)
 - If PM2 logs show "ClientResponseError 400: Failed to authenticate", this means PM2 is running with stale credentials in memory. The fix is `pm2 restart edubuzz --update-env` — do NOT edit source files for this error. Confidence: 0.80
 - After adding a new env var and restarting PM2, verify the env var propagated by running `pm2 env <app-name> | grep -i <VAR>`; if missing, use `pm2 delete <app-name> && pm2 start ecosystem.config.cjs --env production` to force a full restart. Confidence: 0.65
 - After deploying to production, curl-verify all key pages return 200 against the live public URL (not localhost) to confirm the deploy succeeded before declaring done. Confidence: 0.85
+
+# redirects
+- Legacy/old URLs must redirect to a genuinely relevant informational page — never a blanket homepage or generic hub. Only fall back to a generic hub (e.g. /careers) when no relevant destination exists, and don't invent a mapping just to avoid a 404. Confidence: 0.80
+
+# content
+- When removing stale positioning/copy, distinguish legitimate uses of a keyword from misrepresentative ones — do not blindly strip every occurrence. "How to apply for jobs" is legitimate on an education/career site; "latest jobs in Gauteng" is stale job-board copy. Confidence: 0.75
+
+# configuration
+- Avoid competing sources for a single output path: if a static file (e.g. public/robots.txt) and a dynamic route can serve the same URL, remove the static file so a single authoritative source wins. Confidence: 0.70

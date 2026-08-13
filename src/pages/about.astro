@@ -5,11 +5,32 @@ import Layout from '../layouts/Layout.astro';
 <Layout title="About Edubuzz" description="Edubuzz is a South African education and career information site helping people understand what to study, which careers exist and how to enter them." canonicalUrl={Astro.url.href}>
   <div class="max-w-2xl mx-auto px-4 py-10">
     <h1 class="text-2xl font-bold text-gray-900 mb-2">About Edubuzz</h1>
+
+    <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">What Edubuzz is</h2>
     <p class="text-sm text-gray-600 leading-relaxed mb-4">Edubuzz is a South African education and career information website. We help school leavers, students and job seekers understand what to study, which careers exist, how to enter them, what they pay, and how to apply — in plain language.</p>
-    <p class="text-sm text-gray-600 leading-relaxed mb-4">Our guides cover TVET colleges, universities, NSFAS funding, NATED programmes, career pathways, salary expectations and employer information — written specifically for South Africans.</p>
-    <p class="text-sm text-gray-600 leading-relaxed mb-8">Our content is researched and original. We do not invent salary figures or requirements, and we always point you to official sources where you should confirm current details.</p>
-    <h2 class="text-xl font-semibold text-gray-900 mb-4">Our mission</h2>
-    <p class="text-sm text-gray-600 leading-relaxed mb-6">To help South Africans make informed education and career decisions — regardless of where they live or what device they use.</p>
+
+    <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">What you will find here</h2>
+    <ul class="text-sm text-gray-600 leading-relaxed space-y-1.5 list-disc pl-5 mb-4">
+      <li><strong>Education guides</strong> — TVET colleges, universities, NSFAS funding, NATED N4–N6 programmes and post-matric pathways.</li>
+      <li><strong>Career guides</strong> — step-by-step routes into specific careers, from entry requirements to progression.</li>
+      <li><strong>Salary guides</strong> — indicative pay ranges for common South African occupations.</li>
+      <li><strong>Resources</strong> — CV, interview and application guides written for the South African job market.</li>
+      <li><strong>Employer guides</strong> — practical information about applying to major South African employers.</li>
+    </ul>
+
+    <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">Who the content is for</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">South Africans making education and career decisions — whether you are finishing school, considering TVET or university, changing careers, or preparing job applications.</p>
+
+    <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">How we produce information</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">Our guides are researched and written by our editorial team, drawing on public information from official sources such as government departments, public institutions and employer career pages. We aim to keep facts current, but rules, thresholds and deadlines change — always confirm important details with the official institution or employer before acting.</p>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">Salary figures on Edubuzz are indicative estimates and vary by employer, location and experience.</p>
+
+    <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">Independence</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">Edubuzz is an independent information site. We are not affiliated with any employer, college, university or government body unless explicitly stated on a specific page. Employer guides describe how to apply through official channels and always link to the employer's official careers site.</p>
+
+    <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">Contact</h2>
+    <p class="text-sm text-gray-600 leading-relaxed mb-6">Found an error, or want to suggest an improvement? <a href="/contact" class="text-green-800 hover:text-green-900 hover:underline">Contact us</a> — we read every message.</p>
+
     <div class="flex gap-3 flex-wrap mt-6">
       <a href="/education" class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Education guides</a>
       <a href="/careers" class="inline-block border border-green-800 text-green-800 text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-50 transition-colors">Career guides</a>

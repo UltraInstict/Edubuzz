@@ -223,11 +223,26 @@ export const ARTICLES: ResourceArticle[] = [
 <p><em>"Tell me about a time you dealt with an unhappy customer."</em></p>
 <p><strong>Situation:</strong> While working at a busy retail store, a customer returned a faulty appliance and was very angry. <strong>Task:</strong> I had to resolve it while keeping the queue moving. <strong>Action:</strong> I listened, apologised, checked the warranty and arranged an immediate replacement. <strong>Result:</strong> The customer left satisfied and later wrote a positive review mentioning me by name.</p>
 
+<h2>Why interviewers ask these questions</h2>
+<p>Behavioural questions are based on the idea that past behaviour predicts future behaviour. A manager who knows how you handled pressure, conflict or failure before can judge how you will handle them in the new role. That is why vague answers hurt you — a clear STAR story is evidence.</p>
+
+<h2>Common South African behavioural questions</h2>
+<ul>
+  <li>"Tell me about a time you worked in a team."</li>
+  <li>"Describe a situation where you had to meet a tight deadline."</li>
+  <li>"Tell me about a time you made a mistake. What did you do?"</li>
+  <li>"Give an example of when you went the extra mile for a customer."</li>
+</ul>
+
+<h2>Preparing your STAR stories</h2>
+<p>Before the interview, write down five or six real experiences from school, work, volunteering or community projects. One story can often answer several questions — for example, a difficult group project can cover teamwork, conflict and deadlines. Write each one out using the four STAR steps, then practise telling it out loud.</p>
+
 <h2>Tips</h2>
 <ul>
   <li>Prepare three or four STAR stories that show different skills.</li>
   <li>Keep each answer to about two minutes.</li>
   <li>Practise out loud so it sounds natural, not memorised.</li>
+  <li>Be honest — interviewers often probe deeper, and invented stories collapse under questioning.</li>
 </ul>
 `,
     faqs: [
@@ -326,6 +341,7 @@ export const ARTICLES: ResourceArticle[] = [
     intro: 'Applying for a learnership is straightforward if you prepare your documents in advance and apply as early as possible. Here is exactly what to do.',
     body: `
 <h2>Step 1: Prepare your documents</h2>
+<p>Most learnership applications need the same core documents. Get them certified early so you can apply the same day an advert appears:</p>
 <ul>
   <li>A certified copy of your ID.</li>
   <li>A certified copy of your matric certificate or latest results.</li>
@@ -333,17 +349,20 @@ export const ARTICLES: ResourceArticle[] = [
   <li>Proof of residence, if requested.</li>
 </ul>
 
-<h2>Step 2: Apply through the official channel</h2>
-<p>Apply only through the employer's official careers page or the link in the advert. Follow the instructions exactly — some ask for an online form, others for an email with attachments.</p>
+<h2>Step 2: Find learnerships that fit you</h2>
+<p>Learnerships are advertised on employer career pages, SETA websites, the DPSA circular (for government programmes) and local newspapers. Match the programme to your qualifications — a business learnership usually needs matric, while some artisan learnerships accept Grade 9 plus a willingness to train.</p>
 
-<h2>Step 3: Write a short motivation</h2>
-<p>If asked why you want the learnership, be genuine: explain your interest in the field and your commitment to completing the programme.</p>
+<h2>Step 3: Apply through the official channel</h2>
+<p>Apply only through the employer's official careers page or the link in the advert. Follow the instructions exactly — some ask for an online form, others for an email with attachments. Keep a copy of your application and the advert's reference number.</p>
 
-<h2>Step 4: Apply early and widely</h2>
-<p>Learnership intakes are competitive and close quickly. Apply to several programmes that match your qualifications to improve your chances.</p>
+<h2>Step 4: Write a short motivation</h2>
+<p>If asked why you want the learnership, be genuine: explain your interest in the field and your commitment to completing the programme. A specific, honest answer beats a generic one every time.</p>
+
+<h2>Step 5: Apply early and widely</h2>
+<p>Learnership intakes are competitive and close quickly. Apply to several programmes that match your qualifications to improve your chances, and keep a simple spreadsheet of what you applied for and when.</p>
 
 <h2>Avoid learnership scams</h2>
-<p>Legitimate learnerships never ask you to pay a registration or "training" fee. If someone asks for money to secure your place, walk away and report it.</p>
+<p>Legitimate learnerships never ask you to pay a registration or "training" fee. If someone asks for money to secure your place, walk away and report it to the employer's fraud line or the SAPS. Real learnerships pay you a stipend — not the other way around.</p>
 `,
     faqs: [
       { q: 'Do I have to pay to apply for a learnership?', a: 'No. Genuine learnerships are free to apply for and pay you a stipend. Anyone asking for a fee to secure a place is running a scam.' },

@@ -105,6 +105,16 @@ const faqSchema = {
       </section>
     )}
 
+    <section class="mb-8 bg-green-50 border border-green-200 rounded-md p-5">
+      <h2 class="text-base font-semibold text-green-900 mb-2">Your next steps</h2>
+      <ul class="text-sm text-gray-700 leading-relaxed space-y-2 list-disc pl-5">
+        {salaryGuide && <li>Compare pay expectations in our <a href={`/salary/${salaryGuide.slug}`} class="text-green-800 hover:underline">{guide.occupation} salary guide</a>.</li>}
+        {educationLinks.length > 0 && <li>Check the study routes in the education guides linked below, then apply early for the next intake.</li>}
+        <li>Confirm current entry requirements and vacancies with employers or institutions before applying.</li>
+        <li>Prepare your application using the <a href="/resources/cv-writing-guide-south-africa" class="text-green-800 hover:underline">CV writing guide</a> and <a href="/resources/common-interview-questions-and-answers" class="text-green-800 hover:underline">interview preparation guide</a>.</li>
+      </ul>
+    </section>
+
     {educationLinks.length > 0 && (
       <section class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 mb-3">Study options for this career</h2>

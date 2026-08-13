@@ -88,6 +88,11 @@ const faqSchema = {
           <div><dt class="text-green-700 font-medium">Mid Level</dt><dd class="text-green-900">{guide.midLevel}</dd></div>
           <div class="sm:col-span-2"><dt class="text-green-700 font-medium">Senior Level</dt><dd class="text-green-900">{guide.seniorLevel}</dd></div>
         </dl>
+        <p class="text-xs text-green-800 mt-3 leading-relaxed">
+          Salary figures are indicative estimates for South Africa and vary by employer, province,
+          experience and qualifications. Confirm current figures with employers or the relevant
+          bargaining council before making decisions.
+        </p>
       </div>
 
       <MonetizationSlot zone="content-top" />
@@ -110,6 +115,16 @@ const faqSchema = {
         <div class="prose prose-sm max-w-none prose-li:text-gray-700" set:html={guide.requirements} />
       </section>
 
+      <!-- Next steps -->
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Your Next Steps</h2>
+        <ul class="text-sm text-gray-700 leading-relaxed space-y-2 list-disc pl-5">
+          <li>Compare this salary guide with the full <a href="/careers" class="text-green-800 hover:underline">career guides</a> for training routes and entry requirements.</li>
+          <li>Check current openings and pay scales on official employer career pages and recruitment portals.</li>
+          <li>If this occupation matches your path, read the <a href="/resources/cv-writing-guide-south-africa" class="text-green-800 hover:underline">CV writing guide</a> to prepare your application.</li>
+        </ul>
+      </section>
+
       <!-- FAQs -->
       <section class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
@@ -121,6 +136,20 @@ const faqSchema = {
             </details>
           ))}
         </div>
+      </section>
+
+      <!-- Sources -->
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Where this information comes from</h2>
+        <p class="text-sm text-gray-600 leading-relaxed mb-3">
+          Edubuzz compiles salary information from publicly available sources and general market
+          knowledge for guidance only. Useful places to verify current {guide.occupation.toLowerCase()} pay include:
+        </p>
+        <ul class="text-sm text-gray-700 leading-relaxed space-y-2 list-disc pl-5">
+          <li>Official employer career pages and recruitment advertisements.</li>
+          <li>Public sector salary scales where applicable (e.g. <a href="https://www.dpsa.gov.za" target="_blank" rel="noopener noreferrer" class="text-green-800 hover:underline">DPSA</a> for government posts).</li>
+          <li>Bargaining council agreements for the relevant sector.</li>
+        </ul>
       </section>
 
       <!-- Related jobs -->
