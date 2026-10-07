@@ -11,7 +11,7 @@
  * AdSense phase: ADS_ENABLED=false renders nothing at all — no wrapper,
  * no spacer, no DOM impact.
  */
-import { ADS_ENABLED } from '../lib/featureFlags';
+import { ADS_ENABLED, OTHER_MONETIZATION_ENABLED } from '../lib/featureFlags';
 import { resolveSlot } from '../services/monetizationService';
 import type { ResolvedSlot, AffiliateContent, HouseAdContent, SponsoredJobContent, SponsoredEmployerContent, AdSenseContent } from '../services/monetizationService';
 
@@ -28,7 +28,7 @@ const zone = requestedZone === 'content-top' ? 'jobs-top'
   : requestedZone;
 
 const result: ResolvedSlot = ADS_ENABLED
-  ? await resolveSlot(zone, { category }).catch(() => ({ type: 'empty' as const, content: null }))
+  ? await resolveSlot(zone, { category, adsenseOnly: !OTHER_MONETIZATION_ENABLED }).catch(() => ({ type: 'empty' as const, content: null }))
   : { type: 'empty' as const, content: null };
 
 const affiliate = result.type.startsWith('affiliate_') ? (result.content as AffiliateContent | null) : null;

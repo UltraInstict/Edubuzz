@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_LOCALE, SITE_LANG, DEFAULT_OG_IMAGE, TWITTER_HANDLE, SOCIAL_URLS, siteBase } from '../lib/constants';
 import { ADS_ENABLED } from '../lib/featureFlags';
+import { getAdSenseClient, isPrivateAdRoute, shouldLoadAdSense } from '../lib/adsense';
 
 interface Props {
   title?: string;
@@ -15,8 +16,7 @@ interface Props {
   prevPage?: string;
   nextPage?: string;
   /**
-   * Whether this page may serve ads. During the AdSense phase ads are
-   * globally disabled by the ADS_ENABLED feature flag regardless of this.
+   * Whether this page may serve AdSense. Private and noindex pages are excluded.
    */
   adsEligible?: boolean;
 }
@@ -63,7 +63,7 @@ const paginationHead = [
 ].filter(Boolean).join('\n    ');
 
 const isAdmin = Astro.url.pathname.startsWith('/admin');
-const isPrivate = isAdmin || Astro.url.pathname.startsWith('/employer') || ['/login', '/register', '/logout'].includes(Astro.url.pathname);
+const isPrivate = isPrivateAdRoute(Astro.url.pathname);
 const primaryNavigation = [
   { href: '/education', label: 'Education' },
   { href: '/careers', label: 'Careers' },
@@ -76,7 +76,7 @@ const isCurrent = (href: string) => Astro.url.pathname === href || Astro.url.pat
 // Ownership verification is independent of ad rendering. Scripts only run
 // after the ad flag is enabled, on eligible public pages.
 const configuredClient = String(import.meta.env.PUBLIC_ADSENSE_CLIENT || process.env.PUBLIC_ADSENSE_CLIENT || '').trim();
-const adsenseClient = /^ca-pub-\d{16}$/.test(configuredClient) ? configuredClient : '';
+const adsenseClient = getAdSenseClient(configuredClient);
 
 // Analytics — kept (not advertising). GA/Clarity are measurement, not ads.
 const gaId = import.meta.env.PUBLIC_GA_ID || process.env.PUBLIC_GA_ID || '';
@@ -94,7 +94,7 @@ const yandexVerification = import.meta.env.PUBLIC_YANDEX_VERIFICATION || process
 
 // Analytics scripts never run on admin routes.
 const enableAnalytics = !isAdmin;
-const showAdsenseScript = ADS_ENABLED && adsEligible && !noindex && !isPrivate && !!adsenseClient;
+const showAdsenseScript = shouldLoadAdSense({ enabled: ADS_ENABLED, eligible: adsEligible, noindex, pathname: Astro.url.pathname, client: adsenseClient });
 ---
 
 <!doctype html>

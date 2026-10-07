@@ -7,4 +7,5 @@
  * the original job aggregator without code changes.
  */
 export const JOBS_PUBLIC = false; // public job listing/detail/search routes
-export const ADS_ENABLED = false; // all ad slots + ad scripts (AdSense etc.)
+export const ADS_ENABLED = true; // AdSense ready; Google controls approval/serving.
+export const OTHER_MONETIZATION_ENABLED = false; // No unrelated campaigns activated.

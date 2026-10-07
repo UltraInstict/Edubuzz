@@ -175,6 +175,7 @@ export interface ResolvedSlot {
 export interface SlotContext {
   category?: string;
   jobId?: string;
+  adsenseOnly?: boolean;
 }
 
 // ─── Tier ordering (higher index = lower priority) ──────────────────────────
@@ -244,7 +245,10 @@ export async function resolveSlot(
     return { type: 'empty', content: null };
   }
 
-  const campaigns = await getActiveCampaigns(zone);
+  const activeCampaigns = await getActiveCampaigns(zone);
+  const campaigns = context?.adsenseOnly
+    ? activeCampaigns.filter(c => c.campaign_type === 'adsense_manual')
+    : activeCampaigns;
 
   if (campaigns.length === 0) {
     return { type: 'empty', content: null };

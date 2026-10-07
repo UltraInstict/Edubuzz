@@ -42,5 +42,6 @@ done
 $healthy || rollback
 ads=$(curl --fail --silent http://127.0.0.1:4321/ads.txt) || rollback
 [[ "$ads" == 'google.com, pub-4848750388169101, DIRECT, f08c47fec0942fa0' ]] || rollback
+EDUBUZZ_QA_URL=http://127.0.0.1:4321 node scripts/verify-adsense.cjs || rollback
 pm2 save
 echo "Release ${release} deployed. Previous build retained at ${previous}"
