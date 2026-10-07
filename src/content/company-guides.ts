@@ -1,336 +1,236 @@
-/**
- * Company career guides — informational employer pages for major South African
- * employers. Facts are limited to widely-known, verifiable general information;
- * specifics (current vacancies, exact requirements) must be confirmed on the
- * employer's official careers portal. No invented programmes or figures.
- */
-
-export interface CompanyGuideFAQ {
-  q: string;
-  a: string;
-}
-
+/** Independent preparation advice, not vacancy adverts or employer endorsements. */
+export interface CompanyGuideFAQ { q: string; a: string }
 export interface CompanyGuide {
-  slug: string;
-  name: string;
-  sector: string;
-  founded?: string;
-  title: string;
-  description: string;
-  overview: string;         // HTML — about the employer (general, verifiable)
-  careerAreas: string[];    // broad fields the employer recruits for
-  entryLevel: string;       // HTML — entry-level opportunities known generally
-  howToApply: string;       // HTML — application process guidance
-  faqs: CompanyGuideFAQ[];
-  officialSite: string;     // official careers site
-  careerLinks: string[];    // related career guide slugs
+  slug: string; name: string; sector: string; title: string; description: string;
+  overview: string; careerAreas: string[]; entryLevel: string; howToApply: string;
+  preparation: { title: string; text: string }[]; checks: string[];
+  faqs: CompanyGuideFAQ[]; officialSite: string; sourceNote: string;
+  updated: string; careerLinks: string[];
 }
-
+type Input = Omit<CompanyGuide, 'title' | 'description' | 'updated' | 'howToApply'> & { applicationTip: string };
+function guide(input: Input): CompanyGuide {
+  const { applicationTip, ...content } = input;
+  return { ...content, updated: '2026-10-07',
+    title: `${input.name} Careers: Application & Preparation Guide`,
+    description: `Prepare for applications to ${input.name}: compare career routes, read advert requirements, build relevant CV evidence and find the employer careers channel.`,
+    howToApply: `<ol>
+      <li><strong>Start at the employer careers page.</strong> Follow its vacancy links rather than a forwarded message. Search for a role and location that fit your circumstances. Registering a profile is not necessarily an application to a vacancy.</li>
+      <li><strong>Read the full advert.</strong> Save its title, reference, location, deadline and essential requirements. Separate required qualifications or experience from attributes described as desirable. Ask the verified contact about unclear requirements rather than guessing.</li>
+      <li><strong>Prepare relevant evidence.</strong> ${applicationTip} Use accurate dates and explain your own contribution. Do not invent employment, qualifications or systems experience.</li>
+      <li><strong>Follow the submission instructions.</strong> Create an account if requested, check uploaded files are readable, complete screening questions and submit before the stated deadline. Share sensitive documents only when requested through a verified channel.</li>
+      <li><strong>Keep a record.</strong> Save the confirmation and reference, check your email and spam folder, and use the portal status feature if available. An acknowledgement is not an interview or offer; keep considering other suitable opportunities.</li>
+    </ol>`,
+  };
+}
 export const COMPANY_GUIDES: CompanyGuide[] = [
-  {
-    slug: 'shoprite',
-    name: 'Shoprite',
-    sector: 'Retail',
-    title: 'Shoprite Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at Shoprite in South Africa: the official application process, typical entry-level roles, learnership and bursary options, and FAQs for applicants.',
-    overview: `
-<p>Shoprite Holdings is South Africa's largest retailer and one of the biggest private-sector employers in the country, operating supermarkets under brands such as Shoprite, Checkers, Checkers Hyper, Usave, OK Furniture and House & Home. The group has thousands of stores across South Africa and more than a dozen other African countries.</p>
-<p>Because of its scale, Shoprite recruits continuously — from cashiers, packers and general assistants to butchery, bakery and deli staff, store management, supply chain roles and head-office positions in finance, IT, marketing and HR.</p>
-`,
-    careerAreas: ['Retail store operations', 'Supply chain and distribution', 'Finance and accounting', 'Information technology', 'Marketing', 'Human resources', 'Butchery, bakery and fresh foods'],
-    entryLevel: `
-<p>Shoprite commonly recruits entry-level roles such as cashiers, general assistants and packers — positions that generally require a matric certificate (though specific requirements vary per store and role). The group also runs learnerships, graduate programmes and bursary schemes; details, availability and requirements change regularly, so the official careers portal is the authoritative source.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Visit the official Shoprite careers website (linked below) — the group does not charge fees for applications.</li>
-  <li>Search or browse current opportunities by keyword and location.</li>
-  <li>Create a profile and complete the online application form for the role you want.</li>
-  <li>Keep your CV updated and tailored: emphasise customer service, cash handling (if applicable) and reliability.</li>
-  <li>Watch for learnership and bursary announcements, which open seasonally each year.</li>
-</ol>
-<p>Be alert to scams: Shoprite never asks applicants to pay for a job, and legitimate vacancies are advertised through official channels only.</p>
-`,
+  guide({
+    slug: 'shoprite', name: 'Shoprite', sector: 'Retail',
+    overview: `<p>For an applicant, the useful distinction is between supermarket-floor work, moving stock through distribution, and specialist work supporting the business. A customer-facing application should not read like an application for IT or accounting.</p><p>This guide helps you prepare for those routes. It does not confirm that a nearby Shoprite or Checkers store is hiring. Use the group careers page to identify the route and instructions for the opportunity you actually want.</p>`,
+    careerAreas: ['Store operations', 'Fresh-food work', 'Distribution', 'Technology', 'Finance and support'],
+    entryLevel: `<p>Compare duties, not just titles. Till work calls for accuracy and customer communication; stock work calls for checking and organisation; food-department work can involve particular training and safety responsibilities. These are different applications even within one store.</p><p>Do not treat matric as a guaranteed company-wide minimum or assume no experience is needed. Read the education, experience and availability conditions. For training, check the duration and outcome and whether subsequent employment is actually promised in writing.</p>`,
+    applicationTip: 'For store work, prioritise customer assistance, accurate money or stock handling, teamwork and dependable attendance. For distribution or specialist work, match your practical or technical experience to the advert.',
+    preparation: [
+      { title: 'Make a retail CV concrete', text: 'A school fundraiser, community event or family-business task can show useful skills without being labelled formal employment. Explain what you did: helped people locate items, counted stock against a list, or reconciled sales and change. Identify the setting and dates; use numbers only when you can support them.' },
+      { title: 'Plan around the actual workplace', text: 'Work out whether you can reach the advertised site at the stated hours. Ask about scheduling if unclear. Willingness to work is not the same as a workable transport plan. Avoid promising unrestricted availability if you have study or caregiving commitments.' },
+      { title: 'Prepare service and accuracy examples', text: 'Choose one example of resolving a misunderstanding calmly and one of spotting an error. Explain the situation, your action and result. This is preparation advice, not a claim about Shoprite interview questions; follow the assessment instructions actually supplied by the employer.' },
+    ],
+    checks: ['Which brand and workplace are named?', 'Is this employment, a talent pool or training?', 'What hours, experience and documents are requested?'],
     faqs: [
-      { q: 'How do I apply for a job at Shoprite?', a: 'Applications go through the official Shoprite careers website. Create a profile, search for vacancies, and submit your CV through the online form. There is no fee to apply.' },
-      { q: 'What qualifications do I need to work at Shoprite?', a: 'For many store-level entry roles a matric certificate is the typical requirement, while specialist and management roles require relevant qualifications and experience. Check the specific advert — requirements vary per role.' },
-      { q: 'Does Shoprite offer learnerships?', a: 'Yes — Shoprite runs learnership and skills programmes, particularly in retail operations. Availability is seasonal, so monitor the careers portal for open applications.' },
-      { q: 'How long does the Shoprite application process take?', a: 'Timelines vary by role and store. After submitting online, shortlisted candidates are contacted for interviews. If you have not heard back, the role may have been filled — keep applying to new vacancies.' },
+      { q: 'Does this page list open Shoprite jobs?', a: 'No. It is an independent preparation guide. Check the official channel for current opportunities and closing dates.' },
+      { q: 'Can I use one CV for every role?', a: 'Keep a truthful master CV but select evidence relevant to the advert. Till accuracy, food work, distribution and technical roles need different emphasis.' },
+      { q: 'Should I pay someone to secure an interview?', a: 'Do not pay someone promising a job or guaranteed interview. Verify recruitment messages through the employer website before sharing documents.' },
     ],
     officialSite: 'https://www.shopriteholdings.co.za/careers.html',
+    sourceNote: 'Employer careers starting point. Automated retrieval was blocked during this review; current intakes, requirements and portal steps are not asserted here.',
     careerLinks: ['entry-level-careers-in-south-africa', 'careers-without-a-degree'],
-  },
-  {
-    slug: 'capitec',
-    name: 'Capitec Bank',
-    sector: 'Banking',
-    title: 'Capitec Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at Capitec Bank in South Africa: the application process, typical roles, what Capitec looks for in candidates, and FAQs.',
-    overview: `
-<p>Capitec is one of South Africa's fastest-growing retail banks, known for simple, affordable banking and a large branch network. It is also consistently rated among the country's top employers. Careers at Capitec span branch banking (service consultants and managers), IT and data, finance, risk, marketing and call centres.</p>
-<p>Capitec's hiring process is known for being structured and thorough, with a strong emphasis on values fit and customer service orientation.</p>
-`,
-    careerAreas: ['Branch banking and client service', 'Information technology and data', 'Finance and risk', 'Call centre operations', 'Marketing', 'Human resources'],
-    entryLevel: `
-<p>Capitec recruits entry-level bank service consultants and call centre agents, roles that typically require a matric certificate (requirements vary per role and are stated in each advert). The bank also runs graduate programmes in fields such as IT, data and finance — availability is seasonal and published on the official careers portal.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Apply through the official Capitec careers website (linked below) — this is the only official channel.</li>
-  <li>Complete the online application and attach your CV. Capitec uses structured assessments as part of screening.</li>
-  <li>Prepare for a values-based interview: customer focus, energy and honesty matter at Capitec.</li>
-  <li>Shortlisted candidates complete assessments, interviews and background checks before offers.</li>
-</ol>
-`,
-    faqs: [
-      { q: 'How do I get a job at Capitec?', a: 'Apply online through the official Capitec careers portal. The process typically includes application screening, assessments, interviews and background checks.' },
-      { q: 'What does Capitec look for in candidates?', a: 'Customer focus, energy, integrity and the ability to learn quickly. For client-facing roles, communication skills and a professional appearance matter.' },
-      { q: 'Does Capitec hire without experience?', a: 'Yes, entry-level service consultant and call centre roles are often open to candidates without banking experience, with matric as the typical minimum requirement. Check each advert.' },
-      { q: 'Does Capitec offer graduate programmes?', a: 'Yes — Capitec runs graduate and internship programmes, especially in IT, data science and finance. Availability is seasonal; monitor the careers portal.' },
+  }),
+  guide({
+    slug: 'capitec', name: 'Capitec Bank', sector: 'Banking',
+    overview: `<p>Capitec's official careers page links to jobs, CV registration and early-career opportunities. It describes operations and service work and registration for updates. Registering interest should not be confused with applying to an advertised role.</p><p>Decide whether your strongest evidence is client service, operational accuracy or technical problem-solving. These routes need different preparation. The current advert remains the source for eligibility and selection instructions.</p>`,
+    careerAreas: ['Client service', 'Operations', 'Technology and data', 'Early-career opportunities'],
+    entryLevel: `<p>The careers page invites graduates, interns and junior candidates to explore early careers. That does not mean every vacancy accepts school leavers or applicants without experience. Compare each role's education and experience requirements.</p><p>For service work, identify evidence of explaining information and checking details. For technical work, identify projects and methods you can discuss. Enthusiasm, a banking account or an unrelated certificate does not replace an essential requirement.</p>`,
+    applicationTip: 'Select evidence of clear explanations, careful records or relevant technical projects. Tailor it to service, operations or technology rather than simply saying you want to work at a bank.',
+    preparation: [
+      { title: 'Explain a process in plain language', text: 'Practise explaining a familiar process to someone who has never used it. Break it into steps and check understanding. On your CV, describe a real occasion when you helped someone understand instructions; do not present the practice exercise as banking experience.' },
+      { title: 'Demonstrate accuracy safely', text: 'Use an example of checking a list, detecting an incorrect total or following a procedure. Explain your method and correction. Do not bring customer records, account details or confidential material from a former workplace to demonstrate your ability.' },
+      { title: 'Prepare for the actual interview format', text: 'Capitec links to video-interview preparation. If invited remotely, test sound, camera and connection and arrange a quiet space. Ask the verified recruiter about accessibility or technical constraints in advance rather than assuming every applicant uses one format.' },
     ],
-    officialSite: 'https://www.capitecbank.co.za/careers',
-    careerLinks: ['how-to-become-a-data-analyst', 'entry-level-careers-in-south-africa'],
-  },
-  {
-    slug: 'standard-bank',
-    name: 'Standard Bank',
-    sector: 'Banking',
-    title: 'Standard Bank Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at Standard Bank South Africa: graduate programmes, the application process, what the bank looks for, and FAQs for applicants.',
-    overview: `
-<p>Standard Bank is one of Africa's largest banks by assets, headquartered in Johannesburg with operations across the continent. It recruits across retail and business banking, corporate and investment banking, technology, data, finance, risk, legal and support functions.</p>
-<p>The bank is a major graduate employer, running structured graduate programmes in banking, engineering, technology, data and finance — applications typically open well before programme start dates.</p>
-`,
-    careerAreas: ['Retail and business banking', 'Corporate and investment banking', 'Technology and data', 'Finance and risk', 'Legal and compliance', 'Human resources and operations'],
-    entryLevel: `
-<p>Standard Bank recruits entry-level roles in branches and call centres (typical minimum: matric), plus highly competitive graduate programmes for degree holders. Internships and learnerships are also offered periodically. Specific requirements are always stated in the individual advert.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Apply through the official Standard Bank careers website (linked below).</li>
-  <li>Create a profile, upload your CV and academic transcripts, and answer the screening questions fully.</li>
-  <li>Graduate programme applications open months in advance — set reminders and apply early.</li>
-  <li>The process typically includes online assessments, interviews (often panel or case-based) and background checks.</li>
-</ol>
-`,
+    checks: ['Is this junior, graduate or experienced work?', 'Have you applied to a role as well as registered?', 'What assessment instructions were actually provided?'],
     faqs: [
-      { q: 'How do I apply for a Standard Bank graduate programme?', a: 'Through the official Standard Bank careers portal, where all graduate programmes are advertised. Applications open in cycles — register on the portal and apply early with your CV and transcripts.' },
-      { q: 'What degrees does Standard Bank hire?', a: 'Finance, accounting, economics, IT, computer science, engineering, mathematics, statistics and data science are common for graduate programmes — but entry-level roles exist across many fields.' },
-      { q: 'Does Standard Bank hire without a degree?', a: 'Yes — branch, call centre and operations roles typically require matric with on-the-job training. Degree requirements apply to specialist and graduate programme roles.' },
-      { q: 'How long does Standard Bank take to respond to applications?', a: 'Timelines vary by role and programme. Graduate programme cycles can take months from application to offer; branch roles are often faster. Check your application status on the careers portal.' },
+      { q: 'Where should I start?', a: 'Use the official About Us careers page, then follow its jobs or early-careers links and the selected advert instructions.' },
+      { q: 'Is a service role automatically open to matriculants?', a: 'No company-wide minimum is established here. The advert determines qualification and experience requirements.' },
+      { q: 'Does Edubuzz submit my CV?', a: 'No. Apply directly through the employer channel. Edubuzz does not shortlist candidates.' },
+    ],
+    officialSite: 'https://www.capitecbank.co.za/about-us/careers/',
+    sourceNote: 'Official careers overview: jobs, CV registration, early careers and video-interview preparation. No live vacancies are reproduced.',
+    careerLinks: ['how-to-become-a-data-analyst', 'entry-level-careers-in-south-africa'],
+  }),
+  guide({
+    slug: 'standard-bank', name: 'Standard Bank', sector: 'Banking',
+    overview: `<p>Standard Bank's careers hub separates teams, early-career routes, hiring journeys and job search. Its early-careers section covers bursaries, internships, learnerships and graduate programmes. These are different opportunities, not four names for the same job.</p><p>Choose a route before preparing an application. The group hub covers multiple countries, so check that the opportunity is in South Africa and that its location and eligibility conditions fit you.</p>`,
+    careerAreas: ['Personal and private banking', 'Business and commercial banking', 'Corporate and investment banking', 'Technology and specialist functions', 'Early-career routes'],
+    entryLevel: `<p>A bursary concerns funding; a graduate programme is tied to its academic requirements; an internship or learnership has its own conditions and duration. Do not assume these routes accept the same qualification level.</p><p>For employment, compare duties and experience separately from programme requirements. If studies are incomplete, state your expected completion date accurately. Do not describe yourself as a graduate before completing the qualification.</p>`,
+    applicationTip: 'For an academic route, identify relevant coursework and projects alongside requested documents. For employment, explain relevant responsibilities and outcomes rather than relying on your qualification title.',
+    preparation: [
+      { title: 'Translate coursework into evidence', text: 'Choose a project resembling the advertised work. Explain the question, method, your contribution and conclusion. For group work, distinguish your part from the team result. Be ready to discuss limitations rather than just naming software or modules.' },
+      { title: 'Compare programmes practically', text: 'Record the location, deadline, qualification discipline, completion conditions and duration. Check any stated rotation or placement arrangements. Do not assume a bursary includes a job offer or an internship guarantees permanent employment.' },
+      { title: 'Read the hiring-journey guidance', text: 'Use the employer guidance for your chosen route. Prepare examples of problem-solving, collaboration and learning from feedback, then adapt to your invitation. Avoid supposed leaked questions or assuming every business unit uses the same interview sequence.' },
+    ],
+    checks: ['Is South Africa the opportunity country?', 'Is this funding, training or employment?', 'Do you meet discipline and completion requirements?'],
+    faqs: [
+      { q: 'Is there an early-careers section?', a: 'Yes. The official hub links to bursaries, internships, learnerships and graduate programmes. Check each route for current conditions and dates.' },
+      { q: 'Must every applicant upload a transcript?', a: 'Follow the specific instructions. This guide does not impose a transcript requirement on every role.' },
+      { q: 'How long will a response take?', a: 'No universal response time is established here. Follow any timeline in the advert or invitation and portal status where available.' },
     ],
     officialSite: 'https://www.standardbank.com/sbg/standard-bank-group/careers',
+    sourceNote: 'Official careers hub: teams, early-career routes, hiring journeys and job search. Confirm details in the selected programme or advert.',
     careerLinks: ['how-to-become-a-data-analyst', 'how-to-become-an-accountant'],
-  },
-  {
-    slug: 'woolworths',
-    name: 'Woolworths',
-    sector: 'Retail',
-    title: 'Woolworths Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at Woolworths South Africa: the official application process, typical roles, learnerships and FAQs for applicants.',
-    overview: `
-<p>Woolworths is a premium South African retailer spanning food, fashion, beauty and home, with stores across the country. It is a major employer of store staff, supply chain and distribution workers, and head-office professionals in buying, planning, finance, IT and marketing.</p>
-<p>Woolworths also operates one of South Africa's better-known retail academy systems, offering structured training and development for store staff.</p>
-`,
-    careerAreas: ['Store operations (food, fashion, beauty)', 'Supply chain and distribution', 'Buying and planning', 'Finance', 'Information technology', 'Marketing and digital'],
-    entryLevel: `
-<p>Entry-level roles at Woolworths include store assistants and seasonal staff, with matric commonly required (check each advert). The company recruits for its retail academy and offers learnerships at various times during the year — announcements are made on the official careers portal.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Apply through the official Woolworths careers website (linked below).</li>
-  <li>Create a profile and search for vacancies by area and role type.</li>
-  <li>Complete the online application, including any assessments requested.</li>
-  <li>Shortlisted candidates are interviewed — typically focusing on customer service and availability.</li>
-</ol>
-`,
-    faqs: [
-      { q: 'How do I apply at Woolworths?', a: 'All applications go through the official Woolworths careers portal. There is no fee to apply, and vacancies are advertised online.' },
-      { q: 'What qualifications do I need to work at Woolworths?', a: 'Store-level roles typically require matric; specialist roles require relevant qualifications. Each advert states its own requirements.' },
-      { q: 'Does Woolworths offer learnerships?', a: 'Yes, Woolworths offers learnerships and retail academy training at various times. Monitor the careers portal for open applications.' },
-      { q: 'Does Woolworths hire seasonal staff?', a: 'Yes, particularly over the festive season. Seasonal positions are advertised on the careers portal and can lead to permanent roles.' },
+  }),
+  guide({
+    slug: 'woolworths', name: 'Woolworths', sector: 'Retail',
+    overview: `<p>This guide concerns Woolworths South Africa. Brand searches can return overseas retailers or unrelated opportunities, so check the country and employer before creating an account. Start with the South African careers site below.</p><p>Prepare for the type of work, not only the brand. Customer assistance, stock handling, food operations and office-based work need different evidence. This page does not claim a current academy intake, a particular culture or a vacancy at your nearest store.</p>`,
+    careerAreas: ['Store operations', 'Food and fashion retail', 'Supply chain', 'Buying and planning', 'Head-office functions'],
+    entryLevel: `<p>For first store applications, read the duties: serving customers, replenishing stock or supporting a department. Check qualifications, experience and scheduling. No universal minimum qualification is established here.</p><p>For trainee or seasonal adverts, check duration and conditions rather than assuming permanent employment. For buying, planning or office roles, address specialist requirements instead of using a general store CV.</p>`,
+    applicationTip: 'For customer-facing work, show patient assistance, organisation and following procedures. For buying or planning, prioritise commercial, analytical or product-related evidence you can explain.',
+    preparation: [
+      { title: 'Prepare a useful service example', text: 'Describe how you established what someone needed, offered an appropriate option and dealt with uncertainty. A volunteer example is useful when labelled honestly. Do not claim product expertise you lack; explain how you checked information or asked for help.' },
+      { title: 'Distinguish food and fashion duties', text: 'Read the department and responsibilities. Food-related work may emphasise handling procedures; fashion work may emphasise customer assistance and presentation. Product interest alone is not proof of the training or practical skills required by the advert.' },
+      { title: 'Check your commute and commitments', text: 'Estimate transport time and cost for the stated workplace and hours. Ask about contractual hours when invited to discuss the role. Do not assume appointment at your closest store or promise hours you cannot manage alongside study or other responsibilities.' },
     ],
-    officialSite: 'https://careers.woolworths.co.za',
-    careerLinks: ['entry-level-careers-in-south-africa', 'careers-without-a-degree'],
-  },
-  {
-    slug: 'pick-n-pay',
-    name: 'Pick n Pay',
-    sector: 'Retail',
-    title: 'Pick n Pay Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at Pick n Pay in South Africa: the application process, typical store and support roles, learnerships and FAQs.',
-    overview: `
-<p>Pick n Pay is one of South Africa's largest supermarket chains, with stores under the Pick n Pay and Boxer brands across the country and the region. Career opportunities include store operations, fresh food departments (bakery, butchery, deli), distribution, and head-office roles in buying, finance, IT and marketing.</p>
-`,
-    careerAreas: ['Store operations', 'Fresh food departments', 'Distribution and logistics', 'Buying and planning', 'Finance', 'Information technology'],
-    entryLevel: `
-<p>Entry-level roles such as packers, cashiers and general assistants are recruited regularly; typical requirements include matric, though specific roles may differ. Pick n Pay advertises learnerships and skills programmes periodically on its official careers portal.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Apply through the official Pick n Pay careers website (linked below).</li>
-  <li>Search vacancies by keyword and location, and complete the online application form.</li>
-  <li>Attach an up-to-date CV tailored to retail: customer service, till work and reliability stand out.</li>
-  <li>Successful applicants are contacted for interviews at store or regional level.</li>
-</ol>
-`,
+    checks: ['Is this Woolworths South Africa?', 'Which department and workplace are named?', 'Is the contract seasonal, fixed-term or permanent?'],
     faqs: [
-      { q: 'How do I apply for a job at Pick n Pay?', a: 'Through the official Pick n Pay careers portal. Create a profile, apply to advertised vacancies, and wait to be contacted. Applications are free.' },
-      { q: 'What is the minimum requirement to work at Pick n Pay?', a: 'Most store-level roles require matric, though some general assistant roles may have different requirements. Check each advert.' },
-      { q: 'Does Pick n Pay offer learnerships?', a: 'Yes — Pick n Pay runs learnerships and skills development programmes, advertised on its careers portal at various times of the year.' },
-      { q: 'Can I apply in store with a paper CV?', a: 'The standard process is online via the careers portal. In-store drop-offs are generally not part of the formal process — apply online instead.' },
+      { q: 'Can I use an overseas Woolworths careers site?', a: 'Use the channel for the employer and country named in the advert. This guide links to the South African retailer.' },
+      { q: 'Will seasonal work become permanent?', a: 'Do not assume that. Check contract duration and any written progression arrangements.' },
+      { q: 'What if an old account stops working?', a: 'Use the current site recovery or help options. Do not send your password to someone offering to repair your application.' },
+    ],
+    officialSite: 'https://careers.woolworths.co.za/index.php',
+    sourceNote: 'South African careers site identified in search. Automated retrieval was unavailable; exact portal behaviour and current adverts need checking on the site.',
+    careerLinks: ['entry-level-careers-in-south-africa', 'careers-without-a-degree'],
+  }),
+  guide({
+    slug: 'pick-n-pay', name: 'Pick n Pay', sector: 'Retail',
+    overview: `<p>Pick n Pay careers material distinguishes store operations, supply chain and support-office work. Use that distinction to decide what to search for and what evidence belongs at the top of your CV.</p><p>This is not a combined recruitment guide for every associated retailer. Follow the employer and channel named in the advert. We do not confirm franchise recruitment arrangements, live vacancies or an open learnership intake here.</p>`,
+    careerAreas: ['Store operations', 'Fresh-food work', 'Supply chain and logistics', 'Support office'],
+    entryLevel: `<p>Compare till, stock and food-department responsibilities instead of applying identically to every title. Read essential education and experience conditions; general-assistant roles do not necessarily share requirements.</p><p>Assess supply-chain roles separately, including shifts and any licences or equipment experience specifically requested. Do not claim machinery competence from watching others use equipment.</p>`,
+    applicationTip: 'Show accurate customer or stock work for store operations, organised checking for supply chain, and relevant technical or professional evidence for support-office roles.',
+    preparation: [
+      { title: 'Explain a stock-handling task', text: 'Describe checking quantities, organising items or reporting a mismatch. A part-time or volunteer example can be useful if accurately labelled. Your method is more informative than an unsupported phrase such as “excellent stock-control skills”.' },
+      { title: 'Check who is actually hiring', text: 'Save the organisation and workplace from the advert. A familiar brand does not alone establish who issues the contract or receives applications. For franchise or separate-organisation adverts, verify instructions rather than assuming a central portal applies.' },
+      { title: 'Prepare practical questions', text: 'Ask about duties, training and contractual hours when invited to discuss the role. Keep questions specific to the advert. Do not spend money travelling to a location supplied only by an unverified message or treat an interview as a guaranteed appointment.' },
+    ],
+    checks: ['Is this store, supply-chain or support-office work?', 'Which organisation and site are named?', 'Where does the official advert say to submit?'],
+    faqs: [
+      { q: 'Should I leave a paper CV in store?', a: 'Follow the specific opportunity instructions. This guide cannot confirm whether a particular store accepts paper CVs; a drop-off is not automatically a completed online application.' },
+      { q: 'Is a candidate account enough?', a: 'Check that you applied to the selected listing and received confirmation, rather than only creating a profile.' },
+      { q: 'Does this guide cover Boxer applications?', a: 'Do not assume a shared recruitment process. Use the channel of the employer named in the vacancy.' },
     ],
     officialSite: 'https://www.pnp.co.za/careers',
+    sourceNote: 'Careers starting point. Search surfaced careers material on the employer preview subdomain; the main page could not be retrieved automatically. Current submission links remain unconfirmed in this review.',
     careerLinks: ['entry-level-careers-in-south-africa', 'careers-without-a-degree'],
-  },
-  {
-    slug: 'clicks',
-    name: 'Clicks Group',
-    sector: 'Retail / Health',
-    title: 'Clicks Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at Clicks Group in South Africa: store, pharmacy and distribution roles, the application process, learnerships and FAQs.',
-    overview: `
-<p>Clicks Group is South Africa's leading health and beauty retailer, operating Clicks stores, The Body Shop, and United Pharmaceutical Distributors (UPD). Careers span retail store operations, pharmacy support, distribution and logistics, and head-office functions such as buying, marketing, finance and IT.</p>
-`,
-    careerAreas: ['Retail store operations', 'Pharmacy and healthcare retail', 'Distribution and logistics (UPD)', 'Buying and merchandising', 'Finance', 'Marketing'],
-    entryLevel: `
-<p>Entry-level retail roles such as shop assistants and cashiers are recruited regularly, with matric as the typical minimum (check each advert). Clicks also offers learnerships in pharmacy support and retail — these are popular and competitive, and are advertised on the official careers portal.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Apply through the official Clicks careers website (linked below).</li>
-  <li>Search for vacancies by role and location, then complete the online application.</li>
-  <li>For learnership applications, follow the instructions exactly and apply within the advertised window.</li>
-  <li>Interviews typically cover customer service, product knowledge interest, and availability.</li>
-</ol>
-`,
-    faqs: [
-      { q: 'How do I apply for a job at Clicks?', a: 'All applications go through the official Clicks careers portal. Applications are free, and vacancies are advertised online.' },
-      { q: 'What qualifications do I need to work at Clicks?', a: 'Retail roles typically require matric. Pharmacy-related roles require relevant qualifications registered with the South African Pharmacy Council where applicable.' },
-      { q: 'Does Clicks offer pharmacy learnerships?', a: 'Yes — Clicks is known for pharmacy support and retail learnerships, advertised on its careers portal. They are competitive, so apply early within the window.' },
-      { q: 'Does Clicks hire for UPD distribution centres?', a: 'Yes. UPD, the group\'s pharmaceutical distributor, recruits warehouse and logistics staff. These roles are advertised on the same careers portal.' },
+  }),
+  guide({
+    slug: 'clicks', name: 'Clicks Group', sector: 'Retail / Health',
+    overview: `<p>Clicks Group's recruitment portal provides job search with listing references and role categories. Use these to identify a specific opportunity rather than a social-media headline saying “Clicks is hiring”.</p><p>Separate retail work from professional or training routes. A health-and-beauty store vacancy is not automatically a pharmacy position, and retail experience does not qualify someone for every professional role.</p>`,
+    careerAreas: ['Retail store work', 'Pharmacy-related routes', 'Distribution', 'Merchandising and support'],
+    entryLevel: `<p>For shop-assistant or cashier adverts, read the service, education and experience conditions. For a learnership, check its entry criteria, training outcome, duration and deadline. Training and qualified professional posts are different routes.</p><p>If a pharmacy-related advert specifies registration, check the exact category and evidence required. This guide does not interpret professional eligibility or establish one minimum across Clicks roles.</p>`,
+    applicationTip: 'Keep retail service evidence distinct from pharmacy qualifications. Name only credentials you actually hold and apply to the route for which the advert says you are eligible.',
+    preparation: [
+      { title: 'Help without overstating expertise', text: 'Show listening, checking information and referring questions outside your competence to an appropriate colleague. Retail preparation should demonstrate respectful assistance, not a claim to provide clinical advice. Understand the boundary between product assistance and professional responsibilities.' },
+      { title: 'Read training as a commitment', text: 'Record location, duration, attendance conditions and stated outcome. Check whether you can participate for the full period. If an allowance, qualification or later employment is not stated, do not assume it; ask the verified contact.' },
+      { title: 'Keep the listing reference', text: 'Save the reference with your confirmation and application date. It distinguishes similar positions and locations. If contacted later, compare the role details against your saved record before sharing additional documents.' },
     ],
-    officialSite: 'https://www.clicksgroup.co.za/careers',
-    careerLinks: ['entry-level-careers-in-south-africa', 'how-to-become-a-nurse'],
-  },
-  {
-    slug: 'mr-price',
-    name: 'Mr Price Group',
-    sector: 'Retail',
-    title: 'Mr Price Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at Mr Price Group in South Africa: store and head-office roles, graduate programmes, the application process and FAQs.',
-    overview: `
-<p>Mr Price Group is a leading South African value-fashion retailer, operating brands including Mr Price, Mr Price Sport, Mr Price Home, Miladys and Sheet Street. The group is known for its young, energetic culture and promotes heavily from within. Careers span store operations, merchandising, buying and planning, IT, finance and distribution.</p>
-`,
-    careerAreas: ['Store operations', 'Buying, planning and merchandising', 'Distribution and logistics', 'Information technology', 'Finance', 'Marketing and digital'],
-    entryLevel: `
-<p>Mr Price recruits entry-level store associates regularly; matric is typically required (check each advert). The group also runs graduate programmes and internships, particularly in buying, planning, IT and finance — advertised seasonally on the official careers portal.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Apply through the official Mr Price careers website (linked below).</li>
-  <li>Search vacancies by brand, location and function; complete the online application.</li>
-  <li>For graduate programmes, apply during the advertised window with your CV and academic record.</li>
-  <li>Interviews are typically behavioural and culture-focused — enthusiasm and energy matter at Mr Price.</li>
-</ol>
-`,
+    checks: ['Is this retail, training or a professional post?', 'Which qualifications or registration category are named?', 'Have you saved the listing reference and workplace?'],
     faqs: [
-      { q: 'How do I apply at Mr Price?', a: 'Through the official Mr Price careers portal. All vacancies are advertised online, and applications are free.' },
-      { q: 'What is it like to work at Mr Price?', a: 'The group is known for a fast-paced, youthful culture with strong internal promotion. Performance and attitude are rewarded quickly.' },
-      { q: 'Does Mr Price offer graduate programmes?', a: 'Yes — graduate programmes run in areas such as buying, planning, IT and finance. Apply via the careers portal during the advertised intake.' },
-      { q: 'What qualifications do I need to work at Mr Price?', a: 'Store roles typically require matric; specialist and graduate roles require relevant degrees or diplomas. Each advert states its requirements.' },
+      { q: 'Is retail work the same as pharmacy work?', a: 'No. Compare duties and requirements. Pharmacy-related adverts may specify training or credentials not required by general retail adverts.' },
+      { q: 'Is every learnership open to everyone?', a: 'Check the target group and entry conditions. A learnership is not interchangeable with a qualified professional vacancy.' },
+      { q: 'Why save the listing reference?', a: 'It identifies your application and helps you verify later correspondence against the advert and confirmation.' },
     ],
-    officialSite: 'https://mrpcareers.co.za',
+    officialSite: 'https://careers.clicksgroup.co.za/applicant/index.php?controller=Page&name=jobsearch',
+    sourceNote: 'Official recruitment portal search, with listing references and categories. Check professional and programme requirements in each advert.',
+    careerLinks: ['entry-level-careers-in-south-africa', 'careers-without-a-degree'],
+  }),
+  guide({
+    slug: 'mr-price', name: 'Mr Price Group', sector: 'Retail',
+    overview: `<p>Mr Price Group's official careers material presents store, buying, planning, creative and support routes. Choose a function rather than treating an interest in fashion as a qualification for every role.</p><p>This guide avoids assumptions about age, personality or automatic promotion. Prepare evidence of the work you can do. Check the South African employer identity to avoid confusion with similarly named overseas businesses.</p>`,
+    careerAreas: ['Store operations', 'Buying and planning', 'Creative and marketing', 'Distribution', 'Technology and finance'],
+    entryLevel: `<p>For stores, identify practical service and teamwork examples. For buying, planning or creative routes, read the academic, commercial, numerical or portfolio requirements; these differ from store requirements.</p><p>A student-interest registration or talent pool is not necessarily a vacancy application. Check the requested action and save confirmation of your completed role application.</p>`,
+    applicationTip: 'Choose service evidence for stores, analytical evidence for planning, and your own relevant creative work for portfolio requests. Explain your contribution rather than relying on brand enthusiasm.',
+    preparation: [
+      { title: 'Distinguish buying from planning', text: 'Check whether tasks centre on product selection, commercial analysis, stock allocation or another function. Match examples to those duties. Following trends or enjoying shopping should not be presented as professional buying experience.' },
+      { title: 'Show your creative contribution', text: 'If a portfolio is requested, select a few relevant pieces and explain the brief, decisions and result. Label student, personal and client work accurately. Credit collaborators and licensed assets; do not present someone else’s designs or campaign results as yours.' },
+      { title: 'Make store evidence practical', text: 'Describe keeping an area organised, assisting someone or coordinating a busy task. Explain priorities and outcomes. Avoid unsupported claims that a particular personality, age or appearance guarantees a good fit.' },
+    ],
+    checks: ['Is this the South African group?', 'Which brand and function are named?', 'Is a portfolio or specific qualification required?'],
+    faqs: [
+      { q: 'Why has the old .co.za careers link changed?', a: 'This guide now starts at the corporate careers page. The Mr Price customer-service FAQ identifies mrpcareers.com as an official recruitment website.' },
+      { q: 'Does fashion interest qualify me for buying?', a: 'Interest can support motivation, but the advert determines essential qualifications, experience and skills.' },
+      { q: 'Is promotion guaranteed?', a: 'No guarantee is made here. Assess the role and contract instead of relying on general claims about workplace culture.' },
+    ],
+    officialSite: 'https://mrpricegroup.com/careers/',
+    sourceNote: 'Official group careers overview. The customer-service FAQ also identifies mrpcareers.com; the old .co.za link has been removed.',
     careerLinks: ['entry-level-careers-in-south-africa', 'how-to-become-a-data-analyst'],
-  },
-  {
-    slug: 'nedbank',
-    name: 'Nedbank',
-    sector: 'Banking',
-    title: 'Nedbank Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at Nedbank in South Africa: graduate programmes, the application process, typical roles and FAQs for applicants.',
-    overview: `
-<p>Nedbank is one of South Africa's largest banks, headquartered in Johannesburg. It recruits across retail and business banking, corporate and investment banking, wealth management, technology, data, finance, risk and operations — and is a regular graduate employer.</p>
-`,
-    careerAreas: ['Retail and business banking', 'Corporate and investment banking', 'Technology and data', 'Finance and risk', 'Wealth management', 'Operations and support'],
-    entryLevel: `
-<p>Nedbank recruits entry-level branch and call centre staff (typical minimum: matric) and runs graduate programmes in banking, finance, technology and data. Requirements are stated per advert on the official careers portal.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Apply through the official Nedbank careers website (linked below).</li>
-  <li>Create a profile, upload your CV and academic documents, and complete the application fully.</li>
-  <li>Graduate programme applications open in cycles — apply early and prepare for online assessments.</li>
-  <li>The selection process typically includes assessments, interviews and background screening.</li>
-</ol>
-`,
-    faqs: [
-      { q: 'How do I apply for a Nedbank graduate programme?', a: 'Through the official Nedbank careers portal during the advertised intake. Submit your CV and transcripts, and complete the assessments requested.' },
-      { q: 'Does Nedbank hire matriculants?', a: 'Yes — entry-level branch, call centre and operations roles are often open to matriculants, with training provided. Check each advert for requirements.' },
-      { q: 'What degrees does Nedbank look for?', a: 'Finance, accounting, economics, IT, data science, mathematics and engineering are common for graduate programmes — but the bank recruits across many fields.' },
-      { q: 'How long does Nedbank take to respond?', a: 'Timelines vary by role. Graduate intakes can take months; branch roles are typically faster. Track your application on the careers portal.' },
+  }),
+  guide({
+    slug: 'nedbank', name: 'Nedbank', sector: 'Banking',
+    overview: `<p>Nedbank's joining page explains candidate registration and searching by keyword, category or location. Its careers hub includes early-career information. Distinguish applying to a job from registering for updates.</p><p>Separate client-facing work from specialist finance, risk, technology and data work. Saying you “want to work in banking” does not show which responsibilities you can handle or where you need development.</p>`,
+    careerAreas: ['Client-facing banking', 'Operations', 'Finance and risk', 'Technology and data', 'Early-career routes'],
+    entryLevel: `<p>Explore programme routes and then read the chosen advert's academic and participation conditions. Do not assume every branch role accepts matric alone or provides the same training.</p><p>For technical or professional work, identify essential skills before applying. Listing a tool is weaker than explaining how you used it. If you lack an essential requirement, seek a suitable junior or training route rather than misrepresenting experience.</p>`,
+    applicationTip: 'Show service and procedural accuracy for client-facing work, or methods and project outcomes for technical work. Supply academic documents only as the application requests.',
+    preparation: [
+      { title: 'Map requirements to evidence', text: 'Write each essential requirement beside a truthful example from studies or work. Mark anything you cannot demonstrate. Use the list to choose roles and organise your CV, not to copy duties as if you had performed them.' },
+      { title: 'Prepare an analytical explanation', text: 'Choose a problem you investigated. Explain the information used, checks and conclusion, including uncertainty or limitations. For data work, be ready to explain your calculations or code instead of only presenting a polished chart.' },
+      { title: 'Maintain a consistent profile', text: 'Nedbank asks applicants to register. Keep contact details and employment dates consistent, use account recovery if necessary and save vacancy references. Track progress through the employer channel, not a third-party promise of an accelerated application.' },
     ],
-    officialSite: 'https://www.nedbank.co.za/content/nedbank/desktop/gt/en/about-us/careers.html',
+    checks: ['Have you applied as well as registered?', 'Which essential requirements can you demonstrate?', 'Does the programme require a completed qualification?'],
+    faqs: [
+      { q: 'Where should I start?', a: 'Use the group joining page below. It explains registration and links to job search, replacing the old desktop-site URL.' },
+      { q: 'Is a profile a job offer?', a: 'No. Registration, application, shortlisting and an offer are separate stages. Keep your submission confirmation.' },
+      { q: 'Are branch applications always quicker?', a: 'No such claim is made here. Follow any timeline supplied for the actual vacancy or programme.' },
+    ],
+    officialSite: 'https://group.nedbank.co.za/careers/join-us.html',
+    sourceNote: 'Official joining page: registration and search instructions. Current listings are on the employer-linked jobs portal.',
     careerLinks: ['how-to-become-an-accountant', 'how-to-become-a-data-analyst'],
-  },
-  {
-    slug: 'fnb',
-    name: 'FNB (First National Bank)',
-    sector: 'Banking',
-    title: 'FNB Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at FNB in South Africa: graduate programmes, the application process, typical roles and FAQs for applicants.',
-    overview: `
-<p>First National Bank (FNB) is one of South Africa's oldest and largest banks, part of the FirstRand group. FNB is known for digital banking innovation and recruits across retail banking, technology, data, finance, risk and support functions, with a strong graduate programme tradition.</p>
-`,
-    careerAreas: ['Retail banking', 'Technology and digital', 'Data and analytics', 'Finance and risk', 'Operations', 'Marketing and communications'],
-    entryLevel: `
-<p>FNB recruits entry-level branch and call centre roles (typical minimum: matric) and runs well-established graduate and internship programmes, particularly in technology, data and finance. Intakes are advertised on the official careers portal.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Apply through the official FNB careers website (linked below).</li>
-  <li>Create a profile, upload your CV and academic record, and answer the screening questions fully.</li>
-  <li>For graduate programmes, apply within the advertised window — applications are competitive.</li>
-  <li>Expect online assessments, interviews and background checks as part of selection.</li>
-</ol>
-`,
-    faqs: [
-      { q: 'How do I apply for a job at FNB?', a: 'Through the official FNB careers portal. All vacancies are advertised online and applications are free.' },
-      { q: 'Does FNB hire without a degree?', a: 'Yes — branch, call centre and operations roles are often open to matriculants. Specialist roles require relevant qualifications.' },
-      { q: 'Does FNB offer graduate programmes?', a: 'Yes — FNB and the wider FirstRand group run graduate and internship programmes across technology, data, finance and business. Apply via the careers portal.' },
-      { q: 'What is FNB\'s hiring process like?', a: 'Typically: online application, screening, assessments (aptitude or technical), interviews, and background checks before an offer.' },
+  }),
+  guide({
+    slug: 'fnb', name: 'FNB (First National Bank)', sector: 'Banking',
+    overview: `<p>Start at FNB's official careers page. As a FirstRand business, recruitment may lead to a group system. Check the business, country and workplace rather than assuming every group vacancy is an FNB role.</p><p>This guide helps with service, operational and specialist preparation. It does not reproduce vacancies or promise a fixed assessment sequence. The advert and verified invitation determine actual requirements and next steps.</p>`,
+    careerAreas: ['Client service', 'Banking operations', 'Technology and digital', 'Data and analytics', 'Finance and risk'],
+    entryLevel: `<p>Junior employment, graduate opportunities and experienced advisory roles can have different entry requirements. Read qualifications, experience and any professional conditions. Do not assume branch work is automatically available without a degree or experience.</p><p>For graduate routes, state completion status clearly. For technology routes, select projects you understand well enough to explain. Familiarity with online banking is not equivalent to software or data experience.</p>`,
+    applicationTip: 'Use service and accuracy evidence for client work, and technical or academic evidence for specialist routes. Check the business and job reference before tailoring your motivation.',
+    preparation: [
+      { title: 'Verify the business behind the listing', text: 'Save the business name, location and requisition reference. Group systems can contain several businesses and countries. Checking prevents an FNB-specific motivation for another organisation or an application to a country where you cannot work.' },
+      { title: 'Explain digital problem-solving', text: 'Describe a project’s purpose, your decisions, testing and possible improvements. Distinguish a tutorial from something you designed. Do not upload confidential workplace code or real customer information as proof of skill.' },
+      { title: 'Prepare responsible service examples', text: 'Think through helping someone when you do not know the answer. Explain how you would check the procedure and seek support without inventing information. Use a real example of following a process or correcting an error, not an unsupported claim of banking expertise.' },
     ],
-    officialSite: 'https://www.fnb.co.za/about-us/careers.html',
+    checks: ['Does the group listing actually name FNB?', 'Is it based in South Africa?', 'Which academic or professional conditions are essential?'],
+    faqs: [
+      { q: 'Why might recruitment use a group portal?', a: 'FNB is a FirstRand business. Follow links from the official careers page and verify the business in the listing.' },
+      { q: 'Does every role use the same selection process?', a: 'No fixed sequence is claimed here. Follow the particular role instructions.' },
+      { q: 'Can Edubuzz check my status?', a: 'No. Use the employer portal or verified application contact.' },
+    ],
+    officialSite: 'https://www.fnb.co.za/careers/',
+    sourceNote: 'Official careers page, replacing the old about-us URL. Verify the business and opportunity in the employer-linked system.',
     careerLinks: ['how-to-become-a-data-analyst', 'how-to-become-an-accountant'],
-  },
-  {
-    slug: 'dis-chem',
-    name: 'Dis-Chem',
-    sector: 'Retail / Health',
-    title: 'Dis-Chem Careers: How to Apply, Requirements & FAQ (2026)',
-    description: 'How to apply for jobs at Dis-Chem Pharmacies in South Africa: store, pharmacy and distribution roles, learnerships, the application process and FAQs.',
-    overview: `
-<p>Dis-Chem is one of South Africa's largest pharmacy and healthcare retailers, with stores across the country and a growing wholesale and distribution business. Careers span retail store operations, pharmacy, clinics, distribution centres and head-office functions.</p>
-`,
-    careerAreas: ['Retail store operations', 'Pharmacy (with SAPC registration where required)', 'Clinics and healthcare services', 'Distribution and logistics', 'Buying and merchandising', 'Finance and support'],
-    entryLevel: `
-<p>Dis-Chem recruits entry-level shop assistants and cashiers regularly; matric is the typical minimum for store roles (check each advert). Pharmacy-related roles require the relevant South African Pharmacy Council registration and qualifications. Learnerships and internships are advertised on the official careers portal when open.</p>
-`,
-    howToApply: `
-<ol>
-  <li>Apply through the official Dis-Chem careers website (linked below).</li>
-  <li>Search vacancies by role and location; complete the online application form.</li>
-  <li>Attach a CV tailored to retail or pharmacy support, depending on the role.</li>
-  <li>Shortlisted candidates complete interviews; pharmacy roles also verify SAPC registration.</li>
-</ol>
-`,
-    faqs: [
-      { q: 'How do I apply for a job at Dis-Chem?', a: 'Through the official Dis-Chem careers portal. Applications are free and all vacancies are advertised online.' },
-      { q: 'What qualifications do I need to work at Dis-Chem?', a: 'Store roles typically require matric. Pharmacy assistant and pharmacist roles require the relevant qualifications and SAPC registration.' },
-      { q: 'Does Dis-Chem offer learnerships?', a: 'Yes — Dis-Chem advertises learnerships and internships, including pharmacy support and retail programmes, on its careers portal at various times.' },
-      { q: 'Does Dis-Chem hire nurses for its clinics?', a: 'Yes — Dis-Chem clinics employ registered nurses and other healthcare professionals. These roles require SANC registration and are advertised on the careers portal.' },
+  }),
+  guide({
+    slug: 'dis-chem', name: 'Dis-Chem', sector: 'Retail / Health',
+    overview: `<p>Dis-Chem's group careers page describes retail, e-commerce, distribution and patient-support work and links to recruitment. The old retail-site careers URL redirected to a product search during this review; use the group careers page instead.</p><p>Separate retail applications from professional healthcare applications. Both can involve customers but have different responsibilities and entry conditions. This is preparation guidance, not clinical or professional eligibility advice.</p>`,
+    careerAreas: ['Retail store work', 'Pharmacy-related work', 'Distribution', 'E-commerce', 'Support functions'],
+    entryLevel: `<p>For a first retail application, read the actual duties and required qualifications. Not every store position is entry-level. Use honest examples of assistance, organisation and checking.</p><p>For professional roles, use the advert's qualification and registration conditions. For training, check its target group and outcome. A retail CV does not replace credential evidence, and a general application does not automatically place you in a training programme.</p>`,
+    applicationTip: 'Match retail, distribution or professional evidence to the named route. Keep service experience distinct from credentials and provide evidence only through the verified application channel.',
+    preparation: [
+      { title: 'Separate service from clinical responsibility', text: 'For retail, show listening, locating information and referring a question appropriately. Do not claim authority to give clinical advice. For professional work, focus on the responsibilities and credentials specified in the advert.' },
+      { title: 'Use accurate credential details', text: 'Record exact qualification or registration names and current status. Check the evidence requested and do not describe incomplete courses as complete. Resolve uncertainty with the employer or relevant official body rather than relying on this general guide for eligibility.' },
+      { title: 'Show a careful checking method', text: 'Explain a task where accuracy mattered: reconciling a list, organising items or reporting a discrepancy. Describe checks and outcomes without personal data. For distribution, address site and practical requirements instead of assuming store duties apply.' },
     ],
-    officialSite: 'https://www.dischem.co.za/careers',
-    careerLinks: ['entry-level-careers-in-south-africa', 'how-to-become-a-nurse'],
-  },
+    checks: ['Is this retail, distribution, training or healthcare?', 'Which credentials are explicitly required?', 'Did you reach recruitment from the group careers page?'],
+    faqs: [
+      { q: 'Where does the group site send applicants?', a: 'Its careers page links to dischem.simplify.hr. Start from the group page to verify that destination.' },
+      { q: 'Does retail experience qualify me for pharmacy work?', a: 'Only apply if you meet the specific role requirements. Retail experience does not replace required professional credentials.' },
+      { q: 'Are learnerships open now?', a: 'No live intake is confirmed here. Check employer adverts for availability, entry conditions and dates.' },
+    ],
+    officialSite: 'https://dischemgroup.com/careers/',
+    sourceNote: 'Official group careers overview links to dischem.simplify.hr. No current vacancy or professional eligibility is asserted.',
+    careerLinks: ['entry-level-careers-in-south-africa', 'careers-without-a-degree'],
+  }),
 ];

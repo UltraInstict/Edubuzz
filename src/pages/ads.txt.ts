@@ -1,13 +1,8 @@
-import { ADS_ENABLED } from '../lib/featureFlags';
-
 export async function GET() {
-  // AdSense phase: ads.txt intentionally empty (no ad systems live).
-  // ADS_ENABLED restores the publisher entry when advertising returns.
-  const client = ADS_ENABLED ? (import.meta.env.PUBLIC_ADSENSE_CLIENT || process.env.PUBLIC_ADSENSE_CLIENT || '') : '';
-  const pubId = client.replace(/^ca-/i, '');
-  const body = pubId
-    ? `google.com, ${pubId}, DIRECT, f08c47fec0942fa0\n`
-    : '';
+  // ads.txt authorizes a seller; it is independent of whether on-page ad
+  // rendering is enabled. Keeping this explicit also prevents a missing
+  // production environment variable from silently publishing an empty file.
+  const body = 'google.com, pub-4848750388169101, DIRECT, f08c47fec0942fa0\n';
 
   return new Response(body, {
     headers: {

@@ -77,12 +77,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/edubuzz/edubuzz
-            git pull origin main
-            npm ci --production
-            npx astro build
-            pm2 reload ecosystem.config.cjs --env production
-            pm2 save
+            cd /home/edubuzz/app
+            bash scripts/deploy-production.sh
 
       - name: Health check
         run: |

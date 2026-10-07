@@ -2,9 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="About Edubuzz" description="Edubuzz is a South African education and career information site helping people understand what to study, which careers exist and how to enter them." canonicalUrl={Astro.url.href}>
-  <div class="max-w-2xl mx-auto px-4 py-10">
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">About Edubuzz</h1>
+<Layout title="About Edubuzz" description="Edubuzz is a South African education and career information site helping people understand what to study, which careers exist and how to enter them." canonicalUrl={Astro.url.href} adsEligible={false}>
+  <div class="max-w-3xl mx-auto px-4 py-10">
+    <header class="collection-intro"><span class="eyebrow">ABOUT EDUBUZZ / MADE FOR SOUTH AFRICA</span><h1>A little clarity for<br />your next chapter.</h1><p>Education, careers and possibility. We help you understand your options and take your next step with more confidence.</p></header>
+    <img class="article-visual" src="/images/edubuzz-campus.webp" alt="Illustrative scene of young adults exploring their study options together" width="1200" height="800" />
 
     <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">What Edubuzz is</h2>
     <p class="text-sm text-gray-600 leading-relaxed mb-4">Edubuzz is a South African education and career information website. We help school leavers, students and job seekers understand what to study, which careers exist, how to enter them, what they pay, and how to apply — in plain language.</p>
@@ -22,14 +23,14 @@ import Layout from '../layouts/Layout.astro';
     <p class="text-sm text-gray-600 leading-relaxed mb-4">South Africans making education and career decisions — whether you are finishing school, considering TVET or university, changing careers, or preparing job applications.</p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">How we produce information</h2>
-    <p class="text-sm text-gray-600 leading-relaxed mb-4">Our guides are researched and written by our editorial team, drawing on public information from official sources such as government departments, public institutions and employer career pages. We aim to keep facts current, but rules, thresholds and deadlines change — always confirm important details with the official institution or employer before acting.</p>
+    <p class="text-sm text-gray-600 leading-relaxed mb-4">Edubuzz combines public-source information with practical explanations and application preparation advice. Employer guides distinguish our advice from employer requirements and include source links and verification limits. Rules, thresholds and deadlines change — confirm important details with the official institution or employer before acting. A page update date does not mean every linked vacancy is open.</p>
     <p class="text-sm text-gray-600 leading-relaxed mb-4">Salary figures on Edubuzz are indicative estimates and vary by employer, location and experience.</p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">Independence</h2>
     <p class="text-sm text-gray-600 leading-relaxed mb-4">Edubuzz is an independent information site. We are not affiliated with any employer, college, university or government body unless explicitly stated on a specific page. Employer guides describe how to apply through official channels and always link to the employer's official careers site.</p>
 
     <h2 class="text-xl font-semibold text-gray-900 mt-6 mb-3">Contact</h2>
-    <p class="text-sm text-gray-600 leading-relaxed mb-6">Found an error, or want to suggest an improvement? <a href="/contact" class="text-green-800 hover:text-green-900 hover:underline">Contact us</a> — we read every message.</p>
+    <p class="text-sm text-gray-600 leading-relaxed mb-6">Found an error, or want to suggest an improvement? <a href="/contact" class="text-green-800 hover:text-green-900 hover:underline">Contact us</a>. Include the page address, the detail in question and an official source if available.</p>
 
     <div class="flex gap-3 flex-wrap mt-6">
       <a href="/education" class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Education guides</a>

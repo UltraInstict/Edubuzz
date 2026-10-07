@@ -1,0 +1,84 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { SITE_URL } from '../lib/constants';
+---
+<Layout title="Find your next study or career step" description="Choose your starting point and explore education, career and application guides for your next step in South Africa." canonicalUrl={SITE_URL + '/start'} adsEligible={false}>
+  <main class="shell section-space">
+    <div class="pathfinder-layout">
+      <header class="collection-intro"><span class="eyebrow">YOUR NEXT CHAPTER / A PLACE TO START</span><h1>You bring the ambition.<br />Let’s find a direction.</h1><p>Tell us what you want to explore. We’ll point you to guides that help you understand your choices.</p><img class="article-visual" src="/images/edubuzz-campus.webp" alt="Illustrative scene of students planning their next steps" width="1200" height="800" /></header>
+      <section class="pathfinder-panel" aria-labelledby="pathfinder-heading">
+        <span class="eyebrow">TWO QUESTIONS. A NEXT STEP.</span><h2 id="pathfinder-heading">Where do you want to start?</h2>
+        <form id="pathfinder-form">
+          <label for="stage">What best describes you?</label>
+          <select id="stage" name="stage" required><option value="" disabled selected>Choose your starting point</option><option value="school">I’m at school or finishing matric</option><option value="study">I’m planning further study</option><option value="work">I’m preparing for work or a career change</option></select>
+          <label for="interest">What would help most right now?</label>
+          <select id="interest" name="interest" required><option value="" disabled selected>Choose what you’d like to explore</option><option value="options">Understanding my options</option><option value="practical">Exploring practical skills and trades</option><option value="funding">Understanding study funding</option><option value="apply">Preparing an application</option></select>
+          <button class="button-primary" type="submit">Show my next reads <span aria-hidden="true">↗</span></button>
+        </form>
+        <div id="pathfinder-results" hidden tabindex="-1" aria-live="polite"><span class="eyebrow">YOUR STARTING POINT</span><h3 id="result-heading"></h3><p id="result-description"></p><div id="result-links"></div><button id="start-again" class="button-text" type="button">Change my answers ↺</button></div>
+        <p class="pathfinder-note">This is a guide to exploring your options. Admission and funding decisions depend on the institution’s current requirements.</p>
+        <noscript><p>Browse <a href="/education">education guides</a>, <a href="/careers">career pathways</a> or <a href="/resources">application resources</a> to get started.</p></noscript>
+      </section>
+    </div>
+  </main>
+</Layout>
+<script>
+  const form = document.querySelector<HTMLFormElement>('#pathfinder-form');
+  const results = document.querySelector<HTMLElement>('#pathfinder-results');
+  const heading = document.querySelector<HTMLElement>('#result-heading');
+  const description = document.querySelector<HTMLElement>('#result-description');
+  const links = document.querySelector<HTMLElement>('#result-links');
+  const reset = document.querySelector<HTMLButtonElement>('#start-again');
+  const suggestions = {
+    funding: { title: 'Start with how study funding works.', text: 'Understand NSFAS and the study routes it relates to, then check current requirements with the official funding provider.', links: [['NSFAS funding explained', '/education/nsfas-funding-explained'], ['Explore TVET colleges', '/education/tvet-colleges-in-south-africa']] },
+    practical: { title: 'Explore a route built around practical skills.', text: 'Compare college study and artisan training, and see what becoming a qualified electrician involves.', links: [['TVET colleges: the complete guide', '/education/tvet-colleges-in-south-africa'], ['How to become an electrician', '/careers/how-to-become-an-electrician'], ['More career pathways', '/careers']] },
+    apply: { title: 'Build confidence before you apply.', text: 'Work through CV writing, interview preparation and the application routes used by employers.', links: [['CV and application resources', '/resources'], ['Get to know employers', '/companies']] },
+    school: { title: 'See the possibilities after matric.', text: 'Compare the different routes before deciding which one fits your interests and circumstances.', links: [['What to do after matric', '/education/what-to-do-after-matric'], ['University or TVET?', '/education/university-vs-tvet-which-path-fits-you'], ['Explore careers', '/careers']] },
+    study: { title: 'Compare your study options.', text: 'Get familiar with university and college routes, then connect your choices with careers you would like to explore.', links: [['University or TVET?', '/education/university-vs-tvet-which-path-fits-you'], ['Explore education guides', '/education'], ['Explore career pathways', '/careers']] },
+    work: { title: 'Explore a career and prepare your next move.', text: 'Understand training routes, look at indicative salaries and build your application skills.', links: [['Explore career pathways', '/careers'], ['Understand salary ranges', '/salary'], ['Prepare your application', '/resources']] },
+  };
+  form?.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!form || !results || !heading || !description || !links) return;
+    const data = new FormData(form);
+    const stage = String(data.get('stage')) as 'school' | 'study' | 'work';
+    const interest = String(data.get('interest'));
+    const key = interest === 'options' ? stage : interest as keyof typeof suggestions;
+    const selected = suggestions[key];
+    if (!selected) return;
+    heading.textContent = selected.title;
+    description.textContent = selected.text;
+    links.replaceChildren(...selected.links.map(([label, href]) => {
+      const anchor = document.createElement('a');
+      anchor.href = href;
+      anchor.textContent = label + ' →';
+      return anchor;
+    }));
+    form.hidden = true;
+    results.hidden = false;
+    results.focus();
+  });
+  reset?.addEventListener('click', () => {
+    if (!form || !results) return;
+    results.hidden = true;
+    form.hidden = false;
+    form.querySelector<HTMLSelectElement>('select')?.focus();
+  });
+</script>
+<style>
+  .pathfinder-layout { display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start; }
+  .collection-intro { padding:0; }.collection-intro h1 { font-size:45px; }
+  .pathfinder-panel { background:white; border:1px solid var(--line); border-radius:14px; padding:36px; }
+  h2 { font-size:25px; font-weight:600; letter-spacing:-.035em; margin:18px 0 28px; }
+  label { display:block; font-size:14px; font-weight:600; margin:22px 0 10px; }
+  select { width:100%; padding:14px 10px; border:1px solid #b9c4b8; border-radius:6px; background:#fafbf7; font-size:14px; color:var(--forest); }
+  form .button-primary { width:100%; justify-content:space-between; margin-top:28px; border:0; }
+  .pathfinder-note { font-size:12px; line-height:1.8; margin-top:28px; color:#657266; }
+  #result-heading { font-size:26px; line-height:1.3; margin:20px 0; font-weight:600; }
+  #result-description { font-size:15px; line-height:1.8; color:#657266; }
+  #result-links { display:grid; gap:10px; margin:24px 0; }
+  #result-links a { padding:16px; border:1px solid var(--line); border-radius:7px; font-size:14px; background:#f3f5ed; }
+  #start-again { border:0; background:transparent; padding:8px 0; }
+  [hidden] { display:none!important; }
+  @media(max-width:800px) { .pathfinder-layout { grid-template-columns:1fr; gap:24px; }.pathfinder-panel { padding:24px; }.collection-intro h1 { font-size:36px; } }
+</style>

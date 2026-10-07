@@ -3,60 +3,14 @@ import Layout from '../../layouts/Layout.astro';
 import { getEmployers, PROVINCES } from '../../lib/pocketbase';
 import { COMPANY_GUIDES } from '../../content/company-guides';
 import { SITE_URL } from '../../lib/constants';
-
+import { JOBS_PUBLIC } from '../../lib/featureFlags';
 const province = Astro.url.searchParams.get('province') || '';
-const employers = await getEmployers({ page: 1, perPage: 100, province, verifiedOnly: true }).catch(() => ({ items: [] }));
-function provinceSlug(value: string) { return value ? `/companies?province=${encodeURIComponent(value)}` : '/companies'; }
+// The education hub needs no database query to display its editorial guides.
+const employers = JOBS_PUBLIC ? await getEmployers({ page: 1, perPage: 100, province, verifiedOnly: true }).catch(() => ({ items: [] })) : { items: [] };
 ---
-
-<Layout
-  title="Employer Guides in South Africa: How to Apply at Top Companies"
-  description="Informational employer guides for South Africa's biggest companies: Shoprite, Capitec, Standard Bank, Woolworths, Pick n Pay, Clicks and more — how to apply, requirements and FAQs."
-  canonicalUrl={`${SITE_URL}/companies`}
-  adsEligible={false}
->
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">Employer Guides</h1>
-    <p class="text-sm text-gray-600 mb-4">How to apply at South Africa's biggest employers — requirements, programmes and FAQs. Always confirm current vacancies on each company's official careers site.</p>
-
-    <section class="mb-10">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Major employer guides</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {COMPANY_GUIDES.map(g => (
-          <a href={`/company/${g.slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-base font-semibold text-gray-900">{g.name}</span>
-            </div>
-            <p class="text-sm text-gray-600">{g.sector}</p>
-            <p class="text-sm text-green-800 font-medium mt-1">View employer guide &rarr;</p>
-          </a>
-        ))}
-      </div>
-    </section>
-
-    <section>
-      <h2 class="text-lg font-semibold text-gray-900 mb-2">Other verified employers</h2>
-      <p class="text-sm text-gray-600 mb-4">Additional employers known to Edubuzz across South Africa.</p>
-      <div class="flex gap-2 mb-6 flex-wrap">
-        {['',...PROVINCES].map(p => <a href={provinceSlug(p)} class={`text-sm px-4 py-1.5 rounded-md transition-colors ${p===province||(!province&&p==='') ? 'bg-green-800 text-white' : 'border border-gray-200 text-gray-900 hover:border-green-800 hover:text-green-800'}`}>{p||'All'}</a>)}
-      </div>
-      {employers.items.length ? (
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {employers.items.map((emp: any) => (
-            <a href={`/company/${emp.company_slug}`} class="bg-white border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors block">
-              <div class="flex items-center gap-2 mb-1">
-                <span class="text-base font-semibold text-gray-900">{emp.company_name}</span>
-                {emp.verified && <span class="text-xs bg-green-50 text-green-800 px-2 py-0.5 rounded-md font-medium">Verified</span>}
-              </div>
-              <p class="text-sm text-gray-600">{[emp.city, emp.province].filter(Boolean).join(', ') || 'South Africa'}</p>
-            </a>
-          ))}
-        </div>
-      ) : (
-        <div class="bg-white border border-gray-200 rounded-md p-8 text-center">
-          <p class="text-sm text-gray-600">{province ? `No verified employers in ${province} right now.` : 'No verified employers listed for this filter.'}</p>
-        </div>
-      )}
-    </section>
-  </div>
-</Layout>
+<Layout title="Employer Guides in South Africa: How to Apply at Top Companies" description="Get to know major South African employers, their career areas and official application routes." canonicalUrl={SITE_URL + '/companies'} adsEligible={true}>
+<main class="shell">
+<header class="collection-intro"><span class="eyebrow">THE WORKING WORLD / EMPLOYER GUIDES</span><h1>Meet your possible<br />next workplace.</h1><p>Learn about South Africa’s major employers, their career areas and how to apply through official channels. A little research can make your next application more focused.</p></header>
+<div class="editorial-grid" style="padding-bottom:65px">{COMPANY_GUIDES.map(g => <a class="company-card" href={'/company/' + g.slug}><div class="company-card__top"><span class="company-monogram" aria-hidden="true">{g.name.charAt(0)}</span><span class="eyebrow">{g.sector}</span></div><h2>{g.name}</h2><p>{g.description}</p><span class="button-text">Explore employer guide ↗</span></a>)}</div>
+{JOBS_PUBLIC && <section style="padding-bottom:65px"><h2 class="text-2xl font-semibold mb-4">Other verified employers</h2><nav aria-label="Filter employers by province" class="flex gap-2 flex-wrap mb-6">{['', ...PROVINCES].map(p => <a href={p ? '/companies?province=' + encodeURIComponent(p) : '/companies'} class="border rounded-full px-4 py-2 text-sm" aria-current={p === province ? 'page' : undefined}>{p || 'All provinces'}</a>)}</nav>{employers.items.length ? <div class="editorial-grid">{employers.items.map((emp:any) => <a class="company-card" href={'/company/' + emp.company_slug}><h2>{emp.company_name}</h2><p>{[emp.city,emp.province].filter(Boolean).join(', ')}</p></a>)}</div> : <p>No verified employers listed for this filter.</p>}</section>}
+</main></Layout>

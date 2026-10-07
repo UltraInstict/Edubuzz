@@ -9,6 +9,7 @@ export const GET: APIRoute = async ({ site }) => {
 
 ## Core Pages
 - [Homepage](${base}/): Education, careers, resources and employer guides
+- [Find your path](${base}/start): Choose your starting point and discover relevant guides
 - [Education](${base}/education): TVET colleges, NSFAS, NATED programmes, study pathways
 - [Careers](${base}/careers): Comprehensive occupation guides with training routes and salaries
 - [Resources](${base}/resources): CV, interview and application guides

@@ -6,6 +6,7 @@ export const GET: APIRoute = async ({ site }) => {
 
   const urls = [
     { loc: `${base}/`, priority: '1.0', changefreq: 'daily' },
+    { loc: `${base}/start`, priority: '0.8', changefreq: 'monthly' },
     { loc: `${base}/education`, priority: '0.9', changefreq: 'weekly' },
     { loc: `${base}/careers`, priority: '0.9', changefreq: 'weekly' },
     { loc: `${base}/resources`, priority: '0.8', changefreq: 'weekly' },

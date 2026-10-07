@@ -26,6 +26,11 @@ export const POST: APIRoute = async ({ request }) => {
       return fail('Name, valid email, and message are required.', 400);
     }
 
+    // The mailer returns early when unconfigured; do not report delivery then.
+    if (!import.meta.env.SMTP_HOST || !import.meta.env.SMTP_USER || !import.meta.env.SMTP_PASS) {
+      return fail('Messaging is temporarily unavailable. Please email hello@edubuzz.co.za.', 503);
+    }
+
     const to = import.meta.env.SMTP_USER || 'admin@edubuzz.co.za';
     await sendMail(
       to,

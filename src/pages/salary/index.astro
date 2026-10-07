@@ -1,49 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import MonetizationSlot from '../../components/MonetizationSlot.astro';
+import GuideCard from '../../components/GuideCard.astro';
 import { SALARY_GUIDES } from '../../content/salary-guides';
 import { SITE_URL } from '../../lib/constants';
-
-const breadcrumbSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Salary Guides' },
-  ],
-};
 ---
-
-<Layout
-  title="Salary Guides South Africa (2026) — What Jobs Pay"
-  description="What do jobs pay in South Africa? Salary guides for teachers, nurses, electricians, police officers, cashiers, admin clerks and more. Updated for 2026."
-  canonicalUrl={`${SITE_URL}/salary`}
->
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} slot="head" />
-
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
-      <a href="/" class="hover:text-gray-900">Home</a> &rsaquo;
-      <span class="text-gray-900 font-medium">Salary Guides</span>
-    </nav>
-
-    <header class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900 mb-2">Salary Guides — South Africa</h1>
-      <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Find out what jobs pay in South Africa. Our salary guides cover average pay, career paths and requirements for popular occupations, with links to related career and education guides.</p>
-    </header>
-
-    <MonetizationSlot zone="content-top" />
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-      {SALARY_GUIDES.map(guide => (
-        <a href={`/salary/${guide.slug}`} class="border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors group">
-          <h2 class="text-sm font-semibold text-gray-900 group-hover:text-green-800 mb-1">{guide.occupation}</h2>
-          <p class="text-xs text-green-800 font-medium mb-2">{guide.averageSalary}</p>
-          <p class="text-xs text-gray-500 line-clamp-2">{guide.description}</p>
-        </a>
-      ))}
-    </div>
-
-    <MonetizationSlot zone="content-bottom" />
-  </div>
-</Layout>
+<Layout title="Salary Guides South Africa — What Careers Pay" description="Understand indicative salary ranges, career progression and qualifications for common South African occupations." canonicalUrl={SITE_URL + '/salary'} adsEligible={true}>
+<main class="shell"><header class="collection-intro"><span class="eyebrow">CAREER PLANNING / SALARIES</span><h1>Get a clearer picture<br />of what careers pay.</h1><p>Explore indicative pay ranges and how experience can shape your earnings. Actual salaries vary by employer, location and qualifications.</p></header><div class="editorial-grid" style="padding-bottom:65px">{SALARY_GUIDES.map(g => <GuideCard href={'/salary/' + g.slug} title={g.occupation} description={g.description} label="Salary guide" detail={g.averageSalary} />)}</div></main></Layout>

@@ -10,7 +10,7 @@ export const SITE_TAGLINE = 'South African education & career information.';
 export const SITE_LOCALE = 'en_ZA';
 export const SITE_LANG = 'en-ZA';
 
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg`;
 
 /**
  * Resolve the canonical site base URL from env (falls back to the constant).

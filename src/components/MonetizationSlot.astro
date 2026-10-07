@@ -16,11 +16,16 @@ import { resolveSlot } from '../services/monetizationService';
 import type { ResolvedSlot, AffiliateContent, HouseAdContent, SponsoredJobContent, SponsoredEmployerContent, AdSenseContent } from '../services/monetizationService';
 
 export interface Props {
-  zone: 'strip' | 'sidebar' | 'infeed' | 'jobs-top' | 'homepage-hero';
+  zone: 'strip' | 'sidebar' | 'infeed' | 'jobs-top' | 'homepage-hero' | 'content-top' | 'content-bottom' | 'in-content';
   category?: string;
 }
 
-const { zone, category } = Astro.props;
+const { zone: requestedZone, category } = Astro.props;
+// Editorial placements share the zones already configured in the admin UI.
+const zone = requestedZone === 'content-top' ? 'jobs-top'
+  : requestedZone === 'content-bottom' ? 'strip'
+  : requestedZone === 'in-content' ? 'infeed'
+  : requestedZone;
 
 const result: ResolvedSlot = ADS_ENABLED
   ? await resolveSlot(zone, { category }).catch(() => ({ type: 'empty' as const, content: null }))

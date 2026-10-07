@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { editorialImage } from '../../lib/editorialImages';
 import Sidebar from '../../components/Sidebar.astro';
 import MonetizationSlot from '../../components/MonetizationSlot.astro';
 import JobCard from '../../components/JobCard.astro';
@@ -77,6 +78,8 @@ const faqSchema = {
         <h1 class="text-2xl font-bold text-gray-900 mb-2">{guide.h1}</h1>
         <p class="text-xs text-gray-500">Updated {guide.updated}</p>
       </header>
+
+      <img class="article-visual" src={editorialImage(guide.h1).src} alt={editorialImage(guide.h1).alt} width="1000" height="500" />
 
       <!-- Salary summary card -->
       <div class="bg-green-50 border border-green-200 rounded-md p-5 mb-6">

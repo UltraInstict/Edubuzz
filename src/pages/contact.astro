@@ -4,16 +4,15 @@ import { generateToken } from '../lib/csrf';
 const csrfToken = generateToken();
 ---
 
-<Layout title="Contact Edubuzz" description="Contact the Edubuzz team for content feedback, partnerships, or general enquiries." canonicalUrl={Astro.url.href}>
-  <div class="max-w-2xl mx-auto px-4 pt-6 pb-10">
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">Contact Edubuzz</h1>
-    <p class="text-sm text-gray-600 leading-relaxed mb-6">Have a question, spotted an error, or want to discuss a partnership? Get in touch and we will respond within one business day.</p>
-    <form id="contact-form" class="space-y-5">
+<Layout title="Contact Edubuzz" description="Contact the Edubuzz team for content feedback, partnerships, or general enquiries." canonicalUrl={Astro.url.href} adsEligible={false}>
+  <main class="max-w-3xl mx-auto px-4 pt-6 pb-10">
+    <header class="collection-intro"><span class="eyebrow">CONTACT / LET’S TALK</span><h1>Good questions.<br />Fresh ideas. Say hello.</h1><p>Spotted an error, have a suggestion or want to discuss a partnership? Send us a message.</p></header>
+    <form id="contact-form" class="space-y-5 bg-white border border-gray-200 rounded-xl p-6">
       <input type="hidden" name="_csrf" value={csrfToken} />
       <div class="sr-only"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
-      <div><label class="block text-sm font-medium text-gray-700 mb-1">Name</label><input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="name" required /></div>
-      <div><label class="block text-sm font-medium text-gray-700 mb-1">Email</label><input class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="email" name="email" required /></div>
-      <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><select class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="subject" required>
+      <div><label for="contact-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label><input id="contact-name" autocomplete="name" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="name" required /></div>
+      <div><label for="contact-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label><input id="contact-email" autocomplete="email" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" type="email" name="email" required /></div>
+      <div><label for="contact-subject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label><select id="contact-subject" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="subject" required>
         <option value="">Select a topic</option>
         <option value="General Enquiry">General Enquiry</option>
         <option value="Content Feedback">Content Feedback</option>
@@ -21,25 +20,34 @@ const csrfToken = generateToken();
         <option value="Technical Issue">Technical Issue</option>
         <option value="Other">Other</option>
       </select></div>
-      <div><label class="block text-sm font-medium text-gray-700 mb-1">Message</label><textarea class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="message" rows="6" required></textarea></div>
-      <p id="message" hidden class="text-sm"></p>
-      <button type="submit" class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Send message</button>
+      <div><label for="contact-message" class="block text-sm font-medium text-gray-700 mb-1">Message</label><textarea id="contact-message" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-green-800" name="message" rows="6" required></textarea></div>
+      <p id="message" hidden role="status" class="text-sm"></p>
+      <button type="submit" class="button-primary">Send message ↗</button>
     </form>
     <div class="mt-6 text-center text-sm text-gray-600">
       <p>Prefer email? Reach us at <a href="mailto:hello@edubuzz.co.za" class="text-green-800 hover:text-green-900 hover:underline font-medium">hello@edubuzz.co.za</a></p>
       <p class="text-xs text-gray-400 mt-1">We typically respond within 1 business day.</p>
     </div>
-  </div>
+  </main>
 </Layout>
 
 <script>
   document.getElementById('contact-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;
-    const res = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
-    const data = await res.json().catch(() => ({}));
     const msg = document.getElementById('message') as HTMLParagraphElement;
-    msg.textContent = (res.ok && data.success !== false) ? 'Message sent. We will get back to you within 1 business day.' : (data.error || 'Could not send your message.');
-    msg.hidden = false;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (button?.disabled) return;
+    if (button) { button.disabled = true; button.textContent = 'Sending…'; }
+    try {
+      const res = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
+      const data = await res.json().catch(() => ({}));
+      msg.textContent = (res.ok && data.success === true) ? 'Message sent. Thank you for getting in touch.' : (data.error || 'Could not send your message. Please try again or email hello@edubuzz.co.za.');
+    } catch {
+      msg.textContent = 'Connection interrupted. Your message has not been cleared. Try again or email hello@edubuzz.co.za.';
+    } finally {
+      msg.hidden = false;
+      if (button) { button.disabled = false; button.textContent = 'Send message ↗'; }
+    }
   });
 </script>

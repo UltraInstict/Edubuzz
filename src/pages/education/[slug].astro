@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { editorialImage } from '../../lib/editorialImages';
 import { EDUCATION_GUIDES } from '../../content/education-guides';
 import { CAREER_GUIDES } from '../../content/career-guides';
 import { ARTICLES } from '../../content/resources';
@@ -51,7 +52,7 @@ const faqSchema = {
   description={guide.description}
   canonicalUrl={`${SITE_URL}/education/${guide.slug}`}
   ogType="article"
-  adsEligible={false}
+  adsEligible={true}
 >
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} slot="head" />
   <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} slot="head" />
@@ -72,6 +73,8 @@ const faqSchema = {
         <span>{guide.readMins} min read</span>
       </div>
     </header>
+
+    <img class="article-visual" src={editorialImage(guide.h1).src} alt={editorialImage(guide.h1).alt} width="1000" height="500" />
 
     <p class="text-gray-700 text-base leading-relaxed mb-6">{guide.intro}</p>
 

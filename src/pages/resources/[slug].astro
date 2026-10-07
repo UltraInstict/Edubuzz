@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { editorialImage } from '../../lib/editorialImages';
 import Sidebar from '../../components/Sidebar.astro';
 import MonetizationSlot from '../../components/MonetizationSlot.astro';
 import JobCard from '../../components/JobCard.astro';
@@ -93,6 +94,8 @@ const faqSchema = article.faqs?.length ? {
           <a href={`/resources?category=${article.category}`} class="text-green-800 hover:underline">{categoryMeta?.label}</a>
         </div>
       </header>
+
+      <img class="article-visual" src={editorialImage(article.h1).src} alt={editorialImage(article.h1).alt} width="1000" height="500" />
 
       <!-- Ad slot below title -->
       <MonetizationSlot zone="content-top" />

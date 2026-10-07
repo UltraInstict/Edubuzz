@@ -37,14 +37,16 @@ const name = guide?.name || employer?.company_name || 'Employer';
 const sector = guide?.sector || 'Employer';
 const locationLabel = employer ? [employer.city, employer.province].filter(Boolean).join(', ') : '';
 const website = guide?.officialSite || employer?.website || '';
-// PB-only employer pages without curated content are thin stubs during the
-// AdSense phase — noindex them so they don't count as low-value content.
+// PB-only records are thin stubs. Review separately; noindex is not an
+// AdSense approval exemption.
 const isThinStub = !guide;
 
 const relatedCareers = (guide?.careerLinks || [])
   .map(s => CAREER_GUIDES.find(c => c.slug === s))
   .filter(Boolean);
-const otherCompanies = COMPANY_GUIDES.filter(c => c.slug !== slug).slice(0, 4);
+const otherCompanies = COMPANY_GUIDES.filter(c => c.slug !== slug && c.sector === sector).slice(0, 4);
+const applicationGuides = ['how-to-write-your-first-cv-no-experience', 'how-to-apply-for-jobs-online', 'star-method-interview-technique', 'how-to-check-if-a-job-is-legitimate']
+  .map(slug => ARTICLES.find(a => a.slug === slug)).filter(Boolean);
 
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
@@ -61,8 +63,7 @@ const articleSchema = {
   '@type': 'Article',
   headline: `${name} Careers`,
   description: guide?.description || `${name} is an employer in South Africa${locationLabel ? `, based in ${locationLabel}` : ''}. Learn how to apply and prepare for opportunities at ${name}.`,
-  dateModified: '2026-08-01',
-  datePublished: '2026-08-01',
+  dateModified: guide?.updated,
   author: { '@type': 'Organization', name: 'Edubuzz', url: SITE_URL },
   publisher: { '@type': 'Organization', name: 'Edubuzz', url: SITE_URL },
   mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/company/${slug}` },
@@ -80,11 +81,11 @@ const faqSchema = guide ? {
   description={guide?.description || `${name} is an employer in South Africa${locationLabel ? `, based in ${locationLabel}` : ''}. Find out how to apply for opportunities at ${name} and how to prepare.`}
   canonicalUrl={`${SITE_URL}/company/${slug}`}
   ogType="article"
-  adsEligible={false}
+  adsEligible={true}
   noindex={isThinStub}
 >
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} slot="head" />
-  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} slot="head" />
+  {guide && <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} slot="head" />}
   {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />}
 
   <div class="max-w-3xl mx-auto px-4 py-8">
@@ -100,13 +101,17 @@ const faqSchema = guide ? {
         <span>{sector}{locationLabel ? ` · ${locationLabel}` : ''}</span>
         {website && <a href={website} target="_blank" rel="noopener noreferrer" class="text-green-800 hover:underline">Official website &rarr;</a>}
       </div>
+      {guide && <p class="text-sm text-gray-600 mt-4 leading-relaxed">Independent application guide · Updated 7 October 2026. Edubuzz is not affiliated with {name}, does not accept applications for the employer and does not confirm live vacancies.</p>}
     </header>
 
     {guide ? (
       <>
+        <nav aria-label="In this guide" class="border border-gray-200 rounded-md p-4 mb-6 text-sm flex flex-wrap gap-3">
+          <a href="#routes">Career routes</a><a href="#prepare">Preparation</a><a href="#apply">Application steps</a><a href="#sources">Sources &amp; limits</a>
+        </nav>
         <section class="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-green-800 prose-li:text-gray-700 mb-8" set:html={guide.overview} />
 
-        <section class="mb-8">
+        <section id="routes" class="mb-8">
           <h2 class="text-lg font-semibold text-gray-900 mb-3">Career areas at {name}</h2>
           <div class="flex flex-wrap gap-2">
             {guide.careerAreas.map(area => (
@@ -116,14 +121,35 @@ const faqSchema = guide ? {
         </section>
 
         <section class="mb-8">
-          <h2 class="text-lg font-semibold text-gray-900 mb-3">Entry-level opportunities</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">Choosing an entry route</h2>
           <div class="prose prose-sm max-w-none prose-p:text-gray-700 prose-li:text-gray-700" set:html={guide.entryLevel} />
         </section>
 
-        <section class="mb-8">
+        <section id="prepare" class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">Prepare evidence for your application</h2>
+          <p class="text-sm text-gray-600 leading-relaxed mb-4">The examples below are Edubuzz preparation advice, not employer interview questions or confirmed selection criteria.</p>
+          <div class="space-y-5">
+            {guide.preparation.map(item => <div><h3 class="font-semibold text-gray-900 mb-2">{item.title}</h3><p class="text-sm text-gray-700 leading-relaxed">{item.text}</p></div>)}
+          </div>
+        </section>
+
+        <section class="mb-8 rounded-md bg-green-50 border border-green-200 p-5">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">Check before you submit</h2>
+          <ul class="list-disc pl-5 text-sm text-gray-700 space-y-2">{guide.checks.map(check => <li>{check}</li>)}</ul>
+        </section>
+
+        <section id="apply" class="mb-8">
           <h2 class="text-lg font-semibold text-gray-900 mb-3">How to apply</h2>
           <div class="prose prose-sm max-w-none prose-p:text-gray-700 prose-a:text-green-800 prose-li:text-gray-700" set:html={guide.howToApply} />
           <a href={guide.officialSite} target="_blank" rel="noopener noreferrer" class="inline-block mt-3 bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Visit the official careers site</a>
+        </section>
+
+        <section id="sources" class="mb-8 border-t border-gray-200 pt-5">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">Sources and verification limits</h2>
+          <p class="text-sm text-gray-700 leading-relaxed mb-3">{guide.sourceNote}</p>
+          <a href={guide.officialSite} target="_blank" rel="noopener noreferrer" class="text-sm text-green-800 underline">{name} careers source</a>
+          {guide.slug === 'mr-price' && <p class="mt-2 text-sm"><a href="https://www.mrp.com/customer-service/faqs" target="_blank" rel="noopener noreferrer" class="text-green-800 underline">Mr Price recruitment-channel FAQ</a></p>}
+          <p class="text-sm text-gray-600 leading-relaxed mt-3">Reviewed 7 October 2026. Current requirements, deadlines, programme availability and selection arrangements can change. Confirm them in the employer's advert. <a href="/contact" class="text-green-800 underline">Report an outdated detail</a>.</p>
         </section>
 
         <section class="mb-8">
@@ -149,8 +175,9 @@ const faqSchema = guide ? {
           <h2 class="text-lg font-semibold text-gray-900 mb-3">How to apply for opportunities at {name}</h2>
           <p class="text-sm text-gray-700 leading-relaxed mb-3">
             The most reliable way to apply is through {name}'s official careers or contact channels.
-            Keep your CV up to date and tailored, and prepare certified copies of your ID and
-            qualifications for the shortlisting stage.
+            This employer record is not a reviewed application guide or vacancy confirmation.
+            Verify any recruitment instructions directly and share sensitive documents only
+            when requested through a verified channel.
           </p>
           {website && (
             <a href={website} target="_blank" rel="noopener noreferrer" class="inline-block bg-green-800 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-green-900 transition-colors">Visit the official website</a>
@@ -176,7 +203,7 @@ const faqSchema = guide ? {
     <section class="mb-8">
       <h2 class="text-lg font-semibold text-gray-900 mb-3">Helpful application guides</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {ARTICLES.slice(0, 4).map(a => (
+        {applicationGuides.map(a => (
           <a href={`/resources/${a.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors">
             <h3 class="text-sm font-semibold text-gray-900 mb-1">{a.h1}</h3>
             <p class="text-xs text-gray-500">{a.readMins} min read</p>
@@ -185,7 +212,7 @@ const faqSchema = guide ? {
       </div>
     </section>
 
-    <section class="mb-8">
+    {otherCompanies.length > 0 && <section class="mb-8">
       <h2 class="text-lg font-semibold text-gray-900 mb-3">Other employer guides</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {otherCompanies.map(c => (
@@ -195,6 +222,6 @@ const faqSchema = guide ? {
           </a>
         ))}
       </div>
-    </section>
+    </section>}
   </div>
 </Layout>

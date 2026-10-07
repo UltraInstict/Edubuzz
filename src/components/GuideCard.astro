@@ -1,0 +1,10 @@
+---
+import { editorialImage } from '../lib/editorialImages';
+interface Props { href: string; title: string; description: string; label: string; readMins?: number; detail?: string; }
+const { href, title, description, label, readMins, detail } = Astro.props;
+const picture = editorialImage(title);
+---
+<a class="guide-card" href={href}>
+  <div class="guide-card__image"><img src={picture.src} alt={picture.alt} width="720" height="480" loading="lazy" /><span>{label}</span></div>
+  <div class="guide-card__body"><h3>{title}</h3>{detail && <strong class="guide-card__detail">{detail}</strong>}<p>{description}</p><div class="guide-card__meta"><span>{readMins ? `${readMins} min read` : 'Explore the guide'}</span><span aria-hidden="true">↗</span></div></div>
+</a>

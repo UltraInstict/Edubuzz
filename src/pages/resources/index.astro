@@ -1,12 +1,13 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import MonetizationSlot from '../../components/MonetizationSlot.astro';
+import GuideCard from '../../components/GuideCard.astro';
 import { ARTICLES, RESOURCE_CATEGORIES, type ResourceCategoryId } from '../../content/resources';
 import { SITE_URL } from '../../lib/constants';
 
 // Handle category filter from query param
-const categoryFilter = Astro.url.searchParams.get('category') as ResourceCategoryId | null;
-const page = Math.max(1, Number(Astro.url.searchParams.get('page') || '1'));
+const requestedCategory = Astro.url.searchParams.get('category');
+const categoryFilter = RESOURCE_CATEGORIES.some(c => c.id === requestedCategory) ? requestedCategory as ResourceCategoryId : null;
+const requestedPage = Number(Astro.url.searchParams.get('page') || '1');
 const perPage = 12;
 
 // Filter and paginate articles
@@ -17,10 +18,8 @@ if (categoryFilter && RESOURCE_CATEGORIES.some(c => c.id === categoryFilter)) {
 
 const totalItems = filtered.length;
 const totalPages = Math.ceil(totalItems / perPage);
+const page = Number.isFinite(requestedPage) ? Math.min(Math.max(1, Math.floor(requestedPage)), Math.max(1, totalPages)) : 1;
 const paged = filtered.slice((page - 1) * perPage, page * perPage);
-
-const featured = ARTICLES.filter(a => a.featured).slice(0, 3);
-const popular = ARTICLES.filter(a => a.popular).slice(0, 6);
 
 const activeCategoryMeta = categoryFilter
   ? RESOURCE_CATEGORIES.find(c => c.id === categoryFilter)
@@ -43,111 +42,11 @@ const pageDesc = activeCategoryMeta
   ? activeCategoryMeta.blurb
   : 'Free career and education guides for South Africans. CV writing, interview preparation, learnership info, NSFAS and TVET applications, salary guides and more.';
 ---
-
-<Layout title={pageTitle} description={pageDesc} canonicalUrl={`${SITE_URL}/resources${categoryFilter ? `?category=${categoryFilter}` : ''}`}>
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} slot="head" />
-
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <!-- Breadcrumbs -->
-    <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
-      <a href="/" class="hover:text-gray-900">Home</a> &rsaquo;
-      {activeCategoryMeta
-        ? <><a href="/resources" class="hover:text-gray-900">Resources</a> &rsaquo; <span class="text-gray-900 font-medium">{activeCategoryMeta.label}</span></>
-        : <span class="text-gray-900 font-medium">Resources</span>
-      }
-    </nav>
-
-    <header class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900 mb-2">{activeCategoryMeta ? activeCategoryMeta.label : 'Career Resources'}</h1>
-      <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">{pageDesc}</p>
-    </header>
-
-    <!-- Category pills -->
-    <div class="flex flex-wrap gap-2 mb-8">
-      <a href="/resources" class:list={['px-3 py-1.5 rounded-full text-xs font-medium border transition-colors', !categoryFilter ? 'bg-green-800 text-white border-green-800' : 'bg-white text-gray-700 border-gray-200 hover:border-green-800']}>
-        All
-      </a>
-      {RESOURCE_CATEGORIES.map(cat => (
-        <a href={`/resources?category=${cat.id}`} class:list={['px-3 py-1.5 rounded-full text-xs font-medium border transition-colors', categoryFilter === cat.id ? 'bg-green-800 text-white border-green-800' : 'bg-white text-gray-700 border-gray-200 hover:border-green-800']}>
-          {cat.label}
-        </a>
-      ))}
-    </div>
-
-    <!-- Featured guides (only show on unfiltered page 1) -->
-    {!categoryFilter && page === 1 && featured.length > 0 && (
-      <section class="mb-10">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Featured Guides</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {featured.map(article => (
-            <a href={`/resources/${article.slug}`} class="border border-gray-200 rounded-md p-5 hover:border-green-800 transition-colors group">
-              <span class="text-xs text-green-800 font-medium">{RESOURCE_CATEGORIES.find(c => c.id === article.category)?.label}</span>
-              <h3 class="text-sm font-semibold text-gray-900 mt-1 mb-2 group-hover:text-green-800">{article.h1}</h3>
-              <p class="text-xs text-gray-500 line-clamp-2">{article.description}</p>
-              <span class="text-xs text-gray-400 mt-2 block">{article.readMins} min read</span>
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
-
-    <MonetizationSlot zone="content-top" />
-
-    <!-- Popular guides (only show on unfiltered page 1) -->
-    {!categoryFilter && page === 1 && popular.length > 0 && (
-      <section class="mb-10">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Popular Guides</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {popular.map(article => (
-            <a href={`/resources/${article.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors group">
-              <span class="text-xs text-green-800 font-medium">{RESOURCE_CATEGORIES.find(c => c.id === article.category)?.label}</span>
-              <h3 class="text-sm font-semibold text-gray-900 mt-1 group-hover:text-green-800">{article.h1}</h3>
-              <span class="text-xs text-gray-400">{article.readMins} min read</span>
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
-
-    <!-- All articles (or filtered) -->
-    <section class="mb-10">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">
-        {activeCategoryMeta ? `${activeCategoryMeta.label} Guides` : 'All Guides'}
-        <span class="text-sm font-normal text-gray-400 ml-2">({totalItems})</span>
-      </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {paged.map(article => (
-          <a href={`/resources/${article.slug}`} class="border border-gray-200 rounded-md p-4 hover:border-green-800 transition-colors group">
-            <span class="text-xs text-green-800 font-medium">{RESOURCE_CATEGORIES.find(c => c.id === article.category)?.label}</span>
-            <h3 class="text-sm font-semibold text-gray-900 mt-1 mb-1 group-hover:text-green-800">{article.h1}</h3>
-            <p class="text-xs text-gray-500 line-clamp-2 mb-2">{article.description}</p>
-            <div class="flex items-center gap-2 text-xs text-gray-400">
-              <span>{article.readMins} min read</span>
-              <span>&middot;</span>
-              <span>Updated {article.updated}</span>
-            </div>
-          </a>
-        ))}
-      </div>
-
-      <!-- Pagination -->
-      {totalPages > 1 && (
-        <nav class="flex justify-center gap-2 mt-6" aria-label="Pagination">
-          {page > 1 && (
-            <a href={`/resources?${categoryFilter ? `category=${categoryFilter}&` : ''}page=${page - 1}`} class="px-3 py-1.5 text-sm border border-gray-200 rounded-md hover:border-green-800">Previous</a>
-          )}
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-            <a href={`/resources?${categoryFilter ? `category=${categoryFilter}&` : ''}page=${p}`} class:list={['px-3 py-1.5 text-sm border rounded-md', p === page ? 'bg-green-800 text-white border-green-800' : 'border-gray-200 hover:border-green-800']}>
-              {p}
-            </a>
-          ))}
-          {page < totalPages && (
-            <a href={`/resources?${categoryFilter ? `category=${categoryFilter}&` : ''}page=${page + 1}`} class="px-3 py-1.5 text-sm border border-gray-200 rounded-md hover:border-green-800">Next</a>
-          )}
-        </nav>
-      )}
-    </section>
-
-    <MonetizationSlot zone="content-bottom" />
-  </div>
-</Layout>
+<Layout title={pageTitle} description={pageDesc} canonicalUrl={SITE_URL + '/resources' + (categoryFilter ? '?category=' + categoryFilter : '')}>
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} slot="head" />
+<main class="shell">
+<header class="collection-intro"><span class="eyebrow">PRACTICAL RESOURCES / MAKE YOUR NEXT MOVE</span><h1>{activeCategoryMeta ? activeCategoryMeta.label : 'A little preparation. A lot more confidence.'}</h1><p>{pageDesc}</p></header>
+<nav aria-label="Resource categories" class="flex flex-wrap gap-2 mb-8"><a href="/resources" class="button-primary" style="padding:10px 16px" aria-current={!categoryFilter ? 'page' : undefined}>All guides</a>{RESOURCE_CATEGORIES.map(c => <a href={'/resources?category=' + c.id} class="rounded-full border border-gray-300 px-4 py-2 text-sm" aria-current={categoryFilter === c.id ? 'page' : undefined}>{c.label}</a>)}</nav>
+<div class="editorial-grid">{paged.map(a => <GuideCard href={'/resources/' + a.slug} title={a.h1} description={a.description} label={RESOURCE_CATEGORIES.find(c => c.id === a.category)?.label || 'Resource'} readMins={a.readMins} />)}</div>
+<nav aria-label="Pagination" class="flex justify-between py-12">{page > 1 && <a class="button-text" href={'/resources?page=' + (page - 1) + (categoryFilter ? '&category=' + categoryFilter : '')}>← Previous page</a>}<span class="text-sm">Page {page} of {Math.max(1,totalPages)}</span>{page < totalPages && <a class="button-text" href={'/resources?page=' + (page + 1) + (categoryFilter ? '&category=' + categoryFilter : '')}>Next page →</a>}</nav>
+</main></Layout>
